@@ -1,12 +1,17 @@
 "use client";
 
 import { db, isFirebaseConfigured } from "./firebase";
-
-// Import firestore functions if firebase is active
-let firestore: any = null;
-if (isFirebaseConfigured) {
-  firestore = require("firebase/firestore");
-}
+import { 
+  doc, 
+  collection, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  limit, 
+  setDoc, 
+  addDoc, 
+  serverTimestamp 
+} from "firebase/firestore";
 
 export interface PlayerStatus {
   id: string;
@@ -155,10 +160,10 @@ function notifyLocalNudge(playerId: string, rollType: string | null) {
 export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void): () => void {
   if (isFirebaseConfigured && db) {
     // Firebase Firestore Listener
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const playersCol = firestore.collection(campaignRef, "players");
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const playersCol = collection(campaignRef, "players");
     
-    const unsubscribe = firestore.onSnapshot(playersCol, (snapshot: any) => {
+    const unsubscribe = onSnapshot(playersCol, (snapshot: any) => {
       const playersList: PlayerStatus[] = [];
       snapshot.forEach((docSnap: any) => {
         playersList.push({ id: docSnap.id, ...docSnap.data() } as PlayerStatus);
@@ -167,7 +172,7 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
       // If Firestore is empty, seed it
       if (playersList.length === 0) {
         DEFAULT_PLAYERS.forEach(async (p) => {
-          await firestore.setDoc(firestore.doc(playersCol, p.id), {
+          await setDoc(doc(playersCol, p.id), {
             name: p.name,
             className: p.className,
             maxHp: p.maxHp,
@@ -217,11 +222,11 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
  */
 export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const rollsCol = firestore.collection(campaignRef, "rolls");
-    const q = firestore.query(rollsCol, firestore.orderBy("timestamp", "desc"), firestore.limit(30));
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const rollsCol = collection(campaignRef, "rolls");
+    const q = query(rollsCol, orderBy("timestamp", "desc"), limit(30));
 
-    const unsubscribe = firestore.onSnapshot(q, (snapshot: any) => {
+    const unsubscribe = onSnapshot(q, (snapshot: any) => {
       const logsList: RollLog[] = [];
       snapshot.forEach((docSnap: any) => {
         const data = docSnap.data();
@@ -272,10 +277,10 @@ export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => 
  */
 export function subscribeToNudges(playerId: string, onNudge: (rollType: string | null) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const nudgeRef = firestore.doc(campaignRef, "nudges", playerId);
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const nudgeRef = doc(campaignRef, "nudges", playerId);
 
-    const unsubscribe = firestore.onSnapshot(nudgeRef, (docSnap: any) => {
+    const unsubscribe = onSnapshot(nudgeRef, (docSnap: any) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         onNudge(data.active ? data.rollType : null);
@@ -324,10 +329,10 @@ export async function updatePlayerHp(
   const status = currentHp === 0 ? "down" : additionalFields.status || "active";
   
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const playerRef = firestore.doc(campaignRef, "players", playerId);
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const playerRef = doc(campaignRef, "players", playerId);
     
-    await firestore.setDoc(
+    await setDoc(
       playerRef, 
       { currentHp, maxHp, status, ...additionalFields }, 
       { merge: true }
@@ -360,15 +365,15 @@ export async function addRollLog(
   type: "attack" | "damage" | "stealth" | "heal"
 ): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const rollsCol = firestore.collection(campaignRef, "rolls");
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const rollsCol = collection(campaignRef, "rolls");
     
-    await firestore.addDoc(rollsCol, {
+    await addDoc(rollsCol, {
       playerName,
       actionName,
       rollNotation,
       rollTotal,
-      timestamp: firestore.serverTimestamp(),
+      timestamp: serverTimestamp(),
       type,
     });
   } else {
@@ -396,13 +401,13 @@ export async function addRollLog(
  */
 export async function sendNudge(playerId: string, rollType: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const nudgeRef = firestore.doc(campaignRef, "nudges", playerId);
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const nudgeRef = doc(campaignRef, "nudges", playerId);
     
-    await firestore.setDoc(nudgeRef, {
+    await setDoc(nudgeRef, {
       rollType,
       active: true,
-      timestamp: firestore.serverTimestamp(),
+      timestamp: serverTimestamp(),
     });
   } else {
     const nudges = getLocalData("tt_nudges", {});
@@ -419,10 +424,10 @@ export async function sendNudge(playerId: string, rollType: string): Promise<voi
  */
 export async function clearNudge(playerId: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = firestore.doc(db, "campaigns", "lost-mine");
-    const nudgeRef = firestore.doc(campaignRef, "nudges", playerId);
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const nudgeRef = doc(campaignRef, "nudges", playerId);
     
-    await firestore.setDoc(nudgeRef, { active: false }, { merge: true });
+    await setDoc(nudgeRef, { active: false }, { merge: true });
   } else {
     const nudges = getLocalData("tt_nudges", {});
     nudges[playerId] = null;
