@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0b0f19;
+  --foreground: #f1f5f9;
+  --card-bg: #131b2e;
+  --card-border: #1e293b;
+  --accent-gold: #f59e0b;
+  --accent-gold-hover: #d97706;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-gold: var(--accent-gold);
+  --color-gold-hover: var(--accent-gold-hover);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  
+  --animate-shake: shake 0.5s ease-in-out;
+  --animate-pulse-glow: pulse-glow 2s infinite alternate;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  20%, 60% { transform: rotate(-5deg); }
+  40%, 80% { transform: rotate(5deg); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 10px rgba(245, 158, 11, 0.2); }
+  100% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
+}
+
+body {
+  background-color: #080b11;
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Beautiful custom scrollbar for retro/modern style */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #080b11;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Simulated Mobile Viewport Frame for Desktop view */
+.mobile-container {
+  width: 100%;
+  max-width: 412px;
+  height: 100%;
+  max-height: 892px;
+  background-color: var(--background);
+  border: 1px solid #1e293b;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 40px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Bezel overlay for simulated phone (visible only on desktop) */
+@media (min-width: 640px) {
+  .phone-bezel {
+    border: 12px solid #000;
+    border-radius: 48px;
+    box-shadow: 0 0 0 2px #334155, 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+  }
+}
+
