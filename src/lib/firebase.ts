@@ -12,7 +12,6 @@ const firebaseConfig = {
 
 // Check if Firebase is fully configured by testing for the Project ID
 const isFirebaseConfigured = 
-  typeof window !== "undefined" && 
   !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID && 
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID !== "placeholder";
 
@@ -20,15 +19,20 @@ let app;
 let db: any = null;
 
 if (isFirebaseConfigured) {
-  try {
-    app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully in sync mode.");
-  } catch (err) {
-    console.error("Firebase initialization failed:", err);
+  if (typeof window !== "undefined") {
+    try {
+      app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully on client in sync mode.");
+    } catch (err) {
+      console.error("Firebase client initialization failed:", err);
+    }
+  } else {
+    console.log("Firebase config found. Server-side sync is ready (waiting for client hydration).");
   }
 } else {
-  console.log("Firebase config not found or incomplete. Operating in local BroadcastChannel fallback sync mode.");
+  const envName = typeof window !== "undefined" ? "client" : "server";
+  console.log(`Firebase config not found or incomplete (${envName}). Operating in local BroadcastChannel fallback sync mode.`);
 }
 
 export { db, isFirebaseConfigured };
