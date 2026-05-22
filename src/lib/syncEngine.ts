@@ -181,6 +181,8 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
       } else {
         onUpdate(playersList);
       }
+    }, (err: any) => {
+      console.error("Firestore subscribeToPlayers error:", err);
     });
 
     return unsubscribe;
@@ -236,6 +238,8 @@ export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => 
         });
       });
       onUpdate(logsList);
+    }, (err: any) => {
+      console.error("Firestore subscribeToRollLogs error:", err);
     });
 
     return unsubscribe;
@@ -278,6 +282,8 @@ export function subscribeToNudges(playerId: string, onNudge: (rollType: string |
       } else {
         onNudge(null);
       }
+    }, (err: any) => {
+      console.error("Firestore subscribeToNudges error:", err);
     });
 
     return unsubscribe;
