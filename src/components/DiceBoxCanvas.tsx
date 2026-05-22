@@ -27,7 +27,8 @@ export default function DiceBoxCanvas() {
         // Clean up any existing canvas in container
         containerRef.current.innerHTML = "";
 
-        const box = new DiceBoxClass("#dice-box-canvas-target", {
+        const box = new DiceBoxClass({
+          container: "#dice-box-canvas-target",
           assetPath: "/assets/dice-box/",
           theme: "default",
           offscreen: false, // Set to false to avoid Web Worker cross-origin errors in standard dev environments
