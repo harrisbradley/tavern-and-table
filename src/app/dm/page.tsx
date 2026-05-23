@@ -72,6 +72,15 @@ export default function DmDashboard() {
     };
   }, []);
 
+  // Keep combatant HP in sync with live player state
+  useEffect(() => {
+    setCombatants(prev => prev.map(c => {
+      if (c.isMonster) return c;
+      const live = players.find(p => `player-${p.id}` === c.id);
+      return live ? { ...c, currentHp: live.currentHp, maxHp: live.maxHp } : c;
+    }));
+  }, [players]);
+
   // DM updates player health
   const adjustPlayerHp = async (id: string, amount: number) => {
     const player = players.find((p) => p.id === id);

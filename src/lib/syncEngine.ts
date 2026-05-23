@@ -170,7 +170,16 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
     const unsubscribe = onSnapshot(playersCol, (snapshot: any) => {
       const playersList: PlayerStatus[] = [];
       snapshot.forEach((docSnap: any) => {
-        playersList.push({ id: docSnap.id, ...docSnap.data() } as PlayerStatus);
+        const data = docSnap.data();
+        // Patch fields added after initial seeding (e.g. passivePerception)
+        if (data.passivePerception === undefined) {
+          const defaults = DEFAULT_PLAYERS.find(p => p.id === docSnap.id);
+          if (defaults) {
+            setDoc(doc(playersCol, docSnap.id), { passivePerception: defaults.passivePerception }, { merge: true });
+            data.passivePerception = defaults.passivePerception;
+          }
+        }
+        playersList.push({ id: docSnap.id, ...data } as PlayerStatus);
       });
       
       // If Firestore is empty, seed it
@@ -199,7 +208,17 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
   } else {
     // Local BroadcastChannel Listener
     const fetchAndTrigger = () => {
-      const currentList = getLocalData("tt_players", DEFAULT_PLAYERS);
+      let currentList: PlayerStatus[] = getLocalData("tt_players", DEFAULT_PLAYERS);
+      // Patch fields added after initial seeding (e.g. passivePerception)
+      let patched = false;
+      currentList = currentList.map(p => {
+        if (p.passivePerception === undefined) {
+          const defaults = DEFAULT_PLAYERS.find(d => d.id === p.id);
+          if (defaults) { patched = true; return { ...p, passivePerception: defaults.passivePerception }; }
+        }
+        return p;
+      });
+      if (patched) setLocalData("tt_players", currentList);
       onUpdate(currentList);
     };
 
