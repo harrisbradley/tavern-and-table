@@ -25,6 +25,7 @@ export default function PlayerDashboard() {
   const [ac] = useState(16);
   const [initiative] = useState(2);
   const [speed] = useState(30);
+  const [passivePerception] = useState(13);
 
   // Health state
   const [maxHp] = useState(28);
@@ -380,20 +381,27 @@ export default function PlayerDashboard() {
         </section>
 
         {/* Character Core Stats Bar */}
-        <section className="grid grid-cols-2 gap-3 select-none">
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-amber-500" />
-              Armor (AC)
+        <section className="grid grid-cols-3 gap-2 select-none">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+              <Shield className="w-3.5 h-3.5 text-amber-500" />
+              AC
             </span>
-            <strong className="text-base font-extrabold text-slate-200">{ac}</strong>
+            <strong className="text-sm font-extrabold text-slate-200">{ac}</strong>
           </div>
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-3 flex items-center justify-between">
-            <span className="text-xs text-slate-400 font-semibold flex items-center gap-1.5">
-              <Compass className="w-4 h-4 text-indigo-400" />
-              Initiative
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+              <Compass className="w-3.5 h-3.5 text-indigo-400" />
+              Init
             </span>
-            <strong className="text-base font-extrabold text-slate-200">+{initiative}</strong>
+            <strong className="text-sm font-extrabold text-slate-200">+{initiative}</strong>
+          </div>
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+            <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+              <Eye className="w-3.5 h-3.5 text-emerald-400" />
+              Passive
+            </span>
+            <strong className="text-sm font-extrabold text-slate-200">{passivePerception}</strong>
           </div>
         </section>
 

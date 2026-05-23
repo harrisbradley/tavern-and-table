@@ -21,6 +21,7 @@ export interface PlayerStatus {
   currentHp: number;
   ac: number;
   initiative: number;
+  passivePerception: number;
   status: "active" | "down" | "hidden";
 }
 
@@ -54,6 +55,7 @@ const DEFAULT_PLAYERS: PlayerStatus[] = [
     currentHp: 22,
     ac: 16,
     initiative: 2,
+    passivePerception: 13,
     status: "active",
   },
   {
@@ -64,6 +66,7 @@ const DEFAULT_PLAYERS: PlayerStatus[] = [
     currentHp: 18,
     ac: 14,
     initiative: 4,
+    passivePerception: 15,
     status: "hidden",
   },
   {
@@ -74,6 +77,7 @@ const DEFAULT_PLAYERS: PlayerStatus[] = [
     currentHp: 7,
     ac: 12,
     initiative: 2,
+    passivePerception: 11,
     status: "active",
   },
 ];
@@ -179,6 +183,7 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
             currentHp: p.currentHp,
             ac: p.ac,
             initiative: p.initiative,
+            passivePerception: p.passivePerception,
             status: p.status,
           });
         });

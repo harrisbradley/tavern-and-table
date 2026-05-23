@@ -2,13 +2,59 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Shield, Users, History, Dice5, MessageSquareText } from "lucide-react";
-import { subscribeToPlayers, subscribeToRollLogs, updatePlayerHp, addRollLog, sendNudge, PlayerStatus, RollLog } from "@/lib/syncEngine";
+import { 
+  ArrowLeft, 
+  Shield, 
+  Users, 
+  History, 
+  Dice5, 
+  MessageSquareText, 
+  Swords, 
+  Trash2, 
+  ChevronUp, 
+  ChevronDown, 
+  Play, 
+  RotateCcw, 
+  Heart, 
+  Plus, 
+  Minus, 
+  Zap,
+  Eye
+} from "lucide-react";
+import { 
+  subscribeToPlayers, 
+  subscribeToRollLogs, 
+  updatePlayerHp, 
+  addRollLog, 
+  sendNudge, 
+  PlayerStatus, 
+  RollLog 
+} from "@/lib/syncEngine";
+
+interface Combatant {
+  id: string;
+  name: string;
+  initiative: number;
+  currentHp: number;
+  maxHp: number;
+  isMonster: boolean;
+}
 
 export default function DmDashboard() {
   const [players, setPlayers] = useState<PlayerStatus[]>([]);
   const [rollLogs, setRollLogs] = useState<RollLog[]>([]);
   const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
+
+  // Initiative Tracker States
+  const [combatants, setCombatants] = useState<Combatant[]>([]);
+  const [activeTurnIndex, setActiveTurnIndex] = useState<number | null>(null);
+  const [combatActive, setCombatActive] = useState<boolean>(false);
+
+  // Form states for adding custom combatant
+  const [newCombatantName, setNewCombatantName] = useState("");
+  const [newCombatantInitiative, setNewCombatantInitiative] = useState("");
+  const [newCombatantHp, setNewCombatantHp] = useState("");
+  const [newCombatantIsMonster, setNewCombatantIsMonster] = useState(true);
 
   // Subscribe to players and logs in real-time
   useEffect(() => {
@@ -49,6 +95,14 @@ export default function DmDashboard() {
         nextHp, 
         amount > 0 ? "heal" : "damage"
       );
+
+      // Update in initiative tracker too if they exist
+      setCombatants(prev => prev.map(c => {
+        if (c.id === `player-${id}`) {
+          return { ...c, currentHp: nextHp };
+        }
+        return c;
+      }));
     } catch (err) {
       console.error("Failed to update player HP from DM screen:", err);
     }
@@ -66,6 +120,153 @@ export default function DmDashboard() {
     } catch (err) {
       console.error("Failed to send nudge:", err);
     }
+  };
+
+  // -------------------------------------------------------------
+  // INITIATIVE TRACKER / COMBAT SEQUENCER LOGIC
+  // -------------------------------------------------------------
+
+  // Populate from connected players and roll initiative for them
+  const handleAddPartyToInitiative = () => {
+    const partyCombatants = players.map(p => {
+      const d20 = Math.floor(Math.random() * 20) + 1;
+      return {
+        id: `player-${p.id}`,
+        name: p.name,
+        initiative: d20 + p.initiative,
+        currentHp: p.currentHp,
+        maxHp: p.maxHp,
+        isMonster: false
+      };
+    });
+
+    // Merge into list, avoiding duplicates
+    const currentIds = new Set(combatants.map(c => c.id));
+    const uniqueParty = partyCombatants.filter(c => !currentIds.has(c.id));
+    const merged = [...combatants, ...uniqueParty];
+
+    if (!combatActive) {
+      merged.sort((a, b) => b.initiative - a.initiative);
+    }
+    setCombatants(merged);
+  };
+
+  // Roll d20 initiative helper in the form
+  const handleRollFormInitiative = () => {
+    const roll = Math.floor(Math.random() * 20) + 1;
+    setNewCombatantInitiative(roll.toString());
+  };
+
+  // Add custom monster or player
+  const handleAddCombatant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCombatantName) return;
+
+    const initScore = parseInt(newCombatantInitiative) || 0;
+    const hpVal = parseInt(newCombatantHp) || 10;
+    const randomId = "comb-" + Math.random().toString(36).substring(2, 9);
+
+    const newC: Combatant = {
+      id: randomId,
+      name: newCombatantName,
+      initiative: initScore,
+      currentHp: hpVal,
+      maxHp: hpVal,
+      isMonster: newCombatantIsMonster
+    };
+
+    const updated = [...combatants, newC];
+    if (!combatActive) {
+      updated.sort((a, b) => b.initiative - a.initiative);
+    }
+    setCombatants(updated);
+
+    // Reset Form
+    setNewCombatantName("");
+    setNewCombatantInitiative("");
+    setNewCombatantHp("");
+  };
+
+  // Delete combatant
+  const handleRemoveCombatant = (id: string) => {
+    const index = combatants.findIndex(c => c.id === id);
+    if (index === -1) return;
+
+    const updated = combatants.filter(c => c.id !== id);
+    setCombatants(updated);
+
+    if (combatActive && activeTurnIndex !== null) {
+      if (updated.length === 0) {
+        setCombatActive(false);
+        setActiveTurnIndex(null);
+      } else if (activeTurnIndex >= updated.length) {
+        setActiveTurnIndex(0);
+      } else if (activeTurnIndex > index) {
+        setActiveTurnIndex(activeTurnIndex - 1);
+      }
+    }
+  };
+
+  // Reorder up/down (Manual Override)
+  const handleMoveCombatant = (index: number, direction: "up" | "down") => {
+    const swapTarget = direction === "up" ? index - 1 : index + 1;
+    if (swapTarget < 0 || swapTarget >= combatants.length) return;
+
+    const list = [...combatants];
+    const temp = list[index];
+    list[index] = list[swapTarget];
+    list[swapTarget] = temp;
+
+    setCombatants(list);
+
+    if (combatActive && activeTurnIndex !== null) {
+      if (activeTurnIndex === index) {
+        setActiveTurnIndex(swapTarget);
+      } else if (activeTurnIndex === swapTarget) {
+        setActiveTurnIndex(index);
+      }
+    }
+  };
+
+  // Adjust health of tracker combatant (especially for monsters)
+  const handleAdjustCombatantHp = (id: string, amount: number) => {
+    setCombatants(prev => prev.map(c => {
+      if (c.id === id) {
+        const nextHp = Math.min(Math.max(0, c.currentHp + amount), c.maxHp);
+        // If it's a player, mirror to database too
+        if (!c.isMonster && id.startsWith("player-")) {
+          const playerId = id.replace("player-", "");
+          adjustPlayerHp(playerId, amount);
+        }
+        return { ...c, currentHp: nextHp };
+      }
+      return c;
+    }));
+  };
+
+  // Combat Cycle Controls
+  const handleStartCombat = () => {
+    if (combatants.length === 0) return;
+    const sorted = [...combatants].sort((a, b) => b.initiative - a.initiative);
+    setCombatants(sorted);
+    setCombatActive(true);
+    setActiveTurnIndex(0);
+  };
+
+  const handleNextTurn = () => {
+    if (combatants.length === 0 || activeTurnIndex === null) return;
+    setActiveTurnIndex((activeTurnIndex + 1) % combatants.length);
+  };
+
+  const handlePrevTurn = () => {
+    if (combatants.length === 0 || activeTurnIndex === null) return;
+    setActiveTurnIndex((activeTurnIndex - 1 + combatants.length) % combatants.length);
+  };
+
+  const handleResetCombat = () => {
+    setCombatActive(false);
+    setActiveTurnIndex(null);
+    setCombatants([]);
   };
 
   // Helper to format ISO timestamp into simple readable local time
@@ -110,8 +311,10 @@ export default function DmDashboard() {
       {/* Main Grid Layout */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
         
-        {/* COL 1 & 2: PLAYER TRACKER */}
+        {/* COL 1 & 2: DM MANAGEMENT CONTROLS */}
         <div className="lg:col-span-2 space-y-6">
+          
+          {/* PARTY STATUS BOARD */}
           <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
@@ -162,13 +365,16 @@ export default function DmDashboard() {
                       )}
                     </div>
 
-                    {/* Stats summary */}
-                    <div className="grid grid-cols-2 gap-2 bg-slate-950/40 p-2 rounded-xl border border-slate-900 text-xs select-none">
-                      <div className="text-slate-400 font-medium text-center border-r border-slate-900">
-                        Armor Class: <strong className="text-slate-200">{player.ac}</strong>
+                    {/* Stats summary (Armor, Initiative, Passive Perception) */}
+                    <div className="grid grid-cols-3 gap-1 bg-slate-950/40 p-2 rounded-xl border border-slate-900 text-[10px] sm:text-[11px] select-none">
+                      <div className="text-slate-400 font-semibold text-center border-r border-slate-850">
+                        AC: <span className="text-slate-200 font-extrabold">{player.ac}</span>
                       </div>
-                      <div className="text-slate-400 font-medium text-center">
-                        Initiative: <strong className="text-slate-200">+{player.initiative}</strong>
+                      <div className="text-slate-400 font-semibold text-center border-r border-slate-850">
+                        Init: <span className="text-slate-200 font-extrabold">+{player.initiative}</span>
+                      </div>
+                      <div className="text-slate-400 font-semibold text-center">
+                        Passive: <span className="text-slate-200 font-extrabold">{player.passivePerception}</span>
                       </div>
                     </div>
 
@@ -245,6 +451,305 @@ export default function DmDashboard() {
               })}
             </div>
           </div>
+
+          {/* INITIATIVE TRACKER / COMBAT SEQUENCER */}
+          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Swords className="w-5 h-5 text-amber-500 animate-pulse" />
+                <h2 className="text-lg font-bold text-slate-200">
+                  Combat Initiative Sequencer
+                </h2>
+                {combatActive && (
+                  <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                    <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Active
+                  </span>
+                )}
+              </div>
+
+              {/* Top Quick Actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddPartyToInitiative}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs font-bold text-indigo-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  Add Connected Party
+                </button>
+                <button
+                  onClick={handleResetCombat}
+                  className="px-3 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-955/30 border border-red-900/30 text-xs font-bold text-red-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Clear List
+                </button>
+              </div>
+            </div>
+
+            {/* Combatants List */}
+            <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
+              {combatants.length === 0 ? (
+                <div className="py-12 text-center rounded-2xl border border-dashed border-slate-850/80 bg-slate-950/10 select-none">
+                  <p className="text-slate-500 text-sm font-semibold">No combatants added to the order yet.</p>
+                  <p className="text-slate-650 text-xs mt-1">Use the quick "Add Connected Party" button or add a monster below!</p>
+                </div>
+              ) : (
+                combatants.map((c, index) => {
+                  const isActiveTurn = combatActive && activeTurnIndex === index;
+                  const ratio = c.currentHp / c.maxHp;
+                  let hpBarColor = "bg-emerald-500";
+                  if (ratio <= 0.25) hpBarColor = "bg-red-500";
+                  else if (ratio <= 0.5) hpBarColor = "bg-amber-500";
+
+                  return (
+                    <div
+                      key={c.id}
+                      className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-xl border transition-all duration-300 ${
+                        isActiveTurn 
+                          ? "border-amber-500/50 bg-radial from-amber-500/10 via-amber-950/5 to-slate-950/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] scale-[1.01]" 
+                          : "border-slate-850/80 bg-slate-900/10 hover:border-slate-800"
+                      }`}
+                    >
+                      {/* Left: Indicator, Initiative Score, Name & HP */}
+                      <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                        {/* Initiative Score Badge */}
+                        <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center font-extrabold border shrink-0 text-center leading-none ${
+                          isActiveTurn 
+                            ? "bg-gold border-gold-hover text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse" 
+                            : "bg-slate-950 border-slate-850 text-slate-200"
+                        }`}>
+                          <span className="text-[9px] uppercase font-bold opacity-60 leading-none">Init</span>
+                          <span className="text-lg font-black tracking-tight mt-0.5">{c.initiative}</span>
+                        </div>
+
+                        {/* Name, Type & HP stats */}
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center gap-2 select-none">
+                            <span className={`font-bold text-sm truncate ${isActiveTurn ? "text-amber-400" : "text-slate-200"}`}>
+                              {c.name}
+                            </span>
+                            {c.isMonster ? (
+                              <span className="px-1.5 py-0.2 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-bold uppercase tracking-wider">
+                                Monster
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-wider">
+                                Player
+                              </span>
+                            )}
+                            {isActiveTurn && (
+                              <span className="px-2 py-0.2 rounded bg-gold/10 border border-gold/30 text-gold text-[9px] font-black uppercase tracking-wider animate-bounce select-none">
+                                Active Turn
+                              </span>
+                            )}
+                          </div>
+
+                          {/* HP Tracker row */}
+                          <div className="flex items-center gap-2 select-none">
+                            <div className="w-16 h-1.5 bg-slate-950 border border-slate-900 rounded-full overflow-hidden p-0.2 shrink-0">
+                              <div 
+                                className={`h-full ${hpBarColor} rounded-full transition-all`}
+                                style={{ width: `${(c.currentHp / c.maxHp) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              HP: <strong className="text-slate-300 font-semibold">{c.currentHp}</strong>/{c.maxHp}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Side Controls: HP adjustment, Move order, Delete */}
+                      <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 pt-2.5 sm:pt-0 border-t border-slate-850/50 sm:border-t-0 select-none">
+                        {/* HP Quick Adjusters (Monster damage/heal) */}
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleAdjustCombatantHp(c.id, -5)}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-red-400 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            title="Subtract 5 HP"
+                          >
+                            -5
+                          </button>
+                          <button
+                            onClick={() => handleAdjustCombatantHp(c.id, -1)}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-red-500 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            title="Subtract 1 HP"
+                          >
+                            -1
+                          </button>
+                          <button
+                            onClick={() => handleAdjustCombatantHp(c.id, 1)}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-emerald-500 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            title="Add 1 HP"
+                          >
+                            +1
+                          </button>
+                          <button
+                            onClick={() => handleAdjustCombatantHp(c.id, 5)}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-emerald-400 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            title="Add 5 HP"
+                          >
+                            +5
+                          </button>
+                        </div>
+
+                        {/* Move order up/down (Manual Reorder) */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleMoveCombatant(index, "up")}
+                            disabled={index === 0}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-slate-400 hover:bg-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
+                            title="Move Up"
+                          >
+                            <ChevronUp className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveCombatant(index, "down")}
+                            disabled={index === combatants.length - 1}
+                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-slate-400 hover:bg-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
+                            title="Move Down"
+                          >
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Delete from combat */}
+                        <button
+                          onClick={() => handleRemoveCombatant(c.id)}
+                          className="w-7 h-7 rounded bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 transition-colors flex items-center justify-center"
+                          title="Remove from Combat"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Combat Cycle Trigger buttons */}
+            <div className="border-t border-slate-850/80 pt-4 flex gap-3">
+              {!combatActive ? (
+                <button
+                  onClick={handleStartCombat}
+                  disabled={combatants.length === 0}
+                  className="flex-1 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-98 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-bold text-sm tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(16,185,129,0.15)] flex items-center justify-center gap-2 hover:scale-[1.01]"
+                >
+                  <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                  Start Combat Run
+                </button>
+              ) : (
+                <>
+                  <button
+                    onClick={handlePrevTurn}
+                    className="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-850 active:scale-98 border border-slate-800 text-xs font-bold text-slate-300 tracking-wider uppercase transition-all"
+                  >
+                    Prev Turn
+                  </button>
+                  <button
+                    onClick={handleNextTurn}
+                    className="flex-1 py-3.5 rounded-xl bg-gold hover:bg-gold-hover active:scale-98 text-slate-950 font-extrabold text-sm tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(245,158,11,0.2)] flex items-center justify-center gap-2 hover:scale-[1.01]"
+                  >
+                    Next Turn
+                    <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Add Custom Combatant Mini-Form */}
+            <form onSubmit={handleAddCombatant} className="border-t border-slate-850/80 pt-4 space-y-3">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-0.5">
+                Add Custom Combatant (Monster/NPC)
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                {/* Name */}
+                <input
+                  type="text"
+                  placeholder="Combatant Name (e.g. Goblin 1)"
+                  value={newCombatantName}
+                  onChange={(e) => setNewCombatantName(e.target.value)}
+                  className="sm:col-span-2 px-3 py-2 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors"
+                />
+
+                {/* HP */}
+                <div className="relative">
+                  <input
+                    type="number"
+                    placeholder="HP"
+                    value={newCombatantHp}
+                    onChange={(e) => setNewCombatantHp(e.target.value)}
+                    className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <Heart className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-red-500/60" />
+                </div>
+
+                {/* Initiative */}
+                <div className="relative flex gap-1">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      placeholder="Init"
+                      value={newCombatantInitiative}
+                      onChange={(e) => setNewCombatantInitiative(e.target.value)}
+                      className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <Dice5 className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-indigo-400/60" />
+                  </div>
+                  
+                  {/* Roll button inside form */}
+                  <button
+                    type="button"
+                    onClick={handleRollFormInitiative}
+                    className="px-2 rounded-lg bg-indigo-950/20 hover:bg-indigo-950/40 border border-indigo-900/30 text-indigo-400 text-xs transition-colors flex items-center justify-center"
+                    title="Quick roll d20"
+                  >
+                    Roll
+                  </button>
+                </div>
+              </div>
+
+              {/* Type Toggle & Submit button */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
+                {/* Type Selection Tabs */}
+                <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-850 select-none">
+                  <button
+                    type="button"
+                    onClick={() => setNewCombatantIsMonster(true)}
+                    className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      newCombatantIsMonster 
+                        ? "bg-red-500/10 border border-red-500/20 text-red-400" 
+                        : "text-slate-500 hover:text-slate-350"
+                    }`}
+                  >
+                    Monster/NPC
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewCombatantIsMonster(false)}
+                    className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
+                      !newCombatantIsMonster 
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400" 
+                        : "text-slate-500 hover:text-slate-350"
+                    }`}
+                  >
+                    Player
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!newCombatantName}
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:pointer-events-none active:scale-98 text-slate-950 font-bold text-xs uppercase tracking-wide transition-all"
+                >
+                  Add to Queue
+                </button>
+              </div>
+            </form>
+          </div>
+
         </div>
 
         {/* COL 3: REAL-TIME DICE ROLL LOGS */}
@@ -258,7 +763,7 @@ export default function DmDashboard() {
             </div>
           )}
 
-          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4 flex flex-col h-[650px] overflow-hidden">
+          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4 flex flex-col h-[750px] overflow-hidden">
             <div className="flex justify-between items-center shrink-0">
               <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
                 <History className="w-5 h-5 text-indigo-400" />
