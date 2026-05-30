@@ -384,6 +384,14 @@ export default function CharacterWizard() {
               These two match your style best. Or scroll down to choose from every class.
             </p>
 
+            {characterClass && (
+              <div className="mb-6 p-4 rounded-xl border border-slate-700 bg-slate-900/40">
+                <p className="text-slate-400 text-sm leading-relaxed italic">
+                  &ldquo;{CLASSES.find((c) => c.id === characterClass)?.lore}&rdquo;
+                </p>
+              </div>
+            )}
+
             {/* Recommended options */}
             <div className="space-y-3 mb-8">
               {refinementData.options.map((opt) => {
