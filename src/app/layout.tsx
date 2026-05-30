@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tavern & Table - Beginner D&D Companion",
-  description: "A mobile-first companion web application designed for beginner D&D 5e players and DMs.",
+  title: "Tavern & Table — D&D 5e Companion",
+  description: "A mobile-first D&D 5e companion for players and Dungeon Masters at every level of experience.",
 };
 
 export default function RootLayout({
