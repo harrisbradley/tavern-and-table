@@ -1,5 +1,6 @@
 {
   "install": "npm install",
   "build": "npm run build",
-  "start": "npm start"
+  "start": "npm start",
+  "port": 4007
 }

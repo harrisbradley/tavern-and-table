@@ -12,13 +12,13 @@ export default function Home() {
       <div className="text-center z-10 max-w-xl mb-12">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-6 animate-pulse">
           <Sparkles className="w-3.5 h-3.5" />
-          D&D 5e Beginner Companion
+          D&D 5e Companion
         </div>
         <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-amber-200 to-slate-100 mb-4 font-sans">
           Tavern & Table
         </h1>
         <p className="text-slate-400 text-lg md:text-xl font-medium">
-          D&D is for everyone. Choose your screen and start your adventure without the math or the headache.
+          D&D is for everyone. Choose your screen — whether it's your first session or your hundredth.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export default function Home() {
               I am the DM
             </h2>
             <p className="text-slate-400 group-hover:text-slate-300 transition-colors text-sm leading-relaxed mb-8">
-              Open the Dungeon Master dashboard. Monitor player health in real-time, see live dice rolls, and nudge beginners through their turns.
+              Open the Dungeon Master dashboard. Monitor player health in real-time, track initiative, and keep the session moving for every player at the table.
             </p>
           </div>
           
