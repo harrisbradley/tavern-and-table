@@ -64,6 +64,17 @@ export function createCharacter(data: {
   return char;
 }
 
+export function levelUpCharacter(id: string, hpGain: number): Character | null {
+  const chars = getCharacters();
+  const char = chars.find((c) => c.id === id);
+  if (!char || char.level >= 20) return null;
+  char.level += 1;
+  char.maxHp += hpGain;
+  char.currentHp = Math.min(char.currentHp + hpGain, char.maxHp);
+  localStorage.setItem(CHARS_KEY, JSON.stringify(chars));
+  return char;
+}
+
 export function getLastCharacterId(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(LAST_KEY);

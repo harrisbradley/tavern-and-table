@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music } from "lucide-react";
+import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers } from "@/lib/syncEngine";
-import { updateCharacterHp } from "@/lib/characterEngine";
+import { updateCharacterHp, levelUpCharacter } from "@/lib/characterEngine";
+import { getLevelUpInfo } from "@/lib/levelUpData";
+import LevelUpPanel from "./LevelUpPanel";
 import { Character, CharacterClass, CLASS_DISPLAY_NAMES } from "@/types/character";
 
 interface WeaponOrSpell {
@@ -69,6 +71,8 @@ interface Props {
 
 export default function PlayerDashboard({ character }: Props) {
   const [currentHp, setCurrentHp] = useState(character.currentHp);
+  const [currentLevel, setCurrentLevel] = useState(character.level);
+  const [showLevelUp, setShowLevelUp] = useState(false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
 
@@ -80,7 +84,7 @@ export default function PlayerDashboard({ character }: Props) {
 
   const arsenal = getClassArsenal(character.className);
   const stealthMod = STEALTH_MOD[character.className];
-  const displayClass = `Level ${character.level} ${CLASS_DISPLAY_NAMES[character.className]}`;
+  const displayClass = `Level ${currentLevel} ${CLASS_DISPLAY_NAMES[character.className]}`;
   const initial = character.name[0]?.toUpperCase() ?? "?";
 
   useEffect(() => {
@@ -205,6 +209,16 @@ export default function PlayerDashboard({ character }: Props) {
     }
   };
 
+  const handleConfirmLevelUp = () => {
+    const info = getLevelUpInfo(character.className, currentLevel);
+    const updated = levelUpCharacter(character.id, info.hpGain);
+    if (updated) {
+      setCurrentLevel(updated.level);
+      setCurrentHp(updated.currentHp);
+    }
+    setShowLevelUp(false);
+  };
+
   const initiativeDisplay = character.initiative >= 0 ? `+${character.initiative}` : `${character.initiative}`;
 
   return (
@@ -222,9 +236,20 @@ export default function PlayerDashboard({ character }: Props) {
             <p className="text-[11px] text-slate-400 leading-none">{displayClass}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-emerald-400 font-bold shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          DM Sync Active
+        <div className="flex items-center gap-2">
+          {currentLevel < 20 && (
+            <button
+              onClick={() => setShowLevelUp(true)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold hover:bg-amber-500/20 transition-colors"
+            >
+              <TrendingUp className="w-3 h-3" />
+              Level Up
+            </button>
+          )}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-emerald-400 font-bold shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            DM Sync Active
+          </div>
         </div>
       </header>
 
@@ -359,6 +384,14 @@ export default function PlayerDashboard({ character }: Props) {
           </button>
         </div>
       </section>
+
+      {showLevelUp && (
+        <LevelUpPanel
+          character={{ ...character, level: currentLevel }}
+          onConfirm={handleConfirmLevelUp}
+          onCancel={() => setShowLevelUp(false)}
+        />
+      )}
 
       <TutorialOverlay
         step={tutorialStep}
