@@ -342,7 +342,44 @@ export function subscribeToNudges(playerId: string, onNudge: (rollType: string |
 }
 
 /**
- * 4. Update Player's health and core stats.
+ * 4. Sync a player's entire profile (used for new characters or level ups).
+ */
+export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const playerRef = doc(campaignRef, "players", player.id);
+    
+    await setDoc(playerRef, {
+      name: player.name,
+      className: player.className,
+      maxHp: player.maxHp,
+      currentHp: player.currentHp,
+      ac: player.ac,
+      initiative: player.initiative,
+      passivePerception: player.passivePerception,
+      status: player.status,
+    }, { merge: true });
+  } else {
+    const currentList: PlayerStatus[] = getLocalData("tt_players", DEFAULT_PLAYERS);
+    const exists = currentList.some((p) => p.id === player.id);
+    
+    let updatedList: PlayerStatus[];
+    if (exists) {
+      updatedList = currentList.map((p) => (p.id === player.id ? player : p));
+    } else {
+      updatedList = [...currentList, player];
+    }
+
+    setLocalData("tt_players", updatedList);
+    
+    // Notify other tabs
+    localChannel?.postMessage({ type: "PLAYERS_UPDATED" });
+    notifyLocalPlayers();
+  }
+}
+
+/**
+ * 5. Update Player's health and core stats.
  */
 export async function updatePlayerHp(
   playerId: string,
