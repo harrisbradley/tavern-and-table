@@ -123,48 +123,45 @@ export default function PlayerDashboard({ character }: Props) {
   else if (hpRatio <= 0.5) { hpColorClass = "bg-amber-500"; hpTextClass = "text-amber-500"; }
 
   const handleWeaponClick = (weapon: WeaponOrSpell) => {
-    showGuide({ type: "rolling", actionName: weapon.name });
+    // Magic Missile auto-hits — skip d20, roll damage directly
+    if (weapon.id === "magic-missile") {
+      setTutorialStep({ type: "rolling", actionName: "Magic Missile Damage" });
+      triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
+        try {
+          await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
+        } catch (err) { console.error("Failed to log roll:", err); }
+        setTutorialStep({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
+      });
+      return;
+    }
 
+    setTutorialStep({ type: "rolling", actionName: weapon.name });
     triggerDiceRoll("1d20", async (total, rolls) => {
       const dieResult = rolls[0];
       const grandTotal = dieResult + weapon.toHitModifier;
-
-      // Magic Missile auto-hits — skip attack roll display
-      if (weapon.id === "magic-missile") {
-        showGuide({ type: "rolling", actionName: "Magic Missile Damage" });
-        triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
-          try {
-            await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
-          } catch (err) { console.error("Failed to log roll:", err); }
-          showGuide({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
-        });
-        return;
-      }
-
       try {
         await addRollLog(character.name, `rolled ${grandTotal} to hit with ${weapon.name}`, `1d20+${weapon.toHitModifier} (${dieResult} on die)`, grandTotal, "attack");
       } catch (err) { console.error("Failed to log roll:", err); }
-
-      showGuide({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
+      setTutorialStep({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
     });
   };
 
   const handleRollDamage = (weaponName: string, damageNotation: string, damageType: string) => {
-    showGuide({ type: "rolling", actionName: `${weaponName} Damage` });
+    setTutorialStep({ type: "rolling", actionName: `${weaponName} Damage` });
     triggerDiceRoll(damageNotation, async (total) => {
       try {
         await addRollLog(character.name, `dealt ${total} ${damageType} damage with ${weaponName}`, damageNotation, total, "damage");
       } catch (err) { console.error("Failed to log damage:", err); }
-      showGuide({ type: "damage-rolled", weaponName, rollTotal: total, damageType });
+      setTutorialStep({ type: "damage-rolled", weaponName, rollTotal: total, damageType });
     });
   };
 
   const handleMoveClick = () => {
-    showGuide({ type: "move-clicked", distance: character.speed });
+    setTutorialStep({ type: "move-clicked", distance: character.speed });
   };
 
   const handleHideClick = () => {
-    showGuide({ type: "rolling", actionName: "Stealth Check" });
+    setTutorialStep({ type: "rolling", actionName: "Stealth Check" });
     triggerDiceRoll("1d20", async (total, rolls) => {
       const dieResult = rolls[0];
       const finalResult = dieResult + stealthMod;
@@ -172,12 +169,12 @@ export default function PlayerDashboard({ character }: Props) {
         await addRollLog(character.name, `rolled ${finalResult} for Stealth Check`, `1d20+${stealthMod} (${dieResult} on die)`, finalResult, "stealth");
         if (nudgeRef.current?.toLowerCase().includes("stealth")) await clearNudge(character.id);
       } catch (err) { console.error("Failed to sync stealth:", err); }
-      showGuide({ type: "stealth-rolled", rollTotal: finalResult });
+      setTutorialStep({ type: "stealth-rolled", rollTotal: finalResult });
     });
   };
 
   const handleDrinkPotion = () => {
-    showGuide({ type: "rolling", actionName: "Drinking Healing Potion" });
+    setTutorialStep({ type: "rolling", actionName: "Drinking Healing Potion" });
     triggerDiceRoll("2d4+2", async (total) => {
       const prevHp = hpRef.current;
       const targetHp = Math.min(prevHp + total, character.maxHp);
@@ -188,7 +185,7 @@ export default function PlayerDashboard({ character }: Props) {
         await updatePlayerHp(character.id, targetHp, character.maxHp);
         await addRollLog(character.name, `drank a Potion of Healing and restored ${actualHealed} HP`, "2d4+2", actualHealed, "heal");
       } catch (err) { console.error("Failed to sync healing:", err); }
-      showGuide({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
+      setTutorialStep({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
     });
   };
 
@@ -198,20 +195,16 @@ export default function PlayerDashboard({ character }: Props) {
     if (currentNudge.toLowerCase().includes("stealth")) {
       handleHideClick();
     } else {
-      showGuide({ type: "rolling", actionName: currentNudge });
+      setTutorialStep({ type: "rolling", actionName: currentNudge });
       triggerDiceRoll("1d20", async (total, rolls) => {
         const dieResult = rolls[0];
         try {
           await addRollLog(character.name, `rolled ${dieResult} for ${currentNudge}`, `1d20 (${dieResult} on die)`, dieResult, "stealth");
           await clearNudge(character.id);
         } catch (err) { console.error("Failed to sync nudge:", err); }
-        showGuide({ type: "stealth-rolled", rollTotal: dieResult });
+        setTutorialStep({ type: "stealth-rolled", rollTotal: dieResult });
       });
     }
-  };
-
-  const showGuide = (step: TutorialStep) => {
-    if (tutorialEnabled) setTutorialStep(step);
   };
 
   const handleToggleTutorial = () => {
@@ -417,9 +410,10 @@ export default function PlayerDashboard({ character }: Props) {
         />
       )}
 
-      {tutorialEnabled && (
+      {(tutorialEnabled || tutorialStep.type !== "idle") && (
         <TutorialOverlay
           step={tutorialStep}
+          compact={!tutorialEnabled}
           onClose={() => setTutorialStep({ type: "idle" })}
           onRollDamage={
             tutorialStep.type === "attack-rolled"
