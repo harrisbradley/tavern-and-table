@@ -68,9 +68,10 @@ const STEALTH_MOD: Record<CharacterClass, number> = {
 
 interface Props {
   character: Character;
+  campaignId: string;
 }
 
-export default function PlayerDashboard({ character }: Props) {
+export default function PlayerDashboard({ character, campaignId }: Props) {
   const [currentHp, setCurrentHp] = useState(character.currentHp);
   const [currentLevel, setCurrentLevel] = useState(character.level);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -91,7 +92,7 @@ export default function PlayerDashboard({ character }: Props) {
 
   useEffect(() => {
     // Register/sync the character profile with the DM dashboard when it mounts
-    syncPlayerProfile({
+    syncPlayerProfile(campaignId, {
       id: character.id,
       name: character.name,
       className: displayClass,
@@ -102,14 +103,14 @@ export default function PlayerDashboard({ character }: Props) {
       passivePerception: character.passivePerception,
       status: currentHp === 0 ? "down" : character.status,
     });
-  }, [character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception]);
+  }, [campaignId, character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception]);
 
   useEffect(() => {
-    const unsubscribeNudges = subscribeToNudges(character.id, (rollType) => {
+    const unsubscribeNudges = subscribeToNudges(campaignId, character.id, (rollType) => {
       setActiveNudge(rollType);
     });
 
-    const unsubscribePlayers = subscribeToPlayers((playersList) => {
+    const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
       const me = playersList.find((p) => p.id === character.id);
       if (me) setCurrentHp(me.currentHp);
     });
@@ -118,7 +119,7 @@ export default function PlayerDashboard({ character }: Props) {
       unsubscribeNudges();
       unsubscribePlayers();
     };
-  }, [character.id]);
+  }, [campaignId, character.id]);
 
   const adjustHp = async (amount: number) => {
     const latestHp = hpRef.current;
@@ -126,7 +127,7 @@ export default function PlayerDashboard({ character }: Props) {
     setCurrentHp(targetHp);
     updateCharacterHp(character.id, targetHp);
     try {
-      await updatePlayerHp(character.id, targetHp, character.maxHp);
+      await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
     } catch (err) {
       console.error("Failed to sync HP:", err);
     }
@@ -144,7 +145,7 @@ export default function PlayerDashboard({ character }: Props) {
       setTutorialStep({ type: "rolling", actionName: "Magic Missile Damage" });
       triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
         try {
-          await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
+          await addRollLog(campaignId, character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
         } catch (err) { console.error("Failed to log roll:", err); }
         setTutorialStep({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
       });
@@ -157,6 +158,7 @@ export default function PlayerDashboard({ character }: Props) {
       const grandTotal = dieResult + weapon.toHitModifier;
       try {
         await addRollLog(
+          campaignId,
           character.name, 
           `attacked with ${weapon.name} (rolled ${dieResult} + ${weapon.toHitModifier})`, 
           `1d20 + ${weapon.toHitModifier}`, 
@@ -172,7 +174,7 @@ export default function PlayerDashboard({ character }: Props) {
     setTutorialStep({ type: "rolling", actionName: `${weaponName} Damage` });
     triggerDiceRoll(damageNotation, async (total) => {
       try {
-        await addRollLog(character.name, `dealt ${total} ${damageType} damage with ${weaponName}`, damageNotation, total, "damage");
+        await addRollLog(campaignId, character.name, `dealt ${total} ${damageType} damage with ${weaponName}`, damageNotation, total, "damage");
       } catch (err) { console.error("Failed to log damage:", err); }
       setTutorialStep({ type: "damage-rolled", weaponName, rollTotal: total, damageType });
     });
@@ -188,8 +190,8 @@ export default function PlayerDashboard({ character }: Props) {
       const dieResult = rolls[0];
       const finalResult = dieResult + stealthMod;
       try {
-        await addRollLog(character.name, `rolled ${finalResult} for Stealth Check`, `1d20+${stealthMod} (${dieResult} on die)`, finalResult, "stealth");
-        if (nudgeRef.current?.toLowerCase().includes("stealth")) await clearNudge(character.id);
+        await addRollLog(campaignId, character.name, `rolled ${finalResult} for Stealth Check`, `1d20+${stealthMod} (${dieResult} on die)`, finalResult, "stealth");
+        if (nudgeRef.current?.toLowerCase().includes("stealth")) await clearNudge(campaignId, character.id);
       } catch (err) { console.error("Failed to sync stealth:", err); }
       setTutorialStep({ type: "stealth-rolled", rollTotal: finalResult });
     });
@@ -204,8 +206,8 @@ export default function PlayerDashboard({ character }: Props) {
       setCurrentHp(targetHp);
       updateCharacterHp(character.id, targetHp);
       try {
-        await updatePlayerHp(character.id, targetHp, character.maxHp);
-        await addRollLog(character.name, `drank a Potion of Healing and restored ${actualHealed} HP`, "2d4+2", actualHealed, "heal");
+        await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
+        await addRollLog(campaignId, character.name, `drank a Potion of Healing and restored ${actualHealed} HP`, "2d4+2", actualHealed, "heal");
       } catch (err) { console.error("Failed to sync healing:", err); }
       setTutorialStep({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
     });
@@ -221,8 +223,8 @@ export default function PlayerDashboard({ character }: Props) {
       triggerDiceRoll("1d20", async (total, rolls) => {
         const dieResult = rolls[0];
         try {
-          await addRollLog(character.name, `rolled ${dieResult} for ${currentNudge}`, `1d20 (${dieResult} on die)`, dieResult, "stealth");
-          await clearNudge(character.id);
+          await addRollLog(campaignId, character.name, `rolled ${dieResult} for ${currentNudge}`, `1d20 (${dieResult} on die)`, dieResult, "stealth");
+          await clearNudge(campaignId, character.id);
         } catch (err) { console.error("Failed to sync nudge:", err); }
         setTutorialStep({ type: "stealth-rolled", rollTotal: dieResult });
       });

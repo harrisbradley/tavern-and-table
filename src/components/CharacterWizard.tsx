@@ -203,7 +203,7 @@ export default function CharacterWizard() {
     if (!name.trim() || !race || !characterClass || !background) return;
     const char = createCharacter({ name: name.trim(), race, className: characterClass, background });
     setLastCharacterId(char.id);
-    router.push("/player");
+    router.push("/");
   };
 
   // Mode selection — shown before the stepped wizard begins

@@ -11,6 +11,7 @@ interface Props {
   characters: Character[];
   onSelect: (character: Character) => void;
   onCharactersChange: (characters: Character[]) => void;
+  campaignId?: string;
 }
 
 function HpBar({ current, max }: { current: number; max: number }) {
@@ -116,10 +117,12 @@ function CharacterCard({
   );
 }
 
-export default function CharacterSelect({ characters, onSelect, onCharactersChange }: Props) {
+export default function CharacterSelect({ characters, onSelect, onCharactersChange, campaignId }: Props) {
   const handleDelete = (id: string) => {
     deleteCharacter(id);
-    deletePlayerProfile(id).catch(err => console.error("Failed to delete player profile sync:", err));
+    if (campaignId) {
+      deletePlayerProfile(campaignId, id).catch(err => console.error("Failed to delete player profile sync:", err));
+    }
     onCharactersChange(characters.filter((c) => c.id !== id));
   };
 

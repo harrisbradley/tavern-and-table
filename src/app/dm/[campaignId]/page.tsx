@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { 
   ArrowLeft, 
@@ -21,7 +21,9 @@ import {
   Zap,
   Eye,
   Cloud,
-  WifiOff
+  WifiOff,
+  Link as LinkIcon,
+  Check
 } from "lucide-react";
 import { 
   subscribeToPlayers, 
@@ -44,12 +46,24 @@ interface Combatant {
   isMonster: boolean;
 }
 
-export default function DmDashboard() {
+export default function DmDashboard({ params }: { params: Promise<{ campaignId: string }> }) {
+  const { campaignId } = use(params);
   const [players, setPlayers] = useState<PlayerStatus[]>([]);
   const [rollLogs, setRollLogs] = useState<RollLog[]>([]);
   const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Initiative Tracker States
+...
+  // Helper to copy join link
+  const handleCopyInvite = () => {
+    if (typeof window === "undefined") return;
+    const joinUrl = `${window.location.origin}/join/${campaignId}`;
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 3000);
+    });
+  };
   const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [activeTurnIndex, setActiveTurnIndex] = useState<number | null>(null);
   const [combatActive, setCombatActive] = useState<boolean>(false);
@@ -62,11 +76,11 @@ export default function DmDashboard() {
 
   // Subscribe to players and logs in real-time
   useEffect(() => {
-    const unsubscribePlayers = subscribeToPlayers((playersList) => {
+    const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
       setPlayers(playersList);
     });
 
-    const unsubscribeRollLogs = subscribeToRollLogs((logsList) => {
+    const unsubscribeRollLogs = subscribeToRollLogs(campaignId, (logsList) => {
       setRollLogs(logsList);
     });
 
@@ -74,7 +88,7 @@ export default function DmDashboard() {
       unsubscribePlayers();
       unsubscribeRollLogs();
     };
-  }, []);
+  }, [campaignId]);
 
   // Keep combatant HP in sync with live player state
   useEffect(() => {
@@ -94,7 +108,7 @@ export default function DmDashboard() {
     
     try {
       // Sync the health bar change
-      await updatePlayerHp(id, nextHp, player.maxHp);
+      await updatePlayerHp(campaignId, id, nextHp, player.maxHp);
 
       // Log this DM health change to the log feed
       const actionDescription = amount > 0 
@@ -102,6 +116,7 @@ export default function DmDashboard() {
         : `took ${Math.abs(amount)} damage via DM adjustment`;
         
       await addRollLog(
+        campaignId,
         "DM Screen", 
         `${player.name} ${actionDescription}`, 
         `${Math.abs(amount)} HP`, 
@@ -316,6 +331,27 @@ export default function DmDashboard() {
 
         {/* Connection Status & Campaign Info */}
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleCopyInvite}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all select-none ${
+              copySuccess 
+                ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" 
+                : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+            }`}
+          >
+            {copySuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <LinkIcon className="w-3.5 h-3.5" />
+                <span>Invite Players</span>
+              </>
+            )}
+          </button>
+
           {isFirebaseConfigured ? (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold shadow-sm select-none" title="Cloud Sync Active: Syncing across all devices">
               <Cloud className="w-3.5 h-3.5" />
@@ -330,7 +366,7 @@ export default function DmDashboard() {
 
           <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
             <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-            Campaign: <strong>Lost Mine of Phandelver</strong>
+            Campaign ID: <strong>{campaignId}</strong>
           </div>
         </div>
       </nav>
@@ -355,7 +391,7 @@ export default function DmDashboard() {
                     if (confirm("Clear ALL connected players from the DM dashboard? Players will reappear when they next load their dashboard.")) {
                       try {
                         for (const p of players) {
-                          await deletePlayerProfile(p.id);
+                          await deletePlayerProfile(campaignId, p.id);
                         }
                       } catch (err) {
                         console.error("Failed to clear players:", err);
