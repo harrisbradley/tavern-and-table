@@ -10,6 +10,7 @@ import {
   limit, 
   setDoc, 
   addDoc, 
+  deleteDoc,
   serverTimestamp 
 } from "firebase/firestore";
 
@@ -171,35 +172,10 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
       const playersList: PlayerStatus[] = [];
       snapshot.forEach((docSnap: any) => {
         const data = docSnap.data();
-        // Patch fields added after initial seeding (e.g. passivePerception)
-        if (data.passivePerception === undefined) {
-          const defaults = DEFAULT_PLAYERS.find(p => p.id === docSnap.id);
-          if (defaults) {
-            setDoc(doc(playersCol, docSnap.id), { passivePerception: defaults.passivePerception }, { merge: true });
-            data.passivePerception = defaults.passivePerception;
-          }
-        }
         playersList.push({ id: docSnap.id, ...data } as PlayerStatus);
       });
       
-      // If Firestore is empty, seed it
-      if (playersList.length === 0) {
-        DEFAULT_PLAYERS.forEach(async (p) => {
-          await setDoc(doc(playersCol, p.id), {
-            name: p.name,
-            className: p.className,
-            maxHp: p.maxHp,
-            currentHp: p.currentHp,
-            ac: p.ac,
-            initiative: p.initiative,
-            passivePerception: p.passivePerception,
-            status: p.status,
-          });
-        });
-        onUpdate(DEFAULT_PLAYERS);
-      } else {
-        onUpdate(playersList);
-      }
+      onUpdate(playersList);
     }, (err: any) => {
       console.error("Firestore subscribeToPlayers error:", err);
     });
@@ -208,17 +184,7 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
   } else {
     // Local BroadcastChannel Listener
     const fetchAndTrigger = () => {
-      let currentList: PlayerStatus[] = getLocalData("tt_players", DEFAULT_PLAYERS);
-      // Patch fields added after initial seeding (e.g. passivePerception)
-      let patched = false;
-      currentList = currentList.map(p => {
-        if (p.passivePerception === undefined) {
-          const defaults = DEFAULT_PLAYERS.find(d => d.id === p.id);
-          if (defaults) { patched = true; return { ...p, passivePerception: defaults.passivePerception }; }
-        }
-        return p;
-      });
-      if (patched) setLocalData("tt_players", currentList);
+      const currentList: PlayerStatus[] = getLocalData("tt_players", []);
       onUpdate(currentList);
     };
 
@@ -360,7 +326,7 @@ export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
       status: player.status,
     }, { merge: true });
   } else {
-    const currentList: PlayerStatus[] = getLocalData("tt_players", DEFAULT_PLAYERS);
+    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
     const exists = currentList.some((p) => p.id === player.id);
     
     let updatedList: PlayerStatus[];
@@ -399,7 +365,7 @@ export async function updatePlayerHp(
       { merge: true }
     );
   } else {
-    const currentList: PlayerStatus[] = getLocalData("tt_players", DEFAULT_PLAYERS);
+    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
     const updatedList = currentList.map((p) => {
       if (p.id === playerId) {
         return { ...p, currentHp, maxHp, status, ...additionalFields };
@@ -416,7 +382,26 @@ export async function updatePlayerHp(
 }
 
 /**
- * 5. Push a roll result to the campaign log.
+ * 6. Remove a player's profile from the campaign (used when character is deleted).
+ */
+export async function deletePlayerProfile(playerId: string): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const playerRef = doc(campaignRef, "players", playerId);
+    await deleteDoc(playerRef);
+  } else {
+    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
+    const updatedList = currentList.filter((p) => p.id !== playerId);
+    setLocalData("tt_players", updatedList);
+    
+    // Notify other tabs
+    localChannel?.postMessage({ type: "PLAYERS_UPDATED" });
+    notifyLocalPlayers();
+  }
+}
+
+/**
+ * 7. Push a roll result to the campaign log.
  */
 export async function addRollLog(
   playerName: string,
