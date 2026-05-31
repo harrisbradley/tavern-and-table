@@ -42,58 +42,16 @@ export interface RollLog {
 const CHANNEL_NAME = "tavern_and_table_sync";
 let localChannel: BroadcastChannel | null = null;
 
+const CURRENT_CAMPAIGN_ID = "lost-mine"; // TODO: Pull from URL or config
+
 if (typeof window !== "undefined") {
   localChannel = new BroadcastChannel(CHANNEL_NAME);
 }
 
-// Initial Mock Seed Data
-const DEFAULT_PLAYERS: PlayerStatus[] = [
-  {
-    id: "valen",
-    name: "Valen Lightshield",
-    className: "Level 1 Paladin",
-    maxHp: 28,
-    currentHp: 22,
-    ac: 16,
-    initiative: 2,
-    passivePerception: 13,
-    status: "active",
-  },
-  {
-    id: "lyra",
-    name: "Lyra Whisperwind",
-    className: "Level 1 Rogue",
-    maxHp: 24,
-    currentHp: 18,
-    ac: 14,
-    initiative: 4,
-    passivePerception: 15,
-    status: "hidden",
-  },
-  {
-    id: "elora",
-    name: "Elora Stormbringer",
-    className: "Level 1 Wizard",
-    maxHp: 18,
-    currentHp: 7,
-    ac: 12,
-    initiative: 2,
-    passivePerception: 11,
-    status: "active",
-  },
-];
+// Initial Mock Seed Data (Empty for production)
+const DEFAULT_PLAYERS: PlayerStatus[] = [];
 
-const DEFAULT_ROLLS: RollLog[] = [
-  {
-    id: "log-seed-1",
-    playerName: "Lyra Whisperwind",
-    actionName: "Stealth Check",
-    rollNotation: "1d20+4",
-    rollTotal: 21,
-    timestamp: new Date(Date.now() - 300000).toISOString(),
-    type: "stealth",
-  }
-];
+const DEFAULT_ROLLS: RollLog[] = [];
 
 // Helper to load localStorage safely
 const getLocalData = (key: string, defaultValue: any) => {
@@ -165,7 +123,7 @@ function notifyLocalNudge(playerId: string, rollType: string | null) {
 export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void): () => void {
   if (isFirebaseConfigured && db) {
     // Firebase Firestore Listener
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const playersCol = collection(campaignRef, "players");
     
     const unsubscribe = onSnapshot(playersCol, (snapshot: any) => {
@@ -212,7 +170,7 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
  */
 export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const rollsCol = collection(campaignRef, "rolls");
     const q = query(rollsCol, orderBy("timestamp", "desc"), limit(30));
 
@@ -267,7 +225,7 @@ export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => 
  */
 export function subscribeToNudges(playerId: string, onNudge: (rollType: string | null) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
 
     const unsubscribe = onSnapshot(nudgeRef, (docSnap: any) => {
@@ -312,7 +270,7 @@ export function subscribeToNudges(playerId: string, onNudge: (rollType: string |
  */
 export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const playerRef = doc(campaignRef, "players", player.id);
     
     await setDoc(playerRef, {
@@ -356,7 +314,7 @@ export async function updatePlayerHp(
   const status = currentHp === 0 ? "down" : additionalFields.status || "active";
   
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const playerRef = doc(campaignRef, "players", playerId);
     
     await setDoc(
@@ -386,7 +344,7 @@ export async function updatePlayerHp(
  */
 export async function deletePlayerProfile(playerId: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const playerRef = doc(campaignRef, "players", playerId);
     await deleteDoc(playerRef);
   } else {
@@ -411,7 +369,7 @@ export async function addRollLog(
   type: "attack" | "damage" | "stealth" | "heal"
 ): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const rollsCol = collection(campaignRef, "rolls");
     
     await addDoc(rollsCol, {
@@ -443,11 +401,11 @@ export async function addRollLog(
 }
 
 /**
- * 6. Send Nudge (request roll) to player.
+ * 8. Send Nudge (request roll) to player.
  */
 export async function sendNudge(playerId: string, rollType: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
     
     await setDoc(nudgeRef, {
@@ -466,11 +424,11 @@ export async function sendNudge(playerId: string, rollType: string): Promise<voi
 }
 
 /**
- * 7. Clear Nudge (hide popup once roll is complete).
+ * 9. Clear Nudge (hide popup once roll is complete).
  */
 export async function clearNudge(playerId: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", "lost-mine");
+    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
     
     await setDoc(nudgeRef, { active: false }, { merge: true });

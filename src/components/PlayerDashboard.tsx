@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp } from "lucide-react";
+import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile } from "@/lib/syncEngine";
 import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
+import { isFirebaseConfigured } from "@/lib/firebase";
 import LevelUpPanel from "./LevelUpPanel";
 import { Character, CharacterClass, CLASS_DISPLAY_NAMES } from "@/types/character";
 
@@ -284,10 +285,18 @@ export default function PlayerDashboard({ character }: Props) {
             <Sparkles className="w-3 h-3" />
             Guide
           </button>
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-emerald-400 font-bold shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            DM Sync Active
-          </div>
+
+          {isFirebaseConfigured ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-bold shadow-sm select-none" title="Cloud Sync Active: Syncing across all devices">
+              <Cloud className="w-3 h-3" />
+              <span>Cloud Sync</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-500 font-bold shadow-sm select-none" title="Local Mode: Syncing only between tabs on this computer">
+              <WifiOff className="w-3 h-3" />
+              <span>Local Mode</span>
+            </div>
+          )}
         </div>
       </header>
 
