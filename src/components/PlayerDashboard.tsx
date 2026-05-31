@@ -5,7 +5,7 @@ import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprint
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers } from "@/lib/syncEngine";
-import { updateCharacterHp, levelUpCharacter } from "@/lib/characterEngine";
+import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import LevelUpPanel from "./LevelUpPanel";
 import { Character, CharacterClass, CLASS_DISPLAY_NAMES } from "@/types/character";
@@ -73,6 +73,7 @@ export default function PlayerDashboard({ character }: Props) {
   const [currentHp, setCurrentHp] = useState(character.currentHp);
   const [currentLevel, setCurrentLevel] = useState(character.level);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [tutorialEnabled, setTutorialEnabledState] = useState(character.tutorialEnabled !== false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
 
@@ -122,7 +123,7 @@ export default function PlayerDashboard({ character }: Props) {
   else if (hpRatio <= 0.5) { hpColorClass = "bg-amber-500"; hpTextClass = "text-amber-500"; }
 
   const handleWeaponClick = (weapon: WeaponOrSpell) => {
-    setTutorialStep({ type: "rolling", actionName: weapon.name });
+    showGuide({ type: "rolling", actionName: weapon.name });
 
     triggerDiceRoll("1d20", async (total, rolls) => {
       const dieResult = rolls[0];
@@ -130,12 +131,12 @@ export default function PlayerDashboard({ character }: Props) {
 
       // Magic Missile auto-hits — skip attack roll display
       if (weapon.id === "magic-missile") {
-        setTutorialStep({ type: "rolling", actionName: "Magic Missile Damage" });
+        showGuide({ type: "rolling", actionName: "Magic Missile Damage" });
         triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
           try {
             await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
           } catch (err) { console.error("Failed to log roll:", err); }
-          setTutorialStep({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
+          showGuide({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
         });
         return;
       }
@@ -144,26 +145,26 @@ export default function PlayerDashboard({ character }: Props) {
         await addRollLog(character.name, `rolled ${grandTotal} to hit with ${weapon.name}`, `1d20+${weapon.toHitModifier} (${dieResult} on die)`, grandTotal, "attack");
       } catch (err) { console.error("Failed to log roll:", err); }
 
-      setTutorialStep({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
+      showGuide({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
     });
   };
 
   const handleRollDamage = (weaponName: string, damageNotation: string, damageType: string) => {
-    setTutorialStep({ type: "rolling", actionName: `${weaponName} Damage` });
+    showGuide({ type: "rolling", actionName: `${weaponName} Damage` });
     triggerDiceRoll(damageNotation, async (total) => {
       try {
         await addRollLog(character.name, `dealt ${total} ${damageType} damage with ${weaponName}`, damageNotation, total, "damage");
       } catch (err) { console.error("Failed to log damage:", err); }
-      setTutorialStep({ type: "damage-rolled", weaponName, rollTotal: total, damageType });
+      showGuide({ type: "damage-rolled", weaponName, rollTotal: total, damageType });
     });
   };
 
   const handleMoveClick = () => {
-    setTutorialStep({ type: "move-clicked", distance: character.speed });
+    showGuide({ type: "move-clicked", distance: character.speed });
   };
 
   const handleHideClick = () => {
-    setTutorialStep({ type: "rolling", actionName: "Stealth Check" });
+    showGuide({ type: "rolling", actionName: "Stealth Check" });
     triggerDiceRoll("1d20", async (total, rolls) => {
       const dieResult = rolls[0];
       const finalResult = dieResult + stealthMod;
@@ -171,12 +172,12 @@ export default function PlayerDashboard({ character }: Props) {
         await addRollLog(character.name, `rolled ${finalResult} for Stealth Check`, `1d20+${stealthMod} (${dieResult} on die)`, finalResult, "stealth");
         if (nudgeRef.current?.toLowerCase().includes("stealth")) await clearNudge(character.id);
       } catch (err) { console.error("Failed to sync stealth:", err); }
-      setTutorialStep({ type: "stealth-rolled", rollTotal: finalResult });
+      showGuide({ type: "stealth-rolled", rollTotal: finalResult });
     });
   };
 
   const handleDrinkPotion = () => {
-    setTutorialStep({ type: "rolling", actionName: "Drinking Healing Potion" });
+    showGuide({ type: "rolling", actionName: "Drinking Healing Potion" });
     triggerDiceRoll("2d4+2", async (total) => {
       const prevHp = hpRef.current;
       const targetHp = Math.min(prevHp + total, character.maxHp);
@@ -187,7 +188,7 @@ export default function PlayerDashboard({ character }: Props) {
         await updatePlayerHp(character.id, targetHp, character.maxHp);
         await addRollLog(character.name, `drank a Potion of Healing and restored ${actualHealed} HP`, "2d4+2", actualHealed, "heal");
       } catch (err) { console.error("Failed to sync healing:", err); }
-      setTutorialStep({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
+      showGuide({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
     });
   };
 
@@ -197,16 +198,27 @@ export default function PlayerDashboard({ character }: Props) {
     if (currentNudge.toLowerCase().includes("stealth")) {
       handleHideClick();
     } else {
-      setTutorialStep({ type: "rolling", actionName: currentNudge });
+      showGuide({ type: "rolling", actionName: currentNudge });
       triggerDiceRoll("1d20", async (total, rolls) => {
         const dieResult = rolls[0];
         try {
           await addRollLog(character.name, `rolled ${dieResult} for ${currentNudge}`, `1d20 (${dieResult} on die)`, dieResult, "stealth");
           await clearNudge(character.id);
         } catch (err) { console.error("Failed to sync nudge:", err); }
-        setTutorialStep({ type: "stealth-rolled", rollTotal: dieResult });
+        showGuide({ type: "stealth-rolled", rollTotal: dieResult });
       });
     }
+  };
+
+  const showGuide = (step: TutorialStep) => {
+    if (tutorialEnabled) setTutorialStep(step);
+  };
+
+  const handleToggleTutorial = () => {
+    const next = !tutorialEnabled;
+    setTutorialEnabledState(next);
+    setTutorialEnabled(character.id, next);
+    if (!next) setTutorialStep({ type: "idle" });
   };
 
   const handleConfirmLevelUp = () => {
@@ -246,6 +258,18 @@ export default function PlayerDashboard({ character }: Props) {
               Level Up
             </button>
           )}
+          <button
+            onClick={handleToggleTutorial}
+            title={tutorialEnabled ? "Guidance on — tap to turn off" : "Guidance off — tap to turn on"}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
+              tutorialEnabled
+                ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+                : "bg-slate-900/40 border-slate-800 text-slate-600 hover:text-slate-400"
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            Guide
+          </button>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-emerald-400 font-bold shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             DM Sync Active
