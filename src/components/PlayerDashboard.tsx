@@ -5,7 +5,7 @@ import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprint
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers } from "@/lib/syncEngine";
-import { updateCharacterHp, levelUpCharacter } from "@/lib/characterEngine";
+import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import LevelUpPanel from "./LevelUpPanel";
 import { Character, CharacterClass, CLASS_DISPLAY_NAMES } from "@/types/character";
@@ -73,6 +73,7 @@ export default function PlayerDashboard({ character }: Props) {
   const [currentHp, setCurrentHp] = useState(character.currentHp);
   const [currentLevel, setCurrentLevel] = useState(character.level);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [tutorialEnabled, setTutorialEnabledState] = useState(character.tutorialEnabled !== false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
 
@@ -122,28 +123,31 @@ export default function PlayerDashboard({ character }: Props) {
   else if (hpRatio <= 0.5) { hpColorClass = "bg-amber-500"; hpTextClass = "text-amber-500"; }
 
   const handleWeaponClick = (weapon: WeaponOrSpell) => {
-    setTutorialStep({ type: "rolling", actionName: weapon.name });
+    // Magic Missile auto-hits — skip d20, roll damage directly
+    if (weapon.id === "magic-missile") {
+      setTutorialStep({ type: "rolling", actionName: "Magic Missile Damage" });
+      triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
+        try {
+          await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
+        } catch (err) { console.error("Failed to log roll:", err); }
+        setTutorialStep({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
+      });
+      return;
+    }
 
+    setTutorialStep({ type: "rolling", actionName: weapon.name });
     triggerDiceRoll("1d20", async (total, rolls) => {
       const dieResult = rolls[0];
       const grandTotal = dieResult + weapon.toHitModifier;
-
-      // Magic Missile auto-hits — skip attack roll display
-      if (weapon.id === "magic-missile") {
-        setTutorialStep({ type: "rolling", actionName: "Magic Missile Damage" });
-        triggerDiceRoll(weapon.damageNotation, async (dmgTotal) => {
-          try {
-            await addRollLog(character.name, `cast Magic Missile for ${dmgTotal} force damage`, weapon.damageNotation, dmgTotal, "damage");
-          } catch (err) { console.error("Failed to log roll:", err); }
-          setTutorialStep({ type: "damage-rolled", weaponName: weapon.name, rollTotal: dmgTotal, damageType: "force" });
-        });
-        return;
-      }
-
       try {
-        await addRollLog(character.name, `rolled ${grandTotal} to hit with ${weapon.name}`, `1d20+${weapon.toHitModifier} (${dieResult} on die)`, grandTotal, "attack");
+        await addRollLog(
+          character.name, 
+          `attacked with ${weapon.name} (rolled ${dieResult} + ${weapon.toHitModifier})`, 
+          `1d20 + ${weapon.toHitModifier}`, 
+          grandTotal, 
+          "attack"
+        );
       } catch (err) { console.error("Failed to log roll:", err); }
-
       setTutorialStep({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
     });
   };
@@ -209,6 +213,13 @@ export default function PlayerDashboard({ character }: Props) {
     }
   };
 
+  const handleToggleTutorial = () => {
+    const next = !tutorialEnabled;
+    setTutorialEnabledState(next);
+    setTutorialEnabled(character.id, next);
+    if (!next) setTutorialStep({ type: "idle" });
+  };
+
   const handleConfirmLevelUp = () => {
     const info = getLevelUpInfo(character.className, currentLevel);
     const updated = levelUpCharacter(character.id, info.hpGain);
@@ -246,6 +257,18 @@ export default function PlayerDashboard({ character }: Props) {
               Level Up
             </button>
           )}
+          <button
+            onClick={handleToggleTutorial}
+            title={tutorialEnabled ? "Guidance on — tap to turn off" : "Guidance off — tap to turn on"}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
+              tutorialEnabled
+                ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+                : "bg-slate-900/40 border-slate-800 text-slate-600 hover:text-slate-400"
+            }`}
+          >
+            <Sparkles className="w-3 h-3" />
+            Guide
+          </button>
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-900/60 border border-slate-800 text-[10px] text-emerald-400 font-bold shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             DM Sync Active
@@ -393,15 +416,18 @@ export default function PlayerDashboard({ character }: Props) {
         />
       )}
 
-      <TutorialOverlay
-        step={tutorialStep}
-        onClose={() => setTutorialStep({ type: "idle" })}
-        onRollDamage={
-          tutorialStep.type === "attack-rolled"
-            ? () => handleRollDamage(tutorialStep.weaponName, tutorialStep.damageNotation, "slashing")
-            : undefined
-        }
-      />
+      {(tutorialEnabled || tutorialStep.type !== "idle") && (
+        <TutorialOverlay
+          step={tutorialStep}
+          compact={!tutorialEnabled}
+          onClose={() => setTutorialStep({ type: "idle" })}
+          onRollDamage={
+            tutorialStep.type === "attack-rolled"
+              ? () => handleRollDamage(tutorialStep.weaponName, tutorialStep.damageNotation, "slashing")
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }

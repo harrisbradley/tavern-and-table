@@ -804,24 +804,24 @@ export default function DmDashboard() {
                       key={log.id}
                       className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs flex justify-between items-start gap-4 transition-all hover:bg-slate-900"
                     >
-                      <div className="space-y-1.5">
+                      <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-200">{log.playerName}</span>
                           <span className="text-[10px] text-slate-600 font-medium">
                             {formatTime(log.timestamp)}
                           </span>
                         </div>
-                        <p className="text-slate-400 font-medium">
+                        <p className="text-slate-400 font-medium leading-relaxed">
                           {log.actionName}
                         </p>
                         <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-950 border border-slate-900 text-[10px] text-slate-500 font-bold tracking-wide">
-                          Notation: {log.rollNotation}
+                          Formula: {log.rollNotation}
                         </div>
                       </div>
 
-                      <div className={`px-3 py-2 rounded-lg border flex flex-col items-center justify-center font-bold min-w-14 shrink-0 ${badgeClass}`}>
-                        <span className="text-[9px] uppercase tracking-wider font-semibold opacity-60 leading-none">Result</span>
-                        <span className="text-lg font-extrabold tracking-tight mt-0.5">{log.rollTotal}</span>
+                      <div className={`px-3 py-2 rounded-lg border flex flex-col items-center justify-center font-bold min-w-14 shrink-0 shadow-sm ${badgeClass}`}>
+                        <span className="text-[9px] uppercase tracking-wider font-bold opacity-70 leading-none">Total</span>
+                        <span className="text-lg font-black tracking-tight mt-0.5">{log.rollTotal}</span>
                       </div>
                     </div>
                   );

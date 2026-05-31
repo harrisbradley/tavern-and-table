@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* dice-box creates a canvas with no sizing CSS — force it to fill its fixed container */
+.dice-box-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
 :root {
   --background: #0b0f19;
   --foreground: #f1f5f9;

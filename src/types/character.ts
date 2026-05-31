@@ -16,6 +16,7 @@ export interface Character {
   passivePerception: number;
   speed: number;
   status: "active" | "down" | "hidden";
+  tutorialEnabled: boolean;
   createdAt: string;
 }
 

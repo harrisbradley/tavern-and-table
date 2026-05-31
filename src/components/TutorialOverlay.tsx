@@ -27,9 +27,75 @@ interface TutorialOverlayProps {
   step: TutorialStep;
   onClose: () => void;
   onRollDamage?: () => void;
+  compact?: boolean;
 }
 
-export default function TutorialOverlay({ step, onClose, onRollDamage }: TutorialOverlayProps) {
+export default function TutorialOverlay({ step, onClose, onRollDamage, compact }: TutorialOverlayProps) {
+  // Compact mode — veterans see the result number, none of the tutorial text
+  if (compact) {
+    if (step.type === "idle") return null;
+
+    if (step.type === "rolling") {
+      return (
+        <div className="absolute inset-x-0 bottom-0 z-45 p-4 bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-950/90 border-t border-slate-800 rounded-t-3xl">
+          <div className="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-4" />
+          <div className="flex items-center justify-center gap-3 py-3">
+            <div className="w-5 h-5 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+            <span className="text-sm font-semibold text-slate-300">Rolling {step.actionName}…</span>
+          </div>
+        </div>
+      );
+    }
+
+    const resultValue =
+      step.type === "attack-rolled" ? step.rollTotal :
+      step.type === "damage-rolled" ? step.rollTotal :
+      step.type === "stealth-rolled" ? step.rollTotal :
+      step.type === "potion-drank" ? `+${step.healAmount}` :
+      step.type === "move-clicked" ? `${step.distance}ft` : null;
+
+    const resultLabel =
+      step.type === "attack-rolled" ? "To Hit" :
+      step.type === "damage-rolled" ? "Damage" :
+      step.type === "stealth-rolled" ? "Stealth" :
+      step.type === "potion-drank" ? "Healed" :
+      step.type === "move-clicked" ? "Movement" : "";
+
+    const resultDetail =
+      step.type === "attack-rolled" ? `${step.dieResult} on d20 + ${step.modifier} modifier` :
+      step.type === "damage-rolled" ? `${step.damageType} · ${step.weaponName}` :
+      step.type === "move-clicked" ? `${step.distance / 5} squares on a grid` : null;
+
+    return (
+      <div className="absolute inset-x-0 bottom-0 z-45 p-4 bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-950/90 border-t border-slate-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] rounded-t-3xl transition-all duration-300 animate-slide-up">
+        <div className="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-4" />
+        <div className="flex items-center gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80 mb-4">
+          <div className="text-center">
+            <span className="text-xs text-slate-500 block font-bold uppercase tracking-wider mb-1">{resultLabel}</span>
+            <span className="text-4xl font-extrabold text-amber-400">{resultValue}</span>
+          </div>
+          {resultDetail && (
+            <div className="text-xs text-slate-400 border-l border-slate-800 pl-4 leading-relaxed">{resultDetail}</div>
+          )}
+        </div>
+        {step.type === "attack-rolled" && onRollDamage && (
+          <button
+            onClick={onRollDamage}
+            className="w-full py-3 px-4 rounded-xl bg-gold hover:bg-gold-hover text-slate-950 font-bold text-sm tracking-wide transition-all mb-3 flex items-center justify-center gap-2"
+          >
+            Roll {step.damageNotation} Damage
+          </button>
+        )}
+        <button
+          onClick={onClose}
+          className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-sm transition-all"
+        >
+          {step.type === "attack-rolled" && onRollDamage ? "Skip Damage" : "Dismiss"}
+        </button>
+      </div>
+    );
+  }
+
   if (step.type === "idle") {
     // Show a subtle tutorial tip bar at the bottom instead of a full screen blocking dialog
     return (

@@ -58,10 +58,19 @@ export function createCharacter(data: {
     ...stats,
     currentHp: stats.maxHp,
     status: "active",
+    tutorialEnabled: true,
     createdAt: new Date().toISOString(),
   };
   saveCharacter(char);
   return char;
+}
+
+export function setTutorialEnabled(id: string, enabled: boolean): void {
+  const chars = getCharacters();
+  const char = chars.find((c) => c.id === id);
+  if (!char) return;
+  char.tutorialEnabled = enabled;
+  localStorage.setItem(CHARS_KEY, JSON.stringify(chars));
 }
 
 export function levelUpCharacter(id: string, hpGain: number): Character | null {

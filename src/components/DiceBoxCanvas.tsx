@@ -10,54 +10,58 @@ interface DiceRollEventDetail {
 export default function DiceBoxCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const diceBoxRef = useRef<any>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
 
   useEffect(() => {
-    let activeBox: any = null;
+    let cancelled = false;
 
     const initDiceBox = async () => {
       try {
-        // Dynamically import to prevent Next.js SSR build errors
+        console.log("[DiceBox] Starting import...");
         const DiceBoxModule = await import("@3d-dice/dice-box");
         const DiceBoxClass = DiceBoxModule.default;
 
-        if (!containerRef.current) return;
+        if (!containerRef.current || cancelled) return;
+        console.log("[DiceBox] Container found, clearing and creating instance...");
 
-        // Clean up any existing canvas in container
         containerRef.current.innerHTML = "";
 
         const box = new DiceBoxClass({
           container: "#dice-box-canvas-target",
-          assetPath: "/assets/dice-box/",
+          assetPath: "/assets/",
           theme: "default",
-          offscreen: false, // Set to false to avoid Web Worker cross-origin errors in standard dev environments
-          scale: 5, // Custom scaling for 6-inch mobile screens
-          gravity: 2, // Slightly higher gravity so dice settle faster for slick gameplay
+          offscreen: false,
+          scale: 5,
+          gravity: 2,
           mass: 1,
           delay: 10,
         });
 
+        console.log("[DiceBox] Calling box.init()...");
         await box.init();
+
+        if (cancelled) {
+          console.log("[DiceBox] Init completed but effect was cleaned up, discarding.");
+          return;
+        }
+
         diceBoxRef.current = box;
-        activeBox = box;
-        setIsInitialized(true);
-        console.log("3D DiceBox successfully initialized!");
+        console.log("[DiceBox] Successfully initialized! Canvas children:", containerRef.current?.children.length);
       } catch (err) {
-        console.error("Failed to initialize DiceBox:", err);
+        console.error("[DiceBox] Failed to initialize:", err);
       }
     };
 
     initDiceBox();
 
-    // Setup global listener for rolls
     const handleTriggerRoll = async (event: Event) => {
       const customEvent = event as CustomEvent<DiceRollEventDetail>;
       const { notation, onComplete } = customEvent.detail;
 
-      if (!diceBoxRef.current || !isInitialized) {
-        console.warn("DiceBox is not initialized yet!");
-        // Fallback for debugging if dice-box isn't ready
+      console.log("[DiceBox] Roll triggered:", notation, "| box ready:", !!diceBoxRef.current);
+
+      if (!diceBoxRef.current) {
+        console.warn("[DiceBox] Not initialized yet — using fallback");
         const mockTotal = Math.floor(Math.random() * 20) + 1;
         onComplete(mockTotal, [mockTotal]);
         return;
@@ -65,51 +69,66 @@ export default function DiceBoxCanvas() {
 
       setIsRolling(true);
       try {
-        // Clear previous dice from screen
+        console.log("[DiceBox] Clearing previous dice...");
         await diceBoxRef.current.clear();
-        
-        // Roll the dice
-        const results = await diceBoxRef.current.roll(notation);
-        
-        // Structure the results
+
+        console.log("[DiceBox] Rolling:", notation);
+        const rollPromise = diceBoxRef.current.roll(notation);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Roll timed out — face -1 likely")), 10000)
+        );
+        const results = await Promise.race([rollPromise, timeoutPromise]);
+        console.log("[DiceBox] Roll results:", results);
+
         const rolls = results.map((d: any) => d.value);
         const total = rolls.reduce((sum: number, val: number) => sum + val, 0);
-        
-        // Delay slightly before completing so user can see final numbers
+
         setTimeout(() => {
           setIsRolling(false);
           onComplete(total, rolls);
         }, 1200);
       } catch (error) {
-        console.error("Error during dice roll:", error);
+        console.error("[DiceBox] Error during roll:", error);
         setIsRolling(false);
-        // Fallback
-        onComplete(10, [10]);
+        // Generate a realistic fallback from the notation (e.g. "2d6", "1d20")
+        const match = notation.match(/^(\d+)d(\d+)$/i);
+        if (match) {
+          const count = parseInt(match[1]);
+          const sides = parseInt(match[2]);
+          const fallbackRolls = Array.from({ length: count }, () =>
+            Math.floor(Math.random() * sides) + 1
+          );
+          onComplete(fallbackRolls.reduce((a, b) => a + b, 0), fallbackRolls);
+        } else {
+          const fallback = Math.floor(Math.random() * 20) + 1;
+          onComplete(fallback, [fallback]);
+        }
       }
     };
 
     window.addEventListener("trigger-dice-roll", handleTriggerRoll);
 
     return () => {
+      cancelled = true;
       window.removeEventListener("trigger-dice-roll", handleTriggerRoll);
-      // Clean up the canvas from container if possible
+      diceBoxRef.current = null;
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }
     };
-  }, [isInitialized]);
+  }, []);
 
   return (
     <>
       {/* Full screen blocking overlay during rolling to focus user attention */}
       {isRolling && (
-        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 transition-opacity duration-300 pointer-events-none" />
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 transition-opacity duration-300 pointer-events-none" />
       )}
-      
-      <div 
+
+      <div
         ref={containerRef}
-        id="dice-box-canvas-target" 
-        className="absolute inset-0 z-50 pointer-events-none"
+        id="dice-box-canvas-target"
+        className="fixed inset-0 z-50 pointer-events-none"
         style={{ height: "100%", width: "100%" }}
       />
     </>
