@@ -28,13 +28,13 @@ export default function DiceBoxCanvas() {
 
         const box = new DiceBoxClass({
           container: "#dice-box-canvas-target",
-          assetPath: "/assets/dice-box/",
+          assetPath: "/assets/",
           theme: "default",
           offscreen: false,
-          scale: 6,
-          gravity: 1,
+          scale: 5,
+          gravity: 2,
           mass: 1,
-          delay: 100,
+          delay: 10,
         });
 
         console.log("[DiceBox] Calling box.init()...");
