@@ -25,6 +25,7 @@ import {
   subscribeToPlayers, 
   subscribeToRollLogs, 
   updatePlayerHp, 
+  deletePlayerProfile,
   addRollLog, 
   sendNudge, 
   PlayerStatus, 
@@ -330,7 +331,25 @@ export default function DmDashboard() {
                 <Users className="w-5 h-5 text-indigo-400" />
                 Active Party Members
               </h2>
-              <span className="text-xs text-slate-500 font-semibold">{players.length} players connected</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-500 font-semibold">{players.length} players connected</span>
+                <button
+                  onClick={async () => {
+                    if (confirm("Clear ALL connected players from the DM dashboard? Players will reappear when they next load their dashboard.")) {
+                      try {
+                        for (const p of players) {
+                          await deletePlayerProfile(p.id);
+                        }
+                      } catch (err) {
+                        console.error("Failed to clear players:", err);
+                      }
+                    }
+                  }}
+                  className="px-2 py-1 rounded bg-red-950/20 border border-red-900/30 text-[10px] font-bold text-red-400 hover:bg-red-950/40 transition-all uppercase tracking-wider"
+                >
+                  Purge All
+                </button>
+              </div>
             </div>
 
             {/* Players list cards */}
@@ -354,24 +373,42 @@ export default function DmDashboard() {
                   >
                     {/* Character Card Header */}
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-slate-200 text-base leading-tight">{player.name}</h3>
-                        <p className="text-xs text-slate-500 font-medium">{player.className}</p>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h3 className="font-bold text-slate-200 text-base leading-tight truncate">{player.name}</h3>
+                        <p className="text-xs text-slate-500 font-medium truncate">{player.className}</p>
                       </div>
                       
-                      {player.status === "down" ? (
-                        <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                          Down!
-                        </span>
-                      ) : player.status === "hidden" ? (
-                        <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
-                          Hidden
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
-                          Active
-                        </span>
-                      )}
+                      <div className="flex flex-col items-end gap-1.5">
+                        {player.status === "down" ? (
+                          <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                            Down!
+                          </span>
+                        ) : player.status === "hidden" ? (
+                          <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                            Hidden
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Remove ${player.name} from the campaign?`)) {
+                              try {
+                                await deletePlayerProfile(player.id);
+                              } catch (err) {
+                                console.error("Failed to remove player:", err);
+                              }
+                            }
+                          }}
+                          className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-600 hover:text-red-400 hover:border-red-900/50 transition-all group/del"
+                          title="Remove from campaign"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Stats summary (Armor, Initiative, Passive Perception) */}

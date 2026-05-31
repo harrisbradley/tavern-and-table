@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Plus, Trash2, Sparkles, Shield, Zap, Eye, Heart } from "lucide-react";
 import { Character, CLASS_DISPLAY_NAMES, RACE_DISPLAY_NAMES } from "@/types/character";
 import { deleteCharacter, setLastCharacterId } from "@/lib/characterEngine";
+import { deletePlayerProfile } from "@/lib/syncEngine";
 
 interface Props {
   characters: Character[];
@@ -118,6 +119,7 @@ function CharacterCard({
 export default function CharacterSelect({ characters, onSelect, onCharactersChange }: Props) {
   const handleDelete = (id: string) => {
     deleteCharacter(id);
+    deletePlayerProfile(id).catch(err => console.error("Failed to delete player profile sync:", err));
     onCharactersChange(characters.filter((c) => c.id !== id));
   };
 

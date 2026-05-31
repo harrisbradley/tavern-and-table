@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
-import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers } from "@/lib/syncEngine";
+import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile } from "@/lib/syncEngine";
 import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import LevelUpPanel from "./LevelUpPanel";
@@ -87,6 +87,21 @@ export default function PlayerDashboard({ character }: Props) {
   const stealthMod = STEALTH_MOD[character.className];
   const displayClass = `Level ${currentLevel} ${CLASS_DISPLAY_NAMES[character.className]}`;
   const initial = character.name[0]?.toUpperCase() ?? "?";
+
+  useEffect(() => {
+    // Register/sync the character profile with the DM dashboard when it mounts
+    syncPlayerProfile({
+      id: character.id,
+      name: character.name,
+      className: displayClass,
+      maxHp: character.maxHp,
+      currentHp: currentHp,
+      ac: character.ac,
+      initiative: character.initiative,
+      passivePerception: character.passivePerception,
+      status: currentHp === 0 ? "down" : character.status,
+    });
+  }, [character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception]);
 
   useEffect(() => {
     const unsubscribeNudges = subscribeToNudges(character.id, (rollType) => {
