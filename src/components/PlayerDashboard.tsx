@@ -417,15 +417,17 @@ export default function PlayerDashboard({ character }: Props) {
         />
       )}
 
-      <TutorialOverlay
-        step={tutorialStep}
-        onClose={() => setTutorialStep({ type: "idle" })}
-        onRollDamage={
-          tutorialStep.type === "attack-rolled"
-            ? () => handleRollDamage(tutorialStep.weaponName, tutorialStep.damageNotation, "slashing")
-            : undefined
-        }
-      />
+      {tutorialEnabled && (
+        <TutorialOverlay
+          step={tutorialStep}
+          onClose={() => setTutorialStep({ type: "idle" })}
+          onRollDamage={
+            tutorialStep.type === "attack-rolled"
+              ? () => handleRollDamage(tutorialStep.weaponName, tutorialStep.damageNotation, "slashing")
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }
