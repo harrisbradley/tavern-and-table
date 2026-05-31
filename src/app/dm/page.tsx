@@ -19,7 +19,9 @@ import {
   Plus, 
   Minus, 
   Zap,
-  Eye
+  Eye,
+  Cloud,
+  WifiOff
 } from "lucide-react";
 import { 
   subscribeToPlayers, 
@@ -31,6 +33,7 @@ import {
   PlayerStatus, 
   RollLog 
 } from "@/lib/syncEngine";
+import { isFirebaseConfigured } from "@/lib/firebase";
 
 interface Combatant {
   id: string;
@@ -311,10 +314,24 @@ export default function DmDashboard() {
           </div>
         </div>
 
-        {/* Campaign Info */}
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
-          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-          Campaign: <strong>Lost Mine of Phandelver</strong>
+        {/* Connection Status & Campaign Info */}
+        <div className="flex items-center gap-3">
+          {isFirebaseConfigured ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold shadow-sm select-none" title="Cloud Sync Active: Syncing across all devices">
+              <Cloud className="w-3.5 h-3.5" />
+              <span>Cloud Sync</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold shadow-sm select-none" title="Local Mode: Syncing only between tabs on this computer">
+              <WifiOff className="w-3.5 h-3.5" />
+              <span>Local Mode</span>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+            Campaign: <strong>Lost Mine of Phandelver</strong>
+          </div>
         </div>
       </nav>
 
