@@ -54,16 +54,6 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Initiative Tracker States
-...
-  // Helper to copy join link
-  const handleCopyInvite = () => {
-    if (typeof window === "undefined") return;
-    const joinUrl = `${window.location.origin}/join/${campaignId}`;
-    navigator.clipboard.writeText(joinUrl).then(() => {
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 3000);
-    });
-  };
   const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [activeTurnIndex, setActiveTurnIndex] = useState<number | null>(null);
   const [combatActive, setCombatActive] = useState<boolean>(false);
@@ -73,6 +63,16 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   const [newCombatantInitiative, setNewCombatantInitiative] = useState("");
   const [newCombatantHp, setNewCombatantHp] = useState("");
   const [newCombatantIsMonster, setNewCombatantIsMonster] = useState(true);
+
+  // Helper to copy join link
+  const handleCopyInvite = () => {
+    if (typeof window === "undefined") return;
+    const joinUrl = `${window.location.origin}/join/${campaignId}`;
+    navigator.clipboard.writeText(joinUrl).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 3000);
+    });
+  };
 
   // Subscribe to players and logs in real-time
   useEffect(() => {
@@ -139,7 +139,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   // DM requested roll nudge
   const handleSendNudge = async (playerId: string, playerName: string, rollType: string) => {
     try {
-      await sendNudge(playerId, rollType);
+      await sendNudge(campaignId, playerId, rollType);
       
       setNudgeMessage(`Alert sent to ${playerName}: "Please roll a ${rollType}!"`);
       setTimeout(() => {
@@ -179,7 +179,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
     setCombatants(merged);
   };
 
-  // Roll d20 initiative helper in the form
+  // Roll d20 initiative helper in the format
   const handleRollFormInitiative = () => {
     const roll = Math.floor(Math.random() * 20) + 1;
     setNewCombatantInitiative(roll.toString());
@@ -450,7 +450,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                           onClick={async () => {
                             if (confirm(`Remove ${player.name} from the campaign?`)) {
                               try {
-                                await deletePlayerProfile(player.id);
+                                await deletePlayerProfile(campaignId, player.id);
                               } catch (err) {
                                 console.error("Failed to remove player:", err);
                               }
