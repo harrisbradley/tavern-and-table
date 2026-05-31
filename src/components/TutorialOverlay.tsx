@@ -33,7 +33,19 @@ interface TutorialOverlayProps {
 export default function TutorialOverlay({ step, onClose, onRollDamage, compact }: TutorialOverlayProps) {
   // Compact mode — veterans see the result number, none of the tutorial text
   if (compact) {
-    if (step.type === "idle" || step.type === "rolling") return null;
+    if (step.type === "idle") return null;
+
+    if (step.type === "rolling") {
+      return (
+        <div className="absolute inset-x-0 bottom-0 z-45 p-4 bg-gradient-to-t from-slate-950 via-slate-950/95 to-slate-950/90 border-t border-slate-800 rounded-t-3xl">
+          <div className="w-12 h-1.5 bg-slate-800 rounded-full mx-auto mb-4" />
+          <div className="flex items-center justify-center gap-3 py-3">
+            <div className="w-5 h-5 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+            <span className="text-sm font-semibold text-slate-300">Rolling {step.actionName}…</span>
+          </div>
+        </div>
+      );
+    }
 
     const resultValue =
       step.type === "attack-rolled" ? step.rollTotal :
