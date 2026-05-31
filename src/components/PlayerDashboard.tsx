@@ -140,7 +140,13 @@ export default function PlayerDashboard({ character }: Props) {
       const dieResult = rolls[0];
       const grandTotal = dieResult + weapon.toHitModifier;
       try {
-        await addRollLog(character.name, `rolled ${grandTotal} to hit with ${weapon.name}`, `1d20+${weapon.toHitModifier} (${dieResult} on die)`, grandTotal, "attack");
+        await addRollLog(
+          character.name, 
+          `attacked with ${weapon.name} (rolled ${dieResult} + ${weapon.toHitModifier})`, 
+          `1d20 + ${weapon.toHitModifier}`, 
+          grandTotal, 
+          "attack"
+        );
       } catch (err) { console.error("Failed to log roll:", err); }
       setTutorialStep({ type: "attack-rolled", weaponName: weapon.name, rollTotal: grandTotal, modifier: weapon.toHitModifier, dieResult, damageNotation: weapon.damageNotation });
     });
