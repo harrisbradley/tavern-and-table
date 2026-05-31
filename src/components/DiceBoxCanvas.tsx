@@ -103,13 +103,13 @@ export default function DiceBoxCanvas() {
     <>
       {/* Full screen blocking overlay during rolling to focus user attention */}
       {isRolling && (
-        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-xs z-40 transition-opacity duration-300 pointer-events-none" />
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 transition-opacity duration-300 pointer-events-none" />
       )}
-      
-      <div 
+
+      <div
         ref={containerRef}
-        id="dice-box-canvas-target" 
-        className="absolute inset-0 z-50 pointer-events-none"
+        id="dice-box-canvas-target"
+        className="fixed inset-0 z-50 pointer-events-none"
         style={{ height: "100%", width: "100%" }}
       />
     </>
