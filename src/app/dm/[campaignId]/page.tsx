@@ -68,10 +68,46 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   const handleCopyInvite = () => {
     if (typeof window === "undefined") return;
     const joinUrl = `${window.location.origin}/join/${campaignId}`;
-    navigator.clipboard.writeText(joinUrl).then(() => {
+    console.log("[DM] Copying invite link:", joinUrl);
+    
+    const finishCopy = () => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
-    });
+    };
+
+    // Extremely defensive check for Modern Clipboard API
+    // In many browsers, navigator.clipboard is undefined in non-secure (HTTP) contexts
+    const hasClipboardApi = typeof navigator !== "undefined" && !!navigator.clipboard;
+
+    if (hasClipboardApi) {
+      console.log("[DM] Using navigator.clipboard API");
+      navigator.clipboard.writeText(joinUrl).then(finishCopy).catch((err) => {
+        console.warn("[DM] navigator.clipboard failed, using fallback:", err);
+        fallbackCopy(joinUrl, finishCopy);
+      });
+    } else {
+      console.log("[DM] navigator.clipboard unavailable, using fallbackCopy");
+      fallbackCopy(joinUrl, finishCopy);
+    }
+  };
+
+  const fallbackCopy = (text: string, callback: () => void) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    // Ensure textarea is not visible
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      callback();
+    } catch (err) {
+      console.error('Fallback copy failed:', err);
+    }
+    document.body.removeChild(textArea);
   };
 
   // Subscribe to players and logs in real-time
