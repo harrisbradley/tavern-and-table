@@ -11,6 +11,14 @@ export default function DiceBoxCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   const diceBoxRef = useRef<any>(null);
   const [isRolling, setIsRolling] = useState(false);
+  const [hasDice, setHasDice] = useState(false);
+
+  const handleClear = () => {
+    if (diceBoxRef.current) {
+      diceBoxRef.current.clear();
+      setHasDice(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +76,8 @@ export default function DiceBoxCanvas() {
       }
 
       setIsRolling(true);
+      setHasDice(false);
+
       try {
         console.log("[DiceBox] Clearing previous dice...");
         await diceBoxRef.current.clear();
@@ -85,7 +95,16 @@ export default function DiceBoxCanvas() {
 
         setTimeout(() => {
           setIsRolling(false);
+          setHasDice(true);
           onComplete(total, rolls);
+
+          // Auto-clear after 10 seconds of inactivity
+          setTimeout(() => {
+            if (diceBoxRef.current) {
+              diceBoxRef.current.clear();
+              setHasDice(false);
+            }
+          }, 10000);
         }, 1200);
       } catch (error) {
         console.error("[DiceBox] Error during roll:", error);
@@ -125,10 +144,18 @@ export default function DiceBoxCanvas() {
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 transition-opacity duration-300 pointer-events-none" />
       )}
 
+      {/* Manual clear hint when dice are settled */}
+      {hasDice && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-slate-900/80 border border-slate-700 px-4 py-2 rounded-full text-[10px] font-bold text-slate-300 uppercase tracking-widest pointer-events-none animate-bounce shadow-2xl">
+          Tap anywhere to clear dice
+        </div>
+      )}
+
       <div
         ref={containerRef}
         id="dice-box-canvas-target"
-        className="fixed inset-0 z-50 pointer-events-none"
+        onClick={handleClear}
+        className={`fixed inset-0 z-50 transition-opacity duration-300 ${hasDice ? "pointer-events-auto cursor-pointer" : "pointer-events-none"}`}
         style={{ height: "100%", width: "100%" }}
       />
     </>
