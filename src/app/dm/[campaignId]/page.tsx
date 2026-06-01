@@ -35,7 +35,8 @@ import {
   sendNudge, 
   PlayerStatus, 
   RollLog,
-  CampaignConfig
+  CampaignConfig,
+  saveToDmHistory
 } from "@/lib/syncEngine";
 import { isFirebaseConfigured } from "@/lib/firebase";
 
@@ -126,6 +127,9 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   useEffect(() => {
     const unsubscribeConfig = subscribeToCampaignConfig(campaignId, (config) => {
       setCampaign(config);
+      if (config) {
+        saveToDmHistory(config);
+      }
     });
 
     const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
