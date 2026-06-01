@@ -11,17 +11,20 @@ interface RecentCampaign {
 }
 
 export default function Home() {
-  const [recentCampaigns, setRecentCampaigns] = useState<RecentCampaign[]>([]);
+  const [recentDmCampaigns, setRecentDmCampaigns] = useState<RecentCampaign[]>([]);
+  const [joinedCampaigns, setJoinedCampaigns] = useState<RecentCampaign[]>([]);
 
   useEffect(() => {
-    // Load recently visited/created DM campaigns from localStorage
-    const saved = localStorage.getItem("tt_dm_history");
-    if (saved) {
-      try {
-        setRecentCampaigns(JSON.parse(saved));
-      } catch (err) {
-        console.error("Failed to parse DM history:", err);
-      }
+    // Load DM history
+    const dmSaved = localStorage.getItem("tt_dm_history");
+    if (dmSaved) {
+      try { setRecentDmCampaigns(JSON.parse(dmSaved)); } catch (err) { console.error(err); }
+    }
+    
+    // Load Player history
+    const playerSaved = localStorage.getItem("tt_player_history");
+    if (playerSaved) {
+      try { setJoinedCampaigns(JSON.parse(playerSaved)); } catch (err) { console.error(err); }
     }
   }, []);
 
@@ -49,67 +52,96 @@ export default function Home() {
       </div>
 
       {/* Main Actions */}
-      <div className="flex flex-col gap-8 w-full max-w-2xl z-10 animate-slide-up">
+      <div className="flex flex-col gap-12 w-full max-w-4xl z-10 animate-slide-up">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-          <Link
-            href="/campaign/create"
-            className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center"
-          >
-            <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
-              <Shield className="w-8 h-8 text-indigo-400" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">I am the DM</h3>
-              <p className="text-slate-500 text-sm leading-snug">
-                Create a new campaign and manage your party's initiative and health.
-              </p>
-            </div>
-            <div className="absolute inset-0 rounded-[32px] bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-          </Link>
-
-          <div className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center cursor-default">
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
-              <Sparkles className="w-8 h-8 text-amber-500" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
-              <p className="text-slate-500 text-sm leading-snug">
-                Join your DM's campaign via invite link to roll dice and track your character.
-              </p>
-            </div>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full px-8">
-              <div className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.2em] animate-pulse">
-                Ask your DM for a link
+          {/* DM Action */}
+          <div className="space-y-4 flex flex-col">
+            <Link
+              href="/campaign/create"
+              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center flex-1"
+            >
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
+                <Shield className="w-8 h-8 text-indigo-400" />
               </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">I am the DM</h3>
+                <p className="text-slate-500 text-sm leading-snug">
+                  Create a new campaign and manage your party's initiative and health.
+                </p>
+              </div>
+              <div className="absolute inset-0 rounded-[32px] bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+            </Link>
+
+            {/* Recent DM Campaigns */}
+            {recentDmCampaigns.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2 px-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Resume Your Campaigns</h4>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {recentDmCampaigns.map((camp) => (
+                    <Link
+                      key={camp.id}
+                      href={`/dm/${camp.id}`}
+                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 hover:bg-slate-900 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
+                        <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{camp.name}</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Player Action */}
+          <div className="space-y-4 flex flex-col">
+            <div className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 text-center flex-1">
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
+                <Sparkles className="w-8 h-8 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
+                <p className="text-slate-500 text-sm leading-snug">
+                  Join your DM's campaign via invite link to roll dice and track your character.
+                </p>
+              </div>
+              <div className="mt-2 py-1.5 px-3 rounded-full bg-amber-950/20 border border-amber-900/30">
+                <span className="text-[10px] font-black text-amber-500/70 uppercase tracking-[0.15em]">Ask your DM for a link</span>
+              </div>
+              <div className="absolute inset-0 rounded-[32px] bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
             </div>
-            <div className="absolute inset-0 rounded-[32px] bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+            {/* Joined Player Campaigns */}
+            {joinedCampaigns.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2 px-1">
+                  <Swords className="w-3.5 h-3.5 text-slate-500" />
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Adventures</h4>
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {joinedCampaigns.map((camp) => (
+                    <Link
+                      key={camp.id}
+                      href={`/player/${camp.id}`}
+                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
+                        <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{camp.name}</span>
+                      </div>
+                      <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Recent DM Campaigns */}
-        {recentCampaigns.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 px-1">
-              <Clock className="w-4 h-4 text-slate-500" />
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Resume Your Campaigns</h4>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {recentCampaigns.map((camp) => (
-                <Link
-                  key={camp.id}
-                  href={`/dm/${camp.id}`}
-                  className="group flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 hover:bg-slate-900 transition-all"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
-                    <span className="font-bold text-slate-200 group-hover:text-white transition-colors">{camp.name}</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 group-hover:translate-x-1 transition-all" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Footer info */}
@@ -119,4 +151,3 @@ export default function Home() {
     </main>
   );
 }
-

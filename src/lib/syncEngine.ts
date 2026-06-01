@@ -154,6 +154,16 @@ export function saveToDmHistory(config: CampaignConfig) {
   setLocalData("tt_dm_history", updated);
 }
 
+export function saveToPlayerHistory(config: CampaignConfig) {
+  if (typeof window === "undefined") return;
+  const history: CampaignConfig[] = getLocalData("tt_player_history", []);
+  
+  const filtered = history.filter(c => c.id !== config.id);
+  const updated = [{ id: config.id, name: config.name, themeColor: config.themeColor, synopsis: config.synopsis, createdAt: config.createdAt }, ...filtered].slice(0, 4);
+  
+  setLocalData("tt_player_history", updated);
+}
+
 export async function createCampaign(config: CampaignConfig): Promise<void> {
   saveToDmHistory(config);
   
