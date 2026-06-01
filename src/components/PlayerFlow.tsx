@@ -11,7 +11,7 @@ import PlayerDashboard from "./PlayerDashboard";
 
 type View = "loading" | "select" | "playing";
 
-export default function PlayerFlow() {
+export default function PlayerFlow({ campaignId }: { campaignId: string }) {
   const router = useRouter();
   const [view, setView] = useState<View>("loading");
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -62,6 +62,7 @@ export default function PlayerFlow() {
         characters={characters}
         onSelect={handleSelect}
         onCharactersChange={setCharacters}
+        campaignId={campaignId}
       />
     );
   }
@@ -119,7 +120,7 @@ export default function PlayerFlow() {
           </div>
 
           <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden">
-            <PlayerDashboard character={activeCharacter} />
+            <PlayerDashboard character={activeCharacter} campaignId={campaignId} />
           </div>
 
           <div className="hidden sm:block w-32 h-1 bg-slate-800 rounded-full mx-auto my-2 shrink-0 z-20" />

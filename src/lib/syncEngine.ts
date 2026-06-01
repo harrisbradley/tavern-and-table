@@ -39,18 +39,13 @@ export interface RollLog {
 // -------------------------------------------------------------
 // LOCAL BACKEND: BroadcastChannel + LocalStorage Fallback Setup
 // -------------------------------------------------------------
-const CHANNEL_NAME = "tavern_and_table_sync";
-let localChannel: BroadcastChannel | null = null;
-
-const CURRENT_CAMPAIGN_ID = "lost-mine"; // TODO: Pull from URL or config
-
-if (typeof window !== "undefined") {
-  localChannel = new BroadcastChannel(CHANNEL_NAME);
-}
+const getChannel = (campaignId: string) => {
+  if (typeof window === "undefined") return null;
+  return new BroadcastChannel(`tt_sync_${campaignId}`);
+};
 
 // Initial Mock Seed Data (Empty for production)
 const DEFAULT_PLAYERS: PlayerStatus[] = [];
-
 const DEFAULT_ROLLS: RollLog[] = [];
 
 // Helper to load localStorage safely
@@ -74,36 +69,40 @@ const setLocalData = (key: string, value: any) => {
   localStorage.setItem(key, JSON.stringify(value));
 };
 
-// Local fallback listeners to update the current tab synchronously since BroadcastChannel doesn't echo to sender
-const playerListeners = new Set<(players: PlayerStatus[]) => void>();
-const rollListeners = new Set<(logs: RollLog[]) => void>();
-const nudgeListeners = new Set<{ playerId: string; callback: (rollType: string | null) => void }>();
+// Local fallback listeners
+const playerListeners = new Set<{ campaignId: string; callback: (players: PlayerStatus[]) => void }>();
+const rollListeners = new Set<{ campaignId: string; callback: (logs: RollLog[]) => void }>();
+const nudgeListeners = new Set<{ campaignId: string; playerId: string; callback: (rollType: string | null) => void }>();
 
-function notifyLocalPlayers() {
-  const currentList = getLocalData("tt_players", DEFAULT_PLAYERS);
-  playerListeners.forEach((listener) => {
-    try {
-      listener(currentList);
-    } catch (err) {
-      console.error("Error in player listener:", err);
+function notifyLocalPlayers(campaignId: string) {
+  const currentList = getLocalData(`tt_players_${campaignId}`, DEFAULT_PLAYERS);
+  playerListeners.forEach((entry) => {
+    if (entry.campaignId === campaignId) {
+      try {
+        entry.callback(currentList);
+      } catch (err) {
+        console.error("Error in player listener:", err);
+      }
     }
   });
 }
 
-function notifyLocalRolls() {
-  const currentLogs = getLocalData("tt_rolls", DEFAULT_ROLLS);
-  rollListeners.forEach((listener) => {
-    try {
-      listener(currentLogs);
-    } catch (err) {
-      console.error("Error in roll listener:", err);
+function notifyLocalRolls(campaignId: string) {
+  const currentLogs = getLocalData(`tt_rolls_${campaignId}`, DEFAULT_ROLLS);
+  rollListeners.forEach((entry) => {
+    if (entry.campaignId === campaignId) {
+      try {
+        entry.callback(currentLogs);
+      } catch (err) {
+        console.error("Error in roll listener:", err);
+      }
     }
   });
 }
 
-function notifyLocalNudge(playerId: string, rollType: string | null) {
+function notifyLocalNudge(campaignId: string, playerId: string, rollType: string | null) {
   nudgeListeners.forEach((entry) => {
-    if (entry.playerId === playerId) {
+    if (entry.campaignId === campaignId && entry.playerId === playerId) {
       try {
         entry.callback(rollType);
       } catch (err) {
@@ -120,10 +119,10 @@ function notifyLocalNudge(playerId: string, rollType: string | null) {
 /**
  * 1. Subscribe to Player statuses in real-time.
  */
-export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void): () => void {
+export function subscribeToPlayers(campaignId: string, onUpdate: (players: PlayerStatus[]) => void): () => void {
   if (isFirebaseConfigured && db) {
     // Firebase Firestore Listener
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const playersCol = collection(campaignRef, "players");
     
     const unsubscribe = onSnapshot(playersCol, (snapshot: any) => {
@@ -142,25 +141,28 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
   } else {
     // Local BroadcastChannel Listener
     const fetchAndTrigger = () => {
-      const currentList: PlayerStatus[] = getLocalData("tt_players", []);
+      const currentList: PlayerStatus[] = getLocalData(`tt_players_${campaignId}`, []);
       onUpdate(currentList);
     };
 
     // Trigger initial values
     fetchAndTrigger();
-    playerListeners.add(onUpdate);
+    const entry = { campaignId, callback: onUpdate };
+    playerListeners.add(entry);
 
+    const channel = getChannel(campaignId);
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "PLAYERS_UPDATED") {
         fetchAndTrigger();
       }
     };
 
-    localChannel?.addEventListener("message", handleMessage);
+    channel?.addEventListener("message", handleMessage);
 
     return () => {
-      playerListeners.delete(onUpdate);
-      localChannel?.removeEventListener("message", handleMessage);
+      playerListeners.delete(entry);
+      channel?.removeEventListener("message", handleMessage);
+      channel?.close();
     };
   }
 }
@@ -168,9 +170,9 @@ export function subscribeToPlayers(onUpdate: (players: PlayerStatus[]) => void):
 /**
  * 2. Subscribe to Campaign Roll history log in real-time.
  */
-export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => void {
+export function subscribeToRollLogs(campaignId: string, onUpdate: (logs: RollLog[]) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const rollsCol = collection(campaignRef, "rolls");
     const q = query(rollsCol, orderBy("timestamp", "desc"), limit(30));
 
@@ -198,24 +200,27 @@ export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => 
     return unsubscribe;
   } else {
     const fetchAndTrigger = () => {
-      const currentLogs = getLocalData("tt_rolls", DEFAULT_ROLLS);
+      const currentLogs = getLocalData(`tt_rolls_${campaignId}`, DEFAULT_ROLLS);
       onUpdate(currentLogs);
     };
 
     fetchAndTrigger();
-    rollListeners.add(onUpdate);
+    const entry = { campaignId, callback: onUpdate };
+    rollListeners.add(entry);
 
+    const channel = getChannel(campaignId);
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "ROLLS_UPDATED") {
         fetchAndTrigger();
       }
     };
 
-    localChannel?.addEventListener("message", handleMessage);
+    channel?.addEventListener("message", handleMessage);
 
     return () => {
-      rollListeners.delete(onUpdate);
-      localChannel?.removeEventListener("message", handleMessage);
+      rollListeners.delete(entry);
+      channel?.removeEventListener("message", handleMessage);
+      channel?.close();
     };
   }
 }
@@ -223,9 +228,9 @@ export function subscribeToRollLogs(onUpdate: (logs: RollLog[]) => void): () => 
 /**
  * 3. Subscribe to active Nudges/Roll requests for a specific player.
  */
-export function subscribeToNudges(playerId: string, onNudge: (rollType: string | null) => void): () => void {
+export function subscribeToNudges(campaignId: string, playerId: string, onNudge: (rollType: string | null) => void): () => void {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
 
     const unsubscribe = onSnapshot(nudgeRef, (docSnap: any) => {
@@ -242,25 +247,27 @@ export function subscribeToNudges(playerId: string, onNudge: (rollType: string |
     return unsubscribe;
   } else {
     const fetchAndTrigger = () => {
-      const nudges = getLocalData("tt_nudges", {});
+      const nudges = getLocalData(`tt_nudges_${campaignId}`, {});
       onNudge(nudges[playerId] || null);
     };
 
     fetchAndTrigger();
-    const entry = { playerId, callback: onNudge };
+    const entry = { campaignId, playerId, callback: onNudge };
     nudgeListeners.add(entry);
 
+    const channel = getChannel(campaignId);
     const handleMessage = (e: MessageEvent) => {
       if (e.data?.type === "NUDGE_UPDATED" && e.data?.playerId === playerId) {
         onNudge(e.data?.rollType || null);
       }
     };
 
-    localChannel?.addEventListener("message", handleMessage);
+    channel?.addEventListener("message", handleMessage);
 
     return () => {
       nudgeListeners.delete(entry);
-      localChannel?.removeEventListener("message", handleMessage);
+      channel?.removeEventListener("message", handleMessage);
+      channel?.close();
     };
   }
 }
@@ -268,9 +275,9 @@ export function subscribeToNudges(playerId: string, onNudge: (rollType: string |
 /**
  * 4. Sync a player's entire profile (used for new characters or level ups).
  */
-export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
+export async function syncPlayerProfile(campaignId: string, player: PlayerStatus): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const playerRef = doc(campaignRef, "players", player.id);
     
     await setDoc(playerRef, {
@@ -284,7 +291,7 @@ export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
       status: player.status,
     }, { merge: true });
   } else {
-    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
+    const currentList: PlayerStatus[] = getLocalData(`tt_players_${campaignId}`, []);
     const exists = currentList.some((p) => p.id === player.id);
     
     let updatedList: PlayerStatus[];
@@ -294,11 +301,13 @@ export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
       updatedList = [...currentList, player];
     }
 
-    setLocalData("tt_players", updatedList);
+    setLocalData(`tt_players_${campaignId}`, updatedList);
     
     // Notify other tabs
-    localChannel?.postMessage({ type: "PLAYERS_UPDATED" });
-    notifyLocalPlayers();
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "PLAYERS_UPDATED" });
+    notifyLocalPlayers(campaignId);
+    channel?.close();
   }
 }
 
@@ -306,6 +315,7 @@ export async function syncPlayerProfile(player: PlayerStatus): Promise<void> {
  * 5. Update Player's health and core stats.
  */
 export async function updatePlayerHp(
+  campaignId: string,
   playerId: string,
   currentHp: number,
   maxHp: number,
@@ -314,7 +324,7 @@ export async function updatePlayerHp(
   const status = currentHp === 0 ? "down" : additionalFields.status || "active";
   
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const playerRef = doc(campaignRef, "players", playerId);
     
     await setDoc(
@@ -323,7 +333,7 @@ export async function updatePlayerHp(
       { merge: true }
     );
   } else {
-    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
+    const currentList: PlayerStatus[] = getLocalData(`tt_players_${campaignId}`, []);
     const updatedList = currentList.map((p) => {
       if (p.id === playerId) {
         return { ...p, currentHp, maxHp, status, ...additionalFields };
@@ -331,30 +341,34 @@ export async function updatePlayerHp(
       return p;
     });
 
-    setLocalData("tt_players", updatedList);
+    setLocalData(`tt_players_${campaignId}`, updatedList);
     
     // Notify other tabs
-    localChannel?.postMessage({ type: "PLAYERS_UPDATED" });
-    notifyLocalPlayers();
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "PLAYERS_UPDATED" });
+    notifyLocalPlayers(campaignId);
+    channel?.close();
   }
 }
 
 /**
  * 6. Remove a player's profile from the campaign (used when character is deleted).
  */
-export async function deletePlayerProfile(playerId: string): Promise<void> {
+export async function deletePlayerProfile(campaignId: string, playerId: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const playerRef = doc(campaignRef, "players", playerId);
     await deleteDoc(playerRef);
   } else {
-    const currentList: PlayerStatus[] = getLocalData("tt_players", []);
+    const currentList: PlayerStatus[] = getLocalData(`tt_players_${campaignId}`, []);
     const updatedList = currentList.filter((p) => p.id !== playerId);
-    setLocalData("tt_players", updatedList);
+    setLocalData(`tt_players_${campaignId}`, updatedList);
     
     // Notify other tabs
-    localChannel?.postMessage({ type: "PLAYERS_UPDATED" });
-    notifyLocalPlayers();
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "PLAYERS_UPDATED" });
+    notifyLocalPlayers(campaignId);
+    channel?.close();
   }
 }
 
@@ -362,6 +376,7 @@ export async function deletePlayerProfile(playerId: string): Promise<void> {
  * 7. Push a roll result to the campaign log.
  */
 export async function addRollLog(
+  campaignId: string,
   playerName: string,
   actionName: string,
   rollNotation: string,
@@ -369,7 +384,7 @@ export async function addRollLog(
   type: "attack" | "damage" | "stealth" | "heal"
 ): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const rollsCol = collection(campaignRef, "rolls");
     
     await addDoc(rollsCol, {
@@ -381,7 +396,7 @@ export async function addRollLog(
       type,
     });
   } else {
-    const currentLogs: RollLog[] = getLocalData("tt_rolls", DEFAULT_ROLLS);
+    const currentLogs: RollLog[] = getLocalData(`tt_rolls_${campaignId}`, DEFAULT_ROLLS);
     const newLog: RollLog = {
       id: "log-" + Math.random().toString(36).substring(2, 9),
       playerName,
@@ -393,19 +408,21 @@ export async function addRollLog(
     };
 
     const updatedLogs = [newLog, ...currentLogs].slice(0, 50); // Keep last 50
-    setLocalData("tt_rolls", updatedLogs);
+    setLocalData(`tt_rolls_${campaignId}`, updatedLogs);
     
-    localChannel?.postMessage({ type: "ROLLS_UPDATED" });
-    notifyLocalRolls();
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "ROLLS_UPDATED" });
+    notifyLocalRolls(campaignId);
+    channel?.close();
   }
 }
 
 /**
  * 8. Send Nudge (request roll) to player.
  */
-export async function sendNudge(playerId: string, rollType: string): Promise<void> {
+export async function sendNudge(campaignId: string, playerId: string, rollType: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
     
     await setDoc(nudgeRef, {
@@ -414,30 +431,34 @@ export async function sendNudge(playerId: string, rollType: string): Promise<voi
       timestamp: serverTimestamp(),
     });
   } else {
-    const nudges = getLocalData("tt_nudges", {});
+    const nudges = getLocalData(`tt_nudges_${campaignId}`, {});
     nudges[playerId] = rollType;
-    setLocalData("tt_nudges", nudges);
+    setLocalData(`tt_nudges_${campaignId}`, nudges);
     
-    localChannel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType });
-    notifyLocalNudge(playerId, rollType);
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType });
+    notifyLocalNudge(campaignId, playerId, rollType);
+    channel?.close();
   }
 }
 
 /**
  * 9. Clear Nudge (hide popup once roll is complete).
  */
-export async function clearNudge(playerId: string): Promise<void> {
+export async function clearNudge(campaignId: string, playerId: string): Promise<void> {
   if (isFirebaseConfigured && db) {
-    const campaignRef = doc(db, "campaigns", CURRENT_CAMPAIGN_ID);
+    const campaignRef = doc(db, "campaigns", campaignId);
     const nudgeRef = doc(campaignRef, "nudges", playerId);
     
     await setDoc(nudgeRef, { active: false }, { merge: true });
   } else {
-    const nudges = getLocalData("tt_nudges", {});
+    const nudges = getLocalData(`tt_nudges_${campaignId}`, {});
     nudges[playerId] = null;
-    setLocalData("tt_nudges", nudges);
+    setLocalData(`tt_nudges_${campaignId}`, nudges);
     
-    localChannel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType: null });
-    notifyLocalNudge(playerId, null);
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType: null });
+    notifyLocalNudge(campaignId, playerId, null);
+    channel?.close();
   }
 }

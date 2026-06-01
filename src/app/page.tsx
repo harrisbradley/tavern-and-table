@@ -1,76 +1,76 @@
-import Link from "next/link";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { Shield, Swords, Sparkles } from "lucide-react";
 
 export default function Home() {
+  const router = useRouter();
+
+  const handleDmClick = () => {
+    // Generate a random 6-character campaign ID
+    const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const campaignId = `CAMP-${randomId}`;
+    router.push(`/dm/${campaignId}`);
+  };
+
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-amber-900/10 blur-[120px] pointer-events-none" />
-
-      {/* Header */}
-      <div className="text-center z-10 max-w-xl mb-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-6 animate-pulse">
-          <Sparkles className="w-3.5 h-3.5" />
-          D&D 5e Companion
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
+      
+      {/* Hero section */}
+      <div className="text-center z-10 space-y-4 mb-12 animate-fade-in">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
+            <Shield className="w-10 h-10 text-indigo-400" />
+          </div>
+          <div className="h-10 w-px bg-slate-800" />
+          <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
+            <Swords className="w-10 h-10 text-amber-500" />
+          </div>
         </div>
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 via-amber-200 to-slate-100 mb-4 font-sans">
-          Tavern & Table
+        <h1 className="text-5xl font-black text-white tracking-tighter sm:text-6xl lg:text-7xl">
+          Tavern &amp; Table
         </h1>
-        <p className="text-slate-400 text-lg md:text-xl font-medium">
-          D&D is for everyone. Choose your screen — whether it's your first session or your hundredth.
+        <p className="text-slate-400 text-lg sm:text-xl font-medium max-w-md mx-auto leading-relaxed">
+          The ultimate mobile-first companion for your D&amp;D campaign. 3D dice, real-time sync, pure adventure.
         </p>
       </div>
 
-      {/* Choose your path cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl z-10">
-        
-        {/* Player Card */}
-        <Link 
-          href="/player"
-          className="group relative flex flex-col justify-between p-8 rounded-3xl bg-slate-900/40 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] text-left"
+      {/* Main Actions */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl z-10 animate-slide-up">
+        <button
+          onClick={handleDmClick}
+          className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center"
         >
-          <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-emerald-500 animate-ping group-hover:scale-150 transition-all" />
-          
+          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
+            <Shield className="w-8 h-8 text-indigo-400" />
+          </div>
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all duration-300">
-              <Swords className="w-7 h-7" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-100 group-hover:text-emerald-400 transition-colors mb-3">
-              I am a Player
-            </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition-colors text-sm leading-relaxed mb-8">
-              Open your combat screen. Manage your health, tap your arsenal to roll 3D dice instantly, and get step-by-step guides on what to do next.
+            <h3 className="text-xl font-bold text-white mb-2">I am the DM</h3>
+            <p className="text-slate-500 text-sm leading-snug">
+              Create a new campaign and manage your party's initiative and health.
             </p>
           </div>
-          
-          <div className="flex items-center text-emerald-400 font-semibold text-sm group-hover:translate-x-2 transition-transform duration-300">
-            Enter Player Screen &rarr;
-          </div>
-        </Link>
+          <div className="absolute inset-0 rounded-[32px] bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        </button>
 
-        {/* DM Card */}
-        <Link 
-          href="/dm"
-          className="group relative flex flex-col justify-between p-8 rounded-3xl bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-300 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] text-left"
-        >
+        <div className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center cursor-default">
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
+            <Sparkles className="w-8 h-8 text-amber-500" />
+          </div>
           <div>
-            <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:scale-110 group-hover:bg-indigo-500 group-hover:text-slate-950 transition-all duration-300">
-              <Shield className="w-7 h-7" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-100 group-hover:text-indigo-400 transition-colors mb-3">
-              I am the DM
-            </h2>
-            <p className="text-slate-400 group-hover:text-slate-300 transition-colors text-sm leading-relaxed mb-8">
-              Open the Dungeon Master dashboard. Monitor player health in real-time, track initiative, and keep the session moving for every player at the table.
+            <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
+            <p className="text-slate-500 text-sm leading-snug">
+              Join your DM's campaign via invite link to roll dice and track your character.
             </p>
           </div>
-          
-          <div className="flex items-center text-indigo-400 font-semibold text-sm group-hover:translate-x-2 transition-transform duration-300">
-            Open DM Dashboard &rarr;
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-full px-8">
+            <div className="text-[10px] font-black text-amber-500/60 uppercase tracking-[0.2em] animate-pulse">
+              Ask your DM for a link
+            </div>
           </div>
-        </Link>
-        
+          <div className="absolute inset-0 rounded-[32px] bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        </div>
       </div>
 
       {/* Footer info */}

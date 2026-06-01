@@ -11,6 +11,7 @@ interface Props {
   characters: Character[];
   onSelect: (character: Character) => void;
   onCharactersChange: (characters: Character[]) => void;
+  campaignId?: string;
 }
 
 function HpBar({ current, max }: { current: number; max: number }) {
@@ -116,10 +117,12 @@ function CharacterCard({
   );
 }
 
-export default function CharacterSelect({ characters, onSelect, onCharactersChange }: Props) {
+export default function CharacterSelect({ characters, onSelect, onCharactersChange, campaignId }: Props) {
   const handleDelete = (id: string) => {
     deleteCharacter(id);
-    deletePlayerProfile(id).catch(err => console.error("Failed to delete player profile sync:", err));
+    if (campaignId) {
+      deletePlayerProfile(campaignId, id).catch(err => console.error("Failed to delete player profile sync:", err));
+    }
     onCharactersChange(characters.filter((c) => c.id !== id));
   };
 
@@ -155,8 +158,8 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
 
         {/* Create new */}
         <Link
-          href="/character/create"
-          className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-slate-700 text-slate-500 hover:border-amber-500/40 hover:text-amber-400 transition-all font-semibold text-sm"
+          href={campaignId ? `/character/create?join=${campaignId}` : "/character/create"}
+          className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-slate-700 text-slate-500 hover:border-amber-500/40 hover:text-amber-400 transition-all font-semibold text-sm"   
         >
           <Plus className="w-4 h-4" />
           Create New Character

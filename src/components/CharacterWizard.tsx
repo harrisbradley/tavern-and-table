@@ -5,24 +5,26 @@ import { useRouter } from "next/navigation";
 import {
   Sparkles, ChevronLeft, ChevronRight,
   Swords, Eye, Shield, Zap, Compass, HelpCircle,
+  CheckCircle2
 } from "lucide-react";
 import {
   RACES, CLASSES, BACKGROUNDS,
   Race, CharacterClass, Background,
   RaceData, ClassData, BackgroundData,
   calculateStats, CLASS_DISPLAY_NAMES, RACE_DISPLAY_NAMES,
+  Character
 } from "@/types/character";
 import { createCharacter, setLastCharacterId } from "@/lib/characterEngine";
 
 type Mode = "direct" | "guided";
 type Archetype = "warrior" | "striker" | "divine" | "arcane";
-type Step = "name" | "archetype" | "refinement" | "race" | "class" | "background" | "review";
+type Step = "name" | "archetype" | "refinement" | "race" | "class" | "background" | "review" | "success";
 
 const DIRECT_STEPS: Step[] = ["name", "race", "class", "background", "review"];
 const GUIDED_STEPS: Step[] = ["name", "archetype", "refinement", "race", "background", "review"];
 const STEP_LABELS: Record<Step, string> = {
   name: "Name", archetype: "Style", refinement: "Class",
-  race: "Race", class: "Class", background: "Background", review: "Review",
+  race: "Race", class: "Class", background: "Background", review: "Review", success: "Done"
 };
 
 const ACCENT: Record<string, { border: string; bg: string; text: string; selectedBorder: string; selectedBg: string }> = {
@@ -80,7 +82,7 @@ const ARCHETYPE_REFINEMENTS: Record<Archetype, {
   },
 };
 
-function RaceCard({ data, selected, onSelect }: { data: RaceData; selected: boolean; onSelect: () => void }) {
+function RaceCard({ data, selected, onSelect }: { data: RaceData; selected: boolean; onSelect: () => void }) {  
   const a = ACCENT[data.accentColor];
   const bonuses = Object.entries(data.bonuses)
     .filter(([k]) => k !== "speed")
@@ -96,7 +98,7 @@ function RaceCard({ data, selected, onSelect }: { data: RaceData; selected: bool
     <button
       onClick={onSelect}
       className={`text-left p-4 rounded-xl border transition-all duration-150 ${
-        selected ? `${a.selectedBorder} ${a.selectedBg}` : `${a.border} ${a.bg} hover:${a.selectedBorder}`
+        selected ? `${a.selectedBorder} ${a.selectedBg}` : `${a.border} ${a.bg} hover:${a.selectedBorder}`      
       }`}
     >
       <div className={`text-base font-bold mb-1 ${a.text}`}>{data.name}</div>
@@ -118,7 +120,7 @@ function ClassCard({ data, selected, onSelect }: { data: ClassData; selected: bo
     <button
       onClick={onSelect}
       className={`text-left p-4 rounded-xl border transition-all duration-150 ${
-        selected ? `${a.selectedBorder} ${a.selectedBg}` : `${a.border} ${a.bg} hover:${a.selectedBorder}`
+        selected ? `${a.selectedBorder} ${a.selectedBg}` : `${a.border} ${a.bg} hover:${a.selectedBorder}`      
       }`}
     >
       <div className={`text-base font-bold mb-1 ${a.text}`}>{data.name}</div>
@@ -149,14 +151,18 @@ function BackgroundCard({ data, selected, onSelect }: { data: BackgroundData; se
 
 function ReviewStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex flex-col items-center bg-slate-900/60 rounded-xl px-3 py-3 border border-slate-800">
-      <span className="text-slate-500 text-[10px] uppercase tracking-widest font-semibold mb-1">{label}</span>
+    <div className="flex flex-col items-center bg-slate-900/60 rounded-xl px-3 py-3 border border-slate-800">   
+      <span className="text-slate-500 text-[10px] uppercase tracking-widest font-semibold mb-1">{label}</span>  
       <span className="text-white text-xl font-bold">{value}</span>
     </div>
   );
 }
 
-export default function CharacterWizard() {
+interface CharacterWizardProps {
+  campaignId?: string;
+}
+
+export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode | null>(null);
   const [step, setStep] = useState<Step>("name");
@@ -165,6 +171,7 @@ export default function CharacterWizard() {
   const [race, setRace] = useState<Race | null>(null);
   const [characterClass, setCharacterClass] = useState<CharacterClass | null>(null);
   const [background, setBackground] = useState<Background | null>(null);
+  const [createdCharacter, setCreatedCharacter] = useState<Character | null>(null);
 
   const steps = mode === "guided" ? GUIDED_STEPS : DIRECT_STEPS;
   const stepIndex = steps.indexOf(step);
@@ -190,6 +197,7 @@ export default function CharacterWizard() {
   };
 
   const goBack = () => {
+    if (step === "success") return; // Cannot go back from success
     if (stepIndex === 0) {
       setMode(null);
       return;
@@ -203,17 +211,71 @@ export default function CharacterWizard() {
     if (!name.trim() || !race || !characterClass || !background) return;
     const char = createCharacter({ name: name.trim(), race, className: characterClass, background });
     setLastCharacterId(char.id);
-    router.push("/player");
+    setCreatedCharacter(char);
+    
+    if (campaignId) {
+      setStep("success");
+    } else {
+      router.push("/");
+    }
   };
+
+  const handleJoinCampaign = () => {
+    if (!campaignId) return;
+    router.push(`/player/${campaignId}`);
+  };
+
+  // Success Step (Prompt to join campaign)
+  if (step === "success" && createdCharacter) {
+    return (
+      <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col items-center justify-center p-6 text-center">
+        <div className="z-10 space-y-8 animate-fade-in max-w-md">
+          <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-[32px] flex items-center justify-center mx-auto shadow-2xl">
+            <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+          </div>
+          
+          <div className="space-y-2">
+            <h2 className="text-3xl font-black text-white tracking-tight">Hero Created!</h2>
+            <p className="text-slate-400 font-medium leading-relaxed px-4">
+              Your legend as <span className="text-indigo-300 font-bold">{createdCharacter.name}</span> begins now.
+            </p>
+          </div>
+
+          <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-6 space-y-4">
+            <p className="text-slate-300 text-sm font-semibold uppercase tracking-widest">Joining Campaign</p>
+            <div className="text-2xl font-black text-amber-500">{campaignId}</div>
+            <p className="text-slate-500 text-xs leading-relaxed">
+              Would you like to enter the battlefield with your new hero?
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleJoinCampaign}
+              className="w-full py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-amber-500/20 active:scale-95"
+            >
+              Join Campaign Now
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 font-bold text-xs uppercase tracking-widest transition-colors"
+            >
+              Later, Return Home
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Mode selection — shown before the stepped wizard begins
   if (!mode) {
     return (
-      <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">
+      <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">   
         <div className="flex items-center px-4 pt-6 pb-4 max-w-2xl mx-auto w-full">
           <button
             onClick={() => router.push("/")}
-            className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+            className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-sm"   
           >
             <ChevronLeft className="w-4 h-4" />
             Home
@@ -226,7 +288,7 @@ export default function CharacterWizard() {
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Character Creator</span>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2">How would you like to build your character?</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">How would you like to build your character?</h2> 
             <p className="text-slate-400 text-sm leading-relaxed">
               Both paths produce the same character — choose whichever feels right.
             </p>
@@ -246,7 +308,7 @@ export default function CharacterWizard() {
                     I know what I want
                   </div>
                   <div className="text-slate-400 text-sm leading-relaxed">
-                    Pick your race, class, and background directly from the full list. Best if you know D&amp;D or already have a concept in mind.
+                    Pick your race, class, and background directly from the full list. Best if you know D&D or already have a concept in mind.
                   </div>
                 </div>
               </div>
@@ -277,19 +339,19 @@ export default function CharacterWizard() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">
+    <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">     
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-6 pb-4 max-w-2xl mx-auto w-full">
         <button
           onClick={goBack}
-          className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-sm"
+          className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-sm"     
         >
           <ChevronLeft className="w-4 h-4" />
           Back
         </button>
         <div className="flex items-center gap-1.5">
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Character Creator</span>
+          <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Character Creator</span> 
         </div>
         <div className="w-16" />
       </div>
@@ -311,7 +373,7 @@ export default function CharacterWizard() {
             <span
               key={s}
               className={`text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                i === stepIndex ? "text-amber-400" : i < stepIndex ? "text-slate-500" : "text-slate-700"
+                i === stepIndex ? "text-amber-400" : i < stepIndex ? "text-slate-500" : "text-slate-700"        
               }`}
             >
               {STEP_LABELS[s]}
@@ -415,7 +477,7 @@ export default function CharacterWizard() {
                       </span>
                     </div>
                     <div className="text-slate-300 text-sm font-semibold mb-2">{opt.label}</div>
-                    <div className="text-slate-400 text-xs leading-relaxed mb-3">{opt.description}</div>
+                    <div className="text-slate-400 text-xs leading-relaxed mb-3">{opt.description}</div>        
                     <div className="flex gap-3 text-[10px] font-semibold text-slate-500">
                       <span>{classData.baseHp} HP</span>
                       <span>AC {classData.baseAc}</span>
@@ -466,7 +528,7 @@ export default function CharacterWizard() {
             )}
             <div className="grid grid-cols-2 gap-3">
               {RACES.map((r) => (
-                <RaceCard key={r.id} data={r} selected={race === r.id} onSelect={() => setRace(r.id)} />
+                <RaceCard key={r.id} data={r} selected={race === r.id} onSelect={() => setRace(r.id)} />        
               ))}
             </div>
           </div>
@@ -506,7 +568,7 @@ export default function CharacterWizard() {
             <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-3">Your Origin</p>
             <h2 className="text-3xl font-bold text-white mb-2">What was your life before?</h2>
             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-              Before the adventure called, you were someone else. That life left its mark — and its skills.
+              Before the adventure called, you were someone else. That life left its mark — and its skills.   
             </p>
             <div className="grid grid-cols-2 gap-3">
               {BACKGROUNDS.map((b) => (
@@ -555,13 +617,13 @@ export default function CharacterWizard() {
             >
               Begin Your Adventure →
             </button>
-          ) : (
+          ) : step === "success" ? null : (
             <button
               onClick={goNext}
               disabled={!canContinue()}
               className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
                 canContinue()
-                  ? "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                  ? "bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.2)]"     
                   : "bg-slate-800 text-slate-600 cursor-not-allowed"
               }`}
             >
