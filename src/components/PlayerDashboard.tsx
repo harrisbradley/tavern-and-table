@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff } from "lucide-react";
+import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff, Bed, Coffee, ChevronRight } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile, subscribeToCampaignConfig, CampaignConfig } from "@/lib/syncEngine";
@@ -9,7 +9,7 @@ import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/c
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import LevelUpPanel from "./LevelUpPanel";
-import { Character, CharacterClass, CLASS_DISPLAY_NAMES } from "@/types/character";
+import { Character, CharacterClass, CLASS_DISPLAY_NAMES, CLASSES } from "@/types/character";
 
 interface WeaponOrSpell {
   id: string;
@@ -87,6 +87,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   const [tutorialEnabled, setTutorialEnabledState] = useState(character.tutorialEnabled !== false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
+  const [showRestMenu, setShowRestMenu] = useState(false);
   const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
 
   const hpRef = useRef(currentHp);
@@ -265,6 +266,37 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     setShowLevelUp(false);
   };
 
+  const handleLongRest = async () => {
+    setCurrentHp(character.maxHp);
+    updateCharacterHp(character.id, character.maxHp);
+    try {
+      await updatePlayerHp(campaignId, character.id, character.maxHp, character.maxHp);
+      await addRollLog(campaignId, character.name, "took a Long Rest and is fully restored!", "Long Rest", character.maxHp, "heal");
+    } catch (err) { console.error("Failed to sync long rest:", err); }
+    setShowRestMenu(false);
+  };
+
+  const handleShortRest = () => {
+    const classData = CLASSES.find(c => c.id === character.className);
+    const hitDie = classData?.hitDie || "d8";
+    const notation = `1${hitDie}+2`; 
+    
+    setTutorialStep({ type: "rolling", actionName: "Short Rest (Hit Die)" });
+    triggerDiceRoll(notation, async (total) => {
+      const prevHp = hpRef.current;
+      const targetHp = Math.min(prevHp + total, character.maxHp);
+      const actualHealed = targetHp - prevHp;
+      setCurrentHp(targetHp);
+      updateCharacterHp(character.id, targetHp);
+      try {
+        await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
+        await addRollLog(campaignId, character.name, `took a Short Rest and healed ${actualHealed} HP`, notation, actualHealed, "heal");
+      } catch (err) { console.error("Failed to sync short rest:", err); }
+      setTutorialStep({ type: "rest-completed", healAmount: actualHealed, currentHp: targetHp, isLongRest: false });
+    });
+    setShowRestMenu(false);
+  };
+
   const initiativeDisplay = character.initiative >= 0 ? `+${character.initiative}` : `${character.initiative}`;
 
   return (
@@ -434,7 +466,16 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
       {/* Turn Actions */}
       <section className="mt-6 z-10 select-none">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Turn Actions</h3>
+        <div className="flex justify-between items-center mb-2 px-1">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Turn Actions</h3>
+          <button 
+            onClick={() => setShowRestMenu(true)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
+          >
+            <Bed className="w-3 h-3" />
+            Take a Rest
+          </button>
+        </div>
         <div className="grid grid-cols-3 gap-2">
           <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
             <Footprints className={`w-5 h-5 ${theme.text}`} />
@@ -450,6 +491,61 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
           </button>
         </div>
       </section>
+
+      {showRestMenu && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+            <div className="text-center space-y-2 mb-6">
+              <div className={`w-14 h-14 rounded-2xl ${theme.bg}/10 border ${theme.border} flex items-center justify-center mx-auto mb-2`}>
+                <Bed className={`w-7 h-7 ${theme.text}`} />
+              </div>
+              <h2 className="text-xl font-bold text-white">Time for a Rest?</h2>
+              <p className="text-slate-400 text-sm">Recover your strength before the next encounter.</p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleShortRest}
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-slate-850 border border-slate-700 hover:border-emerald-500/50 transition-all text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <Coffee className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold text-sm">Short Rest</div>
+                    <div className="text-slate-500 text-[10px]">Spend 1 Hit Die ({CLASSES.find(c => c.id === character.className)?.hitDie}+2)</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+              </button>
+
+              <button
+                onClick={handleLongRest}
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-slate-850 border border-slate-700 hover:border-indigo-500/50 transition-all text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                    <Bed className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-white font-bold text-sm">Long Rest</div>
+                    <div className="text-slate-500 text-[10px]">Restore full health and resources</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+              </button>
+
+              <button
+                onClick={() => setShowRestMenu(false)}
+                className="w-full py-3 text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-widest transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showLevelUp && (
         <LevelUpPanel

@@ -38,6 +38,7 @@ export interface ClassData {
   baseAc: number;
   baseInitiative: number;
   basePassivePerception: number;
+  hitDie: string;
   accentColor: string;
 }
 
@@ -115,6 +116,7 @@ export const CLASSES: ClassData[] = [
     description: "Master of weapons and the art of war.",
     lore: "Fighters study the craft of battle above all else. They are the most versatile combatants — capable of turning any weapon into a deadly extension of their will.",
     baseHp: 12, baseAc: 16, baseInitiative: 1, basePassivePerception: 11,
+    hitDie: "d10",
     accentColor: "blue",
   },
   {
@@ -123,6 +125,7 @@ export const CLASSES: ClassData[] = [
     description: "A primal warrior who channels rage into power.",
     lore: "When fury takes hold, few forces can match a Barbarian's raw devastation. Their rage is not a weakness — it is the most honest weapon in any arsenal.",
     baseHp: 14, baseAc: 13, baseInitiative: 1, basePassivePerception: 10,
+    hitDie: "d12",
     accentColor: "red",
   },
   {
@@ -131,6 +134,7 @@ export const CLASSES: ClassData[] = [
     description: "A holy warrior bound by a sacred oath.",
     lore: "Paladins combine martial prowess with divine power, serving as living instruments of justice. Their oaths are unbreakable — and their conviction makes them terrifying in battle.",
     baseHp: 12, baseAc: 18, baseInitiative: 0, basePassivePerception: 11,
+    hitDie: "d10",
     accentColor: "amber",
   },
   {
@@ -139,6 +143,7 @@ export const CLASSES: ClassData[] = [
     description: "Hunter and tracker, master of the wilderness.",
     lore: "At home in the wilds, rangers stalk their quarry with unmatched patience. They blend martial skill with nature magic, striking from distance before enemies even know they are there.",
     baseHp: 12, baseAc: 14, baseInitiative: 2, basePassivePerception: 14,
+    hitDie: "d10",
     accentColor: "emerald",
   },
   {
@@ -147,6 +152,7 @@ export const CLASSES: ClassData[] = [
     description: "A divine conduit — healer and holy warrior.",
     lore: "Clerics are more than priests — they are soldiers of faith, channeling the power of their deity to mend the broken and smite the wicked. Their god fights beside them.",
     baseHp: 10, baseAc: 17, baseInitiative: 0, basePassivePerception: 13,
+    hitDie: "d8",
     accentColor: "indigo",
   },
   {
@@ -155,6 +161,7 @@ export const CLASSES: ClassData[] = [
     description: "A magical performer who inspires, enchants, and deceives.",
     lore: "Bards weave magic through music, words, and sheer force of personality. They know a little of everything and make the impossible seem effortless — usually while someone else is in danger.",
     baseHp: 10, baseAc: 13, baseInitiative: 2, basePassivePerception: 12,
+    hitDie: "d8",
     accentColor: "purple",
   },
   {
@@ -163,6 +170,7 @@ export const CLASSES: ClassData[] = [
     description: "A cunning master of stealth, skill, and precision.",
     lore: "Rogues achieve through cunning what others attempt by brute force. They are invaluable in any situation — striking from the shadows before their enemies can react.",
     baseHp: 10, baseAc: 14, baseInitiative: 3, basePassivePerception: 15,
+    hitDie: "d8",
     accentColor: "teal",
   },
   {
@@ -171,6 +179,7 @@ export const CLASSES: ClassData[] = [
     description: "An arcane scholar of devastating magical power.",
     lore: "Wizards spend their lives bending the laws of reality. Fragile in body but limitless in magical potential, a prepared wizard can unravel an army before it reaches the gate.",
     baseHp: 8, baseAc: 12, baseInitiative: 2, basePassivePerception: 11,
+    hitDie: "d6",
     accentColor: "violet",
   },
 ];
