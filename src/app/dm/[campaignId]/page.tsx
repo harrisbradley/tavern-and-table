@@ -39,6 +39,7 @@ import {
   saveToDmHistory
 } from "@/lib/syncEngine";
 import { isFirebaseConfigured } from "@/lib/firebase";
+import DiceBoxCanvas, { triggerDiceRoll } from "@/components/DiceBoxCanvas";
 
 const THEME_MAP: Record<string, { text: string; bg: string; border: string; accent: string; fill: string; ring: string }> = {
   indigo: { text: "text-indigo-400", bg: "bg-indigo-500", border: "border-indigo-500/20", accent: "indigo", fill: "fill-indigo-500", ring: "ring-indigo-500/20" },
@@ -207,6 +208,25 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
     } catch (err) {
       console.error("Failed to send nudge:", err);
     }
+  };
+
+  // DM rolls 3D dice
+  const handleDmRoll = (notation: string) => {
+    triggerDiceRoll(notation, async (total, rolls) => {
+      try {
+        const rollDetails = rolls.length > 1 ? `(${rolls.join(" + ")})` : "";
+        await addRollLog(
+          campaignId,
+          "Dungeon Master",
+          `rolled ${total} for monster action ${rollDetails}`,
+          notation,
+          total,
+          "attack" // Generic type for now
+        );
+      } catch (err) {
+        console.error("Failed to log DM roll:", err);
+      }
+    });
   };
 
   // -------------------------------------------------------------
@@ -910,9 +930,28 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
         </div>
 
-        {/* COL 3: REAL-TIME DICE ROLL LOGS */}
+        {/* COL 3: REAL-TIME DICE ROLL LOGS & DM TOOLS */}
         <div className="space-y-6">
           
+          {/* DM TOOLBOX: QUICK DICE */}
+          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
+              <Dice5 className={`w-5 h-5 ${theme.text}`} />
+              DM Quick Dice
+            </h2>
+            <div className="grid grid-cols-4 gap-2">
+              {["d4", "d6", "d8", "d10", "d12", "d20", "2d6", "1d100"].map((dice) => (
+                <button
+                  key={dice}
+                  onClick={() => handleDmRoll(dice.includes("d") && !dice.startsWith("d") ? dice : `1${dice}`)}
+                  className="py-2 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold text-slate-300 transition-all active:scale-95"
+                >
+                  {dice.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Notification bar for nudges */}
           {nudgeMessage && (
             <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 flex items-center gap-3 animate-slide-up shadow-md">
@@ -924,10 +963,10 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4 flex flex-col h-[750px] overflow-hidden">
             <div className="flex justify-between items-center shrink-0">
               <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
-                <History className="w-5 h-5 text-indigo-400" />
+                <History className={`w-5 h-5 ${theme.text}`} />
                 Live Campaign Log
               </h2>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className={`w-2.5 h-2.5 rounded-full ${theme.bg} animate-pulse`} />
             </div>
             
             <p className="text-xs text-slate-500 leading-normal shrink-0">
@@ -981,6 +1020,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
         </div>
 
       </div>
+      <DiceBoxCanvas />
     </main>
   );
 }
