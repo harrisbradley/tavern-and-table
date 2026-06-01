@@ -9,6 +9,7 @@ import {
   orderBy, 
   limit, 
   setDoc, 
+  getDoc,
   addDoc, 
   deleteDoc,
   serverTimestamp 
@@ -34,6 +35,14 @@ export interface RollLog {
   rollTotal: number;
   timestamp: string; // Will store relative time or ISO string
   type: "attack" | "damage" | "stealth" | "heal";
+}
+
+export interface CampaignConfig {
+  id: string;
+  name: string;
+  synopsis: string;
+  themeColor: string;
+  createdAt: string;
 }
 
 // -------------------------------------------------------------
@@ -73,6 +82,7 @@ const setLocalData = (key: string, value: any) => {
 const playerListeners = new Set<{ campaignId: string; callback: (players: PlayerStatus[]) => void }>();
 const rollListeners = new Set<{ campaignId: string; callback: (logs: RollLog[]) => void }>();
 const nudgeListeners = new Set<{ campaignId: string; playerId: string; callback: (rollType: string | null) => void }>();
+const configListeners = new Set<{ campaignId: string; callback: (config: CampaignConfig | null) => void }>();
 
 function notifyLocalPlayers(campaignId: string) {
   const currentList = getLocalData(`tt_players_${campaignId}`, DEFAULT_PLAYERS);
@@ -112,9 +122,109 @@ function notifyLocalNudge(campaignId: string, playerId: string, rollType: string
   });
 }
 
+function notifyLocalConfig(campaignId: string) {
+  const currentConfig = getLocalData(`tt_config_${campaignId}`, null);
+  configListeners.forEach((entry) => {
+    if (entry.campaignId === campaignId) {
+      try {
+        entry.callback(currentConfig);
+      } catch (err) {
+        console.error("Error in config listener:", err);
+      }
+    }
+  });
+}
+
 // -------------------------------------------------------------
 // UNIFIED SYNC ENGINE API
 // -------------------------------------------------------------
+
+/**
+ * 0. Campaign Metadata Management
+ */
+
+export async function createCampaign(config: CampaignConfig): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", config.id);
+    await setDoc(campaignRef, {
+      name: config.name,
+      synopsis: config.synopsis,
+      themeColor: config.themeColor,
+      createdAt: serverTimestamp(),
+    });
+  } else {
+    setLocalData(`tt_config_${config.id}`, config);
+    
+    const channel = getChannel(config.id);
+    channel?.postMessage({ type: "CONFIG_UPDATED" });
+    notifyLocalConfig(config.id);
+    channel?.close();
+  }
+}
+
+export async function fetchCampaignConfig(campaignId: string): Promise<CampaignConfig | null> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    const docSnap = await getDoc(campaignRef);
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      return {
+        id: campaignId,
+        name: data.name,
+        synopsis: data.synopsis,
+        themeColor: data.themeColor,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      };
+    }
+    return null;
+  } else {
+    return getLocalData(`tt_config_${campaignId}`, null);
+  }
+}
+
+export function subscribeToCampaignConfig(campaignId: string, onUpdate: (config: CampaignConfig | null) => void): () => void {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    return onSnapshot(campaignRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        onUpdate({
+          id: campaignId,
+          name: data.name,
+          synopsis: data.synopsis,
+          themeColor: data.themeColor,
+          createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+        });
+      } else {
+        onUpdate(null);
+      }
+    });
+  } else {
+    const fetchAndTrigger = () => {
+      const config = getLocalData(`tt_config_${campaignId}`, null);
+      onUpdate(config);
+    };
+
+    fetchAndTrigger();
+    const entry = { campaignId, callback: onUpdate };
+    configListeners.add(entry);
+
+    const channel = getChannel(campaignId);
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "CONFIG_UPDATED") {
+        fetchAndTrigger();
+      }
+    };
+
+    channel?.addEventListener("message", handleMessage);
+
+    return () => {
+      configListeners.delete(entry);
+      channel?.removeEventListener("message", handleMessage);
+      channel?.close();
+    };
+  }
+}
 
 /**
  * 1. Subscribe to Player statuses in real-time.
