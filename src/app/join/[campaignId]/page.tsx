@@ -81,7 +81,7 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
               </p>
             </div>
             <Link
-              href="/character/create"
+              href={`/character/create?join=${campaignId}`}
               className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-lg active:scale-95"
             >
               <Plus className="w-5 h-5 stroke-[3px]" />
