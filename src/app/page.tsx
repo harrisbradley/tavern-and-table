@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Swords, Sparkles, Clock, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Shield, Swords, Sparkles, Clock, ArrowRight, X } from "lucide-react";
 
 interface RecentCampaign {
   id: string;
@@ -11,8 +12,11 @@ interface RecentCampaign {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [recentDmCampaigns, setRecentDmCampaigns] = useState<RecentCampaign[]>([]);
   const [joinedCampaigns, setJoinedCampaigns] = useState<RecentCampaign[]>([]);
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [joinId, setJoinId] = useState("");
 
   useEffect(() => {
     // Load DM history
@@ -27,6 +31,13 @@ export default function Home() {
       try { setJoinedCampaigns(JSON.parse(playerSaved)); } catch (err) { console.error(err); }
     }
   }, []);
+
+  const handleJoinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (joinId.trim()) {
+      router.push(`/join/${joinId.trim().toUpperCase()}`);
+    }
+  };
 
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
@@ -100,20 +111,61 @@ export default function Home() {
 
           {/* Player Action */}
           <div className="space-y-4 flex flex-col">
-            <div className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 text-center flex-1">
+            <div 
+              onClick={() => !showJoinInput && setShowJoinInput(true)}
+              className={`group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border transition-all duration-500 text-center flex-1 ${
+                showJoinInput ? "border-amber-500/50 bg-slate-900/60" : "border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/60 cursor-pointer"
+              }`}
+            >
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
                 <Sparkles className="w-8 h-8 text-amber-500" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
-                <p className="text-slate-500 text-sm leading-snug">
-                  Join your DM's campaign via invite link to roll dice and track your character.
-                </p>
-              </div>
-              <div className="mt-2 py-1.5 px-3 rounded-full bg-amber-950/20 border border-amber-900/30">
-                <span className="text-[10px] font-black text-amber-500/70 uppercase tracking-[0.15em]">Ask your DM for a link</span>
-              </div>
-              <div className="absolute inset-0 rounded-[32px] bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              
+              {!showJoinInput ? (
+                <>
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
+                    <p className="text-slate-500 text-sm leading-snug">
+                      Join your DM's campaign via invite link or enter a Campaign ID manually.
+                    </p>
+                  </div>
+                  <div className="mt-2 py-1.5 px-4 rounded-full bg-amber-500/10 border border-amber-500/20">
+                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.15em]">Enter Campaign ID</span>
+                  </div>
+                </>
+              ) : (
+                <form onSubmit={handleJoinSubmit} className="w-full space-y-4 animate-in fade-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest text-center">Joining Adventure</h3>
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="e.g. CAMP-XYZ123"
+                      value={joinId}
+                      onChange={(e) => setJoinId(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-center font-bold placeholder:text-slate-700 focus:outline-none focus:border-amber-500 transition-all uppercase"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowJoinInput(false)}
+                      className="p-3 rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!joinId.trim()}
+                      className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+                    >
+                      Join Game
+                    </button>
+                  </div>
+                </form>
+              )}
+              
+              {!showJoinInput && <div className="absolute inset-0 rounded-[32px] bg-amber-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />}
             </div>
 
             {/* Joined Player Campaigns */}
