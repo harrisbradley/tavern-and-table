@@ -28,14 +28,25 @@ import {
 import { 
   subscribeToPlayers, 
   subscribeToRollLogs, 
+  subscribeToCampaignConfig,
   updatePlayerHp, 
   deletePlayerProfile,
   addRollLog, 
   sendNudge, 
   PlayerStatus, 
-  RollLog 
+  RollLog,
+  CampaignConfig
 } from "@/lib/syncEngine";
 import { isFirebaseConfigured } from "@/lib/firebase";
+
+const THEME_MAP: Record<string, { text: string; bg: string; border: string; accent: string; fill: string; ring: string }> = {
+  indigo: { text: "text-indigo-400", bg: "bg-indigo-500", border: "border-indigo-500/20", accent: "indigo", fill: "fill-indigo-500", ring: "ring-indigo-500/20" },
+  emerald: { text: "text-emerald-400", bg: "bg-emerald-500", border: "border-emerald-500/20", accent: "emerald", fill: "fill-emerald-500", ring: "ring-emerald-500/20" },
+  amber: { text: "text-amber-400", bg: "bg-amber-500", border: "border-amber-500/20", accent: "amber", fill: "fill-amber-500", ring: "ring-amber-500/20" },
+  red: { text: "text-red-400", bg: "bg-red-500", border: "border-red-500/20", accent: "red", fill: "fill-red-500", ring: "ring-red-500/20" },
+  violet: { text: "text-violet-400", bg: "bg-violet-500", border: "border-violet-500/20", accent: "violet", fill: "fill-violet-500", ring: "ring-violet-500/20" },
+  teal: { text: "text-teal-400", bg: "bg-teal-500", border: "border-teal-500/20", accent: "teal", fill: "fill-teal-500", ring: "ring-teal-500/20" },
+};
 
 interface Combatant {
   id: string;
@@ -48,6 +59,7 @@ interface Combatant {
 
 export default function DmDashboard({ params }: { params: Promise<{ campaignId: string }> }) {
   const { campaignId } = use(params);
+  const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
   const [players, setPlayers] = useState<PlayerStatus[]>([]);
   const [rollLogs, setRollLogs] = useState<RollLog[]>([]);
   const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
@@ -110,8 +122,12 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
     document.body.removeChild(textArea);
   };
 
-  // Subscribe to players and logs in real-time
+  // Subscribe to campaign metadata, players and logs in real-time
   useEffect(() => {
+    const unsubscribeConfig = subscribeToCampaignConfig(campaignId, (config) => {
+      setCampaign(config);
+    });
+
     const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
       setPlayers(playersList);
     });
@@ -121,10 +137,13 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
     });
 
     return () => {
+      unsubscribeConfig();
       unsubscribePlayers();
       unsubscribeRollLogs();
     };
   }, [campaignId]);
+
+  const theme = campaign?.themeColor ? THEME_MAP[campaign.themeColor] || THEME_MAP.indigo : THEME_MAP.indigo;
 
   // Keep combatant HP in sync with live player state
   useEffect(() => {
@@ -355,11 +374,11 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-indigo-400" />
+            <Shield className={`w-6 h-6 ${theme.text}`} />
             <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-indigo-300">
-              Tavern & Table Screen
+              {campaign?.name || "Tavern & Table Screen"}
             </h1>
-            <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider">
+            <span className={`px-2 py-0.5 rounded ${theme.bg}/10 border ${theme.border} ${theme.text} text-[10px] font-bold uppercase tracking-wider`}>
               Dungeon Master Mode
             </span>
           </div>
@@ -372,7 +391,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all select-none ${
               copySuccess 
                 ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" 
-                : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+                : `${theme.bg}/10 ${theme.border} ${theme.text} hover:${theme.bg}/20`
             }`}
           >
             {copySuccess ? (
@@ -401,8 +420,8 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           )}
 
           <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
-            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-            Campaign ID: <strong>{campaignId}</strong>
+            <span className={`w-2 h-2 rounded-full ${theme.bg} animate-pulse`} />
+            ID: <strong>{campaignId}</strong>
           </div>
         </div>
       </nav>
@@ -417,7 +436,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
-                <Users className="w-5 h-5 text-indigo-400" />
+                <Users className={`w-5 h-5 ${theme.text}`} />
                 Active Party Members
               </h2>
               <div className="flex items-center gap-3">
@@ -769,7 +788,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                 <button
                   onClick={handleStartCombat}
                   disabled={combatants.length === 0}
-                  className="flex-1 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-98 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-bold text-sm tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(16,185,129,0.15)] flex items-center justify-center gap-2 hover:scale-[1.01]"
+                  className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-bold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
                 >
                   <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
                   Start Combat Run
@@ -784,7 +803,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                   </button>
                   <button
                     onClick={handleNextTurn}
-                    className="flex-1 py-3.5 rounded-xl bg-gold hover:bg-gold-hover active:scale-98 text-slate-950 font-extrabold text-sm tracking-wide uppercase transition-all shadow-[0_4px_12px_rgba(245,158,11,0.2)] flex items-center justify-center gap-2 hover:scale-[1.01]"
+                    className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 text-slate-950 font-extrabold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
                   >
                     Next Turn
                     <Play className="w-4 h-4 fill-slate-950 text-slate-950" />

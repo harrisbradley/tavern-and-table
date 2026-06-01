@@ -1,18 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Shield, Swords, Sparkles } from "lucide-react";
 
 export default function Home() {
-  const router = useRouter();
-
-  const handleDmClick = () => {
-    // Generate a random 6-character campaign ID
-    const randomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const campaignId = `CAMP-${randomId}`;
-    router.push(`/dm/${campaignId}`);
-  };
-
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
@@ -38,8 +29,8 @@ export default function Home() {
 
       {/* Main Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl z-10 animate-slide-up">
-        <button
-          onClick={handleDmClick}
+        <Link
+          href="/campaign/create"
           className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center"
         >
           <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
@@ -52,7 +43,7 @@ export default function Home() {
             </p>
           </div>
           <div className="absolute inset-0 rounded-[32px] bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-        </button>
+        </Link>
 
         <div className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center cursor-default">
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">

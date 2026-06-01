@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
-import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile } from "@/lib/syncEngine";
+import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile, subscribeToCampaignConfig, CampaignConfig } from "@/lib/syncEngine";
 import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import { isFirebaseConfigured } from "@/lib/firebase";
@@ -66,6 +66,15 @@ const STEALTH_MOD: Record<CharacterClass, number> = {
   cleric: 0, bard: 2, rogue: 5, wizard: 2,
 };
 
+const THEME_MAP: Record<string, { text: string; bg: string; border: string; accent: string; fill: string; ring: string }> = {
+  indigo: { text: "text-indigo-400", bg: "bg-indigo-500", border: "border-indigo-500/20", accent: "indigo", fill: "fill-indigo-500", ring: "ring-indigo-500/20" },
+  emerald: { text: "text-emerald-400", bg: "bg-emerald-500", border: "border-emerald-500/20", accent: "emerald", fill: "fill-emerald-500", ring: "ring-emerald-500/20" },
+  amber: { text: "text-amber-400", bg: "bg-amber-500", border: "border-amber-500/20", accent: "amber", fill: "fill-amber-500", ring: "ring-amber-500/20" },
+  red: { text: "text-red-400", bg: "bg-red-500", border: "border-red-500/20", accent: "red", fill: "fill-red-500", ring: "ring-red-500/20" },
+  violet: { text: "text-violet-400", bg: "bg-violet-500", border: "border-violet-500/20", accent: "violet", fill: "fill-violet-500", ring: "ring-violet-500/20" },
+  teal: { text: "text-teal-400", bg: "bg-teal-500", border: "border-teal-500/20", accent: "teal", fill: "fill-teal-500", ring: "ring-teal-500/20" },
+};
+
 interface Props {
   character: Character;
   campaignId: string;
@@ -78,6 +87,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   const [tutorialEnabled, setTutorialEnabledState] = useState(character.tutorialEnabled !== false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
+  const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
 
   const hpRef = useRef(currentHp);
   useEffect(() => { hpRef.current = currentHp; }, [currentHp]);
@@ -106,6 +116,10 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   }, [campaignId, character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception]);
 
   useEffect(() => {
+    const unsubscribeConfig = subscribeToCampaignConfig(campaignId, (config) => {
+      setCampaign(config);
+    });
+
     const unsubscribeNudges = subscribeToNudges(campaignId, character.id, (rollType) => {
       setActiveNudge(rollType);
     });
@@ -116,10 +130,13 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     });
 
     return () => {
+      unsubscribeConfig();
       unsubscribeNudges();
       unsubscribePlayers();
     };
   }, [campaignId, character.id]);
+
+  const theme = campaign?.themeColor ? THEME_MAP[campaign.themeColor] || THEME_MAP.indigo : THEME_MAP.indigo;
 
   const adjustHp = async (amount: number) => {
     const latestHp = hpRef.current;
@@ -257,19 +274,19 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       {/* Header */}
       <header className="flex justify-between items-center mb-4 z-10 select-none">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-amber-500 shadow-inner">
+          <div className={`w-10 h-10 rounded-full ${theme.bg}/20 border ${theme.border} flex items-center justify-center font-black ${theme.text} shadow-inner`}>
             {initial}
           </div>
-          <div>
-            <h2 className="text-sm font-bold text-slate-100 leading-tight">{character.name}</h2>
-            <p className="text-[11px] text-slate-400 leading-none">{displayClass}</p>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-100 leading-tight truncate">{character.name}</h2>
+            <p className="text-[11px] text-slate-400 leading-none truncate">{displayClass}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {currentLevel < 20 && (
             <button
               onClick={() => setShowLevelUp(true)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-400 font-bold hover:bg-amber-500/20 transition-colors"
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-full ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-colors`}
             >
               <TrendingUp className="w-3 h-3" />
               Level Up
@@ -280,7 +297,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             title={tutorialEnabled ? "Guidance on — tap to turn off" : "Guidance off — tap to turn on"}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
               tutorialEnabled
-                ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20"
+                ? `${theme.bg}/10 ${theme.border} ${theme.text} hover:${theme.bg}/20`
                 : "bg-slate-900/40 border-slate-800 text-slate-600 hover:text-slate-400"
             }`}
           >
@@ -359,19 +376,19 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         <section className="grid grid-cols-3 gap-2 select-none">
           <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
             <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-              <Shield className="w-3.5 h-3.5 text-amber-500" />AC
+              <Shield className={`w-3.5 h-3.5 ${theme.text}`} />AC
             </span>
             <strong className="text-sm font-extrabold text-slate-200">{character.ac}</strong>
           </div>
           <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
             <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-              <Compass className="w-3.5 h-3.5 text-indigo-400" />Init
+              <Compass className={`w-3.5 h-3.5 ${theme.text}`} />Init
             </span>
             <strong className="text-sm font-extrabold text-slate-200">{initiativeDisplay}</strong>
           </div>
           <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
             <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-              <Eye className="w-3.5 h-3.5 text-emerald-400" />Passive
+              <Eye className={`w-3.5 h-3.5 ${theme.text}`} />Passive
             </span>
             <strong className="text-sm font-extrabold text-slate-200">{character.passivePerception}</strong>
           </div>
@@ -419,16 +436,16 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       <section className="mt-6 z-10 select-none">
         <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2">Turn Actions</h3>
         <div className="grid grid-cols-3 gap-2">
-          <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-blue-400 transition-all gap-1.5">
-            <Footprints className="w-5 h-5" />
+          <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+            <Footprints className={`w-5 h-5 ${theme.text}`} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Move ({character.speed}ft)</span>
           </button>
-          <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-indigo-400 transition-all gap-1.5">
-            <Eye className="w-5 h-5" />
+          <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+            <Eye className={`w-5 h-5 ${theme.text}`} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Hide (Stealth)</span>
           </button>
-          <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-teal-400 transition-all gap-1.5">
-            <Wine className="w-5 h-5" />
+          <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+            <Wine className={`w-5 h-5 ${theme.text}`} />
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Drink Potion</span>
           </button>
         </div>
