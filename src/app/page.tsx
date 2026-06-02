@@ -35,7 +35,7 @@ export default function Home() {
   const handleJoinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (joinId.trim()) {
-      router.push(`/join/${joinId.trim().toUpperCase()}`);
+      router.push(`/join/${joinId.trim().toLowerCase()}`);
     }
   };
 

@@ -270,10 +270,11 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     setCurrentHp(character.maxHp);
     updateCharacterHp(character.id, character.maxHp);
     try {
-      await updatePlayerHp(campaignId, character.id, character.maxHp, character.maxHp);
+      await updatePlayerHp(campaignId, character.id, character.maxHp, character.maxHp, { status: "active" });
       await addRollLog(campaignId, character.name, "took a Long Rest and is fully restored!", "Long Rest", character.maxHp, "heal");
     } catch (err) { console.error("Failed to sync long rest:", err); }
     setShowRestMenu(false);
+    setTutorialStep({ type: "rest-completed", healAmount: character.maxHp, currentHp: character.maxHp, isLongRest: true });
   };
 
   const handleShortRest = () => {

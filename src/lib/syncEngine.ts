@@ -48,9 +48,14 @@ export interface CampaignConfig {
 // -------------------------------------------------------------
 // LOCAL BACKEND: BroadcastChannel + LocalStorage Fallback Setup
 // -------------------------------------------------------------
+const channels: Record<string, BroadcastChannel> = {};
+
 const getChannel = (campaignId: string) => {
   if (typeof window === "undefined") return null;
-  return new BroadcastChannel(`tt_sync_${campaignId}`);
+  if (!channels[campaignId]) {
+    channels[campaignId] = new BroadcastChannel(`tt_sync_${campaignId}`);
+  }
+  return channels[campaignId];
 };
 
 // Initial Mock Seed Data (Empty for production)
@@ -440,7 +445,6 @@ export async function syncPlayerProfile(campaignId: string, player: PlayerStatus
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -480,7 +484,6 @@ export async function updatePlayerHp(
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -501,7 +504,6 @@ export async function deletePlayerProfile(campaignId: string, playerId: string):
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -546,7 +548,6 @@ export async function addRollLog(
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "ROLLS_UPDATED" });
     notifyLocalRolls(campaignId);
-    channel?.close();
   }
 }
 
@@ -571,7 +572,6 @@ export async function sendNudge(campaignId: string, playerId: string, rollType: 
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType });
     notifyLocalNudge(campaignId, playerId, rollType);
-    channel?.close();
   }
 }
 
@@ -592,6 +592,5 @@ export async function clearNudge(campaignId: string, playerId: string): Promise<
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType: null });
     notifyLocalNudge(campaignId, playerId, null);
-    channel?.close();
   }
 }
