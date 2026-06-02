@@ -22,7 +22,8 @@ export type TutorialStep =
   | { type: "move-clicked"; distance: number }
   | { type: "stealth-rolled"; rollTotal: number }
   | { type: "potion-drank"; healAmount: number; currentHp: number }
-  | { type: "rest-completed"; healAmount: number; currentHp: number; isLongRest: boolean };
+  | { type: "rest-completed"; healAmount: number; currentHp: number; isLongRest: boolean }
+  | { type: "check-rolled"; checkName: string; rollTotal: number; modifier: number; dieResult: number; notation: string };
 
 interface TutorialOverlayProps {
   step: TutorialStep;
@@ -52,6 +53,7 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
       step.type === "attack-rolled" ? step.rollTotal :
       step.type === "damage-rolled" ? step.rollTotal :
       step.type === "stealth-rolled" ? step.rollTotal :
+      step.type === "check-rolled" ? step.rollTotal :
       step.type === "potion-drank" ? `+${step.healAmount}` :
       step.type === "rest-completed" ? (step.isLongRest ? "Full" : `+${step.healAmount}`) :
       step.type === "move-clicked" ? `${step.distance}ft` : null;
@@ -60,12 +62,14 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
       step.type === "attack-rolled" ? "To Hit" :
       step.type === "damage-rolled" ? "Damage" :
       step.type === "stealth-rolled" ? "Stealth" :
+      step.type === "check-rolled" ? "Result" :
       step.type === "potion-drank" ? "Healed" :
       step.type === "move-clicked" ? "Movement" : "";
 
     const resultDetail =
       step.type === "attack-rolled" ? `${step.dieResult} on d20 + ${step.modifier} modifier` :
       step.type === "damage-rolled" ? `${step.damageType} · ${step.weaponName}` :
+      step.type === "check-rolled" ? `${step.checkName} (${step.dieResult} on die + ${step.modifier})` :
       step.type === "move-clicked" ? `${step.distance / 5} squares on a grid` : null;
 
     return (
@@ -135,6 +139,11 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
           {step.type === "stealth-rolled" && (
             <div className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-wider">
               Stealth Roll
+            </div>
+          )}
+          {step.type === "check-rolled" && (
+            <div className="px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold uppercase tracking-wider">
+              {step.checkName}
             </div>
           )}
           {step.type === "move-clicked" && (
@@ -283,6 +292,38 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
               className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-sm tracking-wide transition-all text-center block"
             >
               Finish Action
+            </button>
+          </div>
+        )}
+
+        {step.type === "check-rolled" && (
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+              <div className="text-center">
+                <span className="text-xs text-slate-500 block font-bold uppercase tracking-wider">Total</span>
+                <span className="text-4xl font-extrabold text-amber-400">{step.rollTotal}</span>
+              </div>
+              <div className="text-xs text-slate-400 border-l border-slate-800 pl-4 py-1 leading-relaxed">
+                Check: <span className="text-slate-200 font-bold">{step.checkName}</span> <br/>
+                Notation: <span className="text-slate-200 font-bold">{step.notation}</span>
+              </div>
+            </div>
+
+            <div className="bg-amber-500/5 border border-amber-500/10 p-4 rounded-2xl space-y-2">
+              <div className="flex gap-2">
+                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <h4 className="font-bold text-slate-100 text-sm">Tell your Dungeon Master</h4>
+              </div>
+              <p className="text-sm text-slate-300 leading-relaxed font-medium pl-7">
+                Say: <strong className="text-amber-400 text-base">"I got a {step.rollTotal} for {step.checkName}!"</strong>
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-sm tracking-wide transition-all text-center block"
+            >
+              Okay
             </button>
           </div>
         )}
