@@ -48,9 +48,14 @@ export interface CampaignConfig {
 // -------------------------------------------------------------
 // LOCAL BACKEND: BroadcastChannel + LocalStorage Fallback Setup
 // -------------------------------------------------------------
+const channels: Record<string, BroadcastChannel> = {};
+
 const getChannel = (campaignId: string) => {
   if (typeof window === "undefined") return null;
-  return new BroadcastChannel(`tt_sync_${campaignId}`);
+  if (!channels[campaignId]) {
+    channels[campaignId] = new BroadcastChannel(`tt_sync_${campaignId}`);
+  }
+  return channels[campaignId];
 };
 
 // Initial Mock Seed Data (Empty for production)
@@ -152,6 +157,16 @@ export function saveToDmHistory(config: CampaignConfig) {
   const updated = [{ id: config.id, name: config.name, themeColor: config.themeColor, synopsis: config.synopsis, createdAt: config.createdAt }, ...filtered].slice(0, 4); // Keep last 4
   
   setLocalData("tt_dm_history", updated);
+}
+
+export function saveToPlayerHistory(config: CampaignConfig) {
+  if (typeof window === "undefined") return;
+  const history: CampaignConfig[] = getLocalData("tt_player_history", []);
+  
+  const filtered = history.filter(c => c.id !== config.id);
+  const updated = [{ id: config.id, name: config.name, themeColor: config.themeColor, synopsis: config.synopsis, createdAt: config.createdAt }, ...filtered].slice(0, 4);
+  
+  setLocalData("tt_player_history", updated);
 }
 
 export async function createCampaign(config: CampaignConfig): Promise<void> {
@@ -430,7 +445,6 @@ export async function syncPlayerProfile(campaignId: string, player: PlayerStatus
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -470,7 +484,6 @@ export async function updatePlayerHp(
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -491,7 +504,6 @@ export async function deletePlayerProfile(campaignId: string, playerId: string):
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "PLAYERS_UPDATED" });
     notifyLocalPlayers(campaignId);
-    channel?.close();
   }
 }
 
@@ -536,7 +548,6 @@ export async function addRollLog(
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "ROLLS_UPDATED" });
     notifyLocalRolls(campaignId);
-    channel?.close();
   }
 }
 
@@ -561,7 +572,6 @@ export async function sendNudge(campaignId: string, playerId: string, rollType: 
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType });
     notifyLocalNudge(campaignId, playerId, rollType);
-    channel?.close();
   }
 }
 
@@ -582,6 +592,5 @@ export async function clearNudge(campaignId: string, playerId: string): Promise<
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType: null });
     notifyLocalNudge(campaignId, playerId, null);
-    channel?.close();
   }
 }

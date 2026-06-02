@@ -21,7 +21,8 @@ export type TutorialStep =
     }
   | { type: "move-clicked"; distance: number }
   | { type: "stealth-rolled"; rollTotal: number }
-  | { type: "potion-drank"; healAmount: number; currentHp: number };
+  | { type: "potion-drank"; healAmount: number; currentHp: number }
+  | { type: "rest-completed"; healAmount: number; currentHp: number; isLongRest: boolean };
 
 interface TutorialOverlayProps {
   step: TutorialStep;
@@ -52,6 +53,7 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
       step.type === "damage-rolled" ? step.rollTotal :
       step.type === "stealth-rolled" ? step.rollTotal :
       step.type === "potion-drank" ? `+${step.healAmount}` :
+      step.type === "rest-completed" ? (step.isLongRest ? "Full" : `+${step.healAmount}`) :
       step.type === "move-clicked" ? `${step.distance}ft` : null;
 
     const resultLabel =
@@ -344,6 +346,50 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
               className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-sm tracking-wide transition-all text-center block"
             >
               Okay!
+            </button>
+          </div>
+        )}
+        {/* Rest Completed */}
+        {step.type === "rest-completed" && (
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+              <div className="text-center">
+                <span className="text-xs text-slate-500 block font-bold uppercase tracking-wider">
+                  {step.isLongRest ? "Status" : "Healed"}
+                </span>
+                <span className={`text-4xl font-extrabold ${step.isLongRest ? "text-emerald-400" : "text-indigo-400"}`}>
+                  {step.isLongRest ? "Full" : `+${step.healAmount}`}
+                </span>
+              </div>
+              <div className="text-xs text-slate-400 border-l border-slate-800 pl-4 py-1 leading-relaxed">
+                Type: <span className="text-slate-200 font-bold">{step.isLongRest ? "Long Rest" : "Short Rest"}</span> <br/>
+                Current HP: <span className="text-slate-200 font-bold">{step.currentHp} HP</span>
+              </div>
+            </div>
+
+            <div className="bg-indigo-500/5 border border-indigo-500/10 p-4 rounded-2xl space-y-2">
+              <h4 className="font-bold text-slate-100 text-sm">
+                {step.isLongRest ? "Full Recovery!" : "Breath Caught!"}
+              </h4>
+              <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                {step.isLongRest 
+                  ? "You have completed a long rest. Your hit points and resources are fully restored."
+                  : `You spent a hit die and restored ${step.healAmount} hit points.`}
+              </p>
+              <p className="text-xs text-slate-400 leading-relaxed italic">
+                Tell your DM: <strong className="text-slate-200">
+                  {step.isLongRest 
+                    ? "I took a long rest and am fully restored." 
+                    : `I took a short rest and healed ${step.healAmount} HP.`}
+                </strong>
+              </p>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 font-semibold text-sm tracking-wide transition-all text-center block"
+            >
+              Back to Adventure
             </button>
           </div>
         )}

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Character } from "@/types/character";
 import { getCharacters, setLastCharacterId } from "@/lib/characterEngine";
 import CharacterSelect from "@/components/CharacterSelect";
-import { fetchCampaignConfig, CampaignConfig } from "@/lib/syncEngine";
+import { fetchCampaignConfig, CampaignConfig, saveToPlayerHistory } from "@/lib/syncEngine";
 
 const THEME_MAP: Record<string, { text: string; bg: string; border: string; accent: string }> = {
   indigo: { text: "text-indigo-400", bg: "bg-indigo-500", border: "border-indigo-500/20", accent: "indigo" },
@@ -34,6 +34,9 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
       // Load campaign config
       const config = await fetchCampaignConfig(campaignId);
       setCampaign(config);
+      if (config) {
+        saveToPlayerHistory(config);
+      }
       
       setLoading(false);
     }
