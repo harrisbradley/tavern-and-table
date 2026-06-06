@@ -14,6 +14,8 @@ import {
   deleteDoc,
   serverTimestamp 
 } from "firebase/firestore";
+import { JournalEntry } from "@/types/journal";
+
 
 export interface PlayerStatus {
   id: string;
@@ -88,6 +90,7 @@ const playerListeners = new Set<{ campaignId: string; callback: (players: Player
 const rollListeners = new Set<{ campaignId: string; callback: (logs: RollLog[]) => void }>();
 const nudgeListeners = new Set<{ campaignId: string; playerId: string; callback: (rollType: string | null) => void }>();
 const configListeners = new Set<{ campaignId: string; callback: (config: CampaignConfig | null) => void }>();
+const journalListeners = new Set<{ campaignId: string; callback: (entries: JournalEntry[]) => void }>();
 
 function notifyLocalPlayers(campaignId: string) {
   const currentList = getLocalData(`tt_players_${campaignId}`, DEFAULT_PLAYERS);
@@ -135,6 +138,19 @@ function notifyLocalConfig(campaignId: string) {
         entry.callback(currentConfig);
       } catch (err) {
         console.error("Error in config listener:", err);
+      }
+    }
+  });
+}
+
+function notifyLocalJournal(campaignId: string) {
+  const currentList = getLocalData(`tt_journal_${campaignId}`, []);
+  journalListeners.forEach((entry) => {
+    if (entry.campaignId === campaignId) {
+      try {
+        entry.callback(currentList);
+      } catch (err) {
+        console.error("Error in journal listener:", err);
       }
     }
   });
@@ -592,5 +608,146 @@ export async function clearNudge(campaignId: string, playerId: string): Promise<
     const channel = getChannel(campaignId);
     channel?.postMessage({ type: "NUDGE_UPDATED", playerId, rollType: null });
     notifyLocalNudge(campaignId, playerId, null);
+  }
+}
+
+/**
+ * 10. Subscribe to campaign Story Journal entries in real-time.
+ */
+export function subscribeToJournal(campaignId: string, onUpdate: (entries: JournalEntry[]) => void): () => void {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    const journalCol = collection(campaignRef, "journal");
+    const q = query(journalCol, orderBy("createdAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, (snapshot: any) => {
+      const list: JournalEntry[] = [];
+      snapshot.forEach((docSnap: any) => {
+        list.push({ id: docSnap.id, ...docSnap.data() } as JournalEntry);
+      });
+      onUpdate(list);
+    }, (err: any) => {
+      console.error("Firestore subscribeToJournal error:", err);
+    });
+
+    return unsubscribe;
+  } else {
+    const fetchAndTrigger = () => {
+      const currentList: JournalEntry[] = getLocalData(`tt_journal_${campaignId}`, []);
+      // Sort by createdAt descending
+      currentList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      onUpdate(currentList);
+    };
+
+    fetchAndTrigger();
+    const entry = { campaignId, callback: onUpdate };
+    journalListeners.add(entry);
+
+    const channel = getChannel(campaignId);
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === "JOURNAL_UPDATED") {
+        fetchAndTrigger();
+      }
+    };
+
+    channel?.addEventListener("message", handleMessage);
+
+    return () => {
+      journalListeners.delete(entry);
+      channel?.removeEventListener("message", handleMessage);
+    };
+  }
+}
+
+/**
+ * 11. Create or update a Story Journal entry.
+ */
+export async function saveJournalEntry(
+  campaignId: string,
+  entry: Omit<JournalEntry, "id" | "createdAt"> & { id?: string }
+): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    const journalCol = collection(campaignRef, "journal");
+    
+    if (entry.id) {
+      const entryRef = doc(journalCol, entry.id);
+      const existing = await getDoc(entryRef);
+      const existingData = existing.exists() ? existing.data() : {};
+      
+      await setDoc(entryRef, {
+        title: entry.title,
+        content: entry.content,
+        npcNames: entry.npcNames,
+        questDetails: entry.questDetails,
+        published: entry.published,
+        createdAt: existingData?.createdAt || new Date().toISOString(),
+      }, { merge: true });
+    } else {
+      const newId = "journal-" + Math.random().toString(36).substring(2, 9);
+      const entryRef = doc(journalCol, newId);
+      
+      await setDoc(entryRef, {
+        title: entry.title,
+        content: entry.content,
+        npcNames: entry.npcNames,
+        questDetails: entry.questDetails,
+        published: entry.published,
+        createdAt: new Date().toISOString(),
+      });
+    }
+  } else {
+    const currentList: JournalEntry[] = getLocalData(`tt_journal_${campaignId}`, []);
+    
+    if (entry.id) {
+      const idx = currentList.findIndex((e) => e.id === entry.id);
+      if (idx !== -1) {
+        currentList[idx] = {
+          ...currentList[idx],
+          title: entry.title,
+          content: entry.content,
+          npcNames: entry.npcNames,
+          questDetails: entry.questDetails,
+          published: entry.published,
+        };
+      }
+    } else {
+      const newEntry: JournalEntry = {
+        id: "journal-" + Math.random().toString(36).substring(2, 9),
+        title: entry.title,
+        content: entry.content,
+        npcNames: entry.npcNames,
+        questDetails: entry.questDetails,
+        published: entry.published,
+        createdAt: new Date().toISOString(),
+      };
+      currentList.push(newEntry);
+    }
+    
+    setLocalData(`tt_journal_${campaignId}`, currentList);
+    
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "JOURNAL_UPDATED" });
+    notifyLocalJournal(campaignId);
+  }
+}
+
+/**
+ * 12. Delete a Story Journal entry.
+ */
+export async function deleteJournalEntry(campaignId: string, entryId: string): Promise<void> {
+  if (isFirebaseConfigured && db) {
+    const campaignRef = doc(db, "campaigns", campaignId);
+    const journalCol = collection(campaignRef, "journal");
+    await deleteDoc(doc(journalCol, entryId));
+  } else {
+    const currentList: JournalEntry[] = getLocalData(`tt_journal_${campaignId}`, []);
+    const updated = currentList.filter((e) => e.id !== entryId);
+    
+    setLocalData(`tt_journal_${campaignId}`, updated);
+    
+    const channel = getChannel(campaignId);
+    channel?.postMessage({ type: "JOURNAL_UPDATED" });
+    notifyLocalJournal(campaignId);
   }
 }
