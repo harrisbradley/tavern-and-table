@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff, Bed, Coffee, ChevronRight, BookOpen } from "lucide-react";
+import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff, Bed, Coffee, ChevronRight, BookOpen, Dice5 } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
 import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile, subscribeToCampaignConfig, CampaignConfig, subscribeToJournal } from "@/lib/syncEngine";
@@ -90,6 +90,8 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
   const [activeNudge, setActiveNudge] = useState<string | null>(null);
   const [showRestMenu, setShowRestMenu] = useState(false);
+  const [showCheckMenu, setShowCheckMenu] = useState(false);
+  const [customMod, setCustomMod] = useState(0);
   const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
 
   // Tab State
@@ -314,7 +316,21 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     setShowRestMenu(false);
   };
 
+  const handleAdHocRoll = (notation: string, label: string) => {
+    setTutorialStep({ type: "rolling", actionName: label });
+    triggerDiceRoll(notation, async (total, rolls) => {
+      const dieResult = rolls[0];
+      const modifier = total - dieResult;
+      try {
+        await addRollLog(campaignId, character.name, `rolled a ${total} for ${label}`, notation, total, "stealth");
+      } catch (err) { console.error("Failed to log ad-hoc roll:", err); }
+      setTutorialStep({ type: "check-rolled", checkName: label, rollTotal: total, modifier, dieResult, notation });
+    });
+    setShowCheckMenu(false);
+  };
+
   const initiativeDisplay = character.initiative >= 0 ? `+${character.initiative}` : `${character.initiative}`;
+
   return (
     <div className="flex-1 flex flex-col justify-between overflow-y-auto relative p-4 md:p-6 pb-28">
       <DiceBoxCanvas />
@@ -452,13 +468,21 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
               <section className="mt-2 z-10 select-none">
                 <div className="flex justify-between items-center mb-2 px-1">
                   <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Turn Actions</h3>
-                  <button 
-                    onClick={() => setShowRestMenu(true)}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
-                  >
-                    <Bed className="w-3 h-3" />
-                    Take a Rest
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setShowCheckMenu(true)} 
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
+                    >
+                      <Dice5 className="w-3 h-3" /> Roll Check
+                    </button>
+                    <button 
+                      onClick={() => setShowRestMenu(true)}
+                      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
+                    >
+                      <Bed className="w-3 h-3" />
+                      Take a Rest
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
@@ -500,15 +524,9 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider leading-none">
-                          {weapon.id === "magic-missile" ? "Auto" : "Modifier"}
-                        </span>
-                        <span className="text-lg font-extrabold text-amber-500">
-                          {weapon.id === "magic-missile" ? "Hit" : `+${weapon.toHitModifier}`}
-                        </span>
-                        <span className="text-[9px] text-slate-400 block font-medium">
-                          {weapon.id === "magic-missile" ? "no roll" : "to hit"}
-                        </span>
+                        <span className="text-[10px] text-slate-555 font-bold block uppercase leading-none">{weapon.id === "magic-missile" ? "Auto" : "Modifier"}</span>
+                        <span className="text-lg font-extrabold text-amber-500">{weapon.id === "magic-missile" ? "Hit" : `+${weapon.toHitModifier}`}</span>
+                        <span className="text-[9px] text-slate-400 block font-medium">{weapon.id === "magic-missile" ? "no roll" : "to hit"}</span>
                       </div>
                     </button>
                   ))}
@@ -542,7 +560,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                       <div className="flex justify-between items-start">
                         <div className="space-y-0.5">
                           <h4 className="font-extrabold text-slate-200 text-sm tracking-tight">{entry.title}</h4>
-                          <span className="text-[9px] text-slate-550 font-bold uppercase tracking-wider">
+                          <span className="text-[9px] text-slate-555 font-bold uppercase tracking-wider">
                             {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
                           </span>
                         </div>
@@ -577,6 +595,35 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
           </div>
         )}
       </div>
+
+      {showCheckMenu && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+            <div className="text-center space-y-2 mb-6">
+              <div className={`w-14 h-14 rounded-2xl ${theme.bg}/10 border ${theme.border} flex items-center justify-center mx-auto mb-2`}>
+                <Dice5 className={`w-7 h-7 ${theme.text}`} />
+              </div>
+              <h2 className="text-xl font-bold text-white">Ability Check / Save</h2>
+              <p className="text-slate-400 text-sm">Roll a d20 with a custom modifier.</p>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Modifier</label>
+                <div className="flex items-center justify-center gap-6 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+                  <button onClick={() => setCustomMod(prev => prev - 1)} className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-red-400 transition-all"><Minus className="w-6 h-6" /></button>
+                  <div className="text-center min-w-16"><span className="text-4xl font-black text-white">{customMod >= 0 ? `+${customMod}` : customMod}</span></div>
+                  <button onClick={() => setCustomMod(prev => prev + 1)} className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-400 transition-all"><Plus className="w-6 h-6" /></button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button onClick={() => handleAdHocRoll(`1d20${customMod >= 0 ? "+" : ""}${customMod}`, "Ability Check")} className={`py-4 rounded-2xl ${theme.bg} text-slate-950 font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg`}>Roll Check</button>
+                <button onClick={() => handleAdHocRoll(`1d20${customMod >= 0 ? "+" : ""}${customMod}`, "Saving Throw")} className={`py-4 rounded-2xl border ${theme.border} ${theme.text} hover:${theme.bg}/10 font-black text-xs uppercase tracking-widest transition-all active:scale-95`}>Roll Save</button>
+              </div>
+              <button onClick={() => setShowCheckMenu(false)} className="w-full py-2 text-slate-500 hover:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] transition-colors">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showRestMenu && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
@@ -616,7 +663,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                   </div>
                   <div>
                     <div className="text-white font-bold text-sm">Long Rest</div>
-                    <div className="text-slate-500 text-[10px]">Restore full health and resources</div>
+                    <div className="text-slate-550 text-[10px]">Restore full health and resources</div>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
