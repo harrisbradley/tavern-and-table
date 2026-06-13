@@ -23,7 +23,9 @@ import {
   Cloud,
   WifiOff,
   Link as LinkIcon,
-  Check
+  Check,
+  BookOpen,
+  Edit
 } from "lucide-react";
 import { 
   subscribeToPlayers, 
@@ -36,10 +38,15 @@ import {
   PlayerStatus, 
   RollLog,
   CampaignConfig,
-  saveToDmHistory
+  saveToDmHistory,
+  subscribeToJournal,
+  saveJournalEntry,
+  deleteJournalEntry
 } from "@/lib/syncEngine";
 import { isFirebaseConfigured } from "@/lib/firebase";
 import DiceBoxCanvas, { triggerDiceRoll } from "@/components/DiceBoxCanvas";
+import { JournalEntry } from "@/types/journal";
+
 
 const THEME_MAP: Record<string, { text: string; bg: string; border: string; accent: string; fill: string; ring: string }> = {
   indigo: { text: "text-indigo-400", bg: "bg-indigo-500", border: "border-indigo-500/20", accent: "indigo", fill: "fill-indigo-500", ring: "ring-indigo-500/20" },
@@ -77,6 +84,22 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   const [newCombatantInitiative, setNewCombatantInitiative] = useState("");
   const [newCombatantHp, setNewCombatantHp] = useState("");
   const [newCombatantIsMonster, setNewCombatantIsMonster] = useState(true);
+
+  // Right Panel Tab Selection
+  const [activeRightTab, setActiveRightTab] = useState<"history" | "journal">("history");
+
+  // Journal States
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
+  const [isCreatingEntry, setIsCreatingEntry] = useState(false);
+
+  // Journal Form States
+  const [journalTitle, setJournalTitle] = useState("");
+  const [journalContent, setJournalContent] = useState("");
+  const [journalNpcs, setJournalNpcs] = useState("");
+  const [journalQuests, setJournalQuests] = useState("");
+  const [journalPublished, setJournalPublished] = useState(true);
+
 
   // Helper to copy join link
   const handleCopyInvite = () => {
@@ -141,10 +164,15 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
       setRollLogs(logsList);
     });
 
+    const unsubscribeJournal = subscribeToJournal(campaignId, (entriesList) => {
+      setJournalEntries(entriesList);
+    });
+
     return () => {
       unsubscribeConfig();
       unsubscribePlayers();
       unsubscribeRollLogs();
+      unsubscribeJournal();
     };
   }, [campaignId]);
 
@@ -227,6 +255,73 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
         console.error("Failed to log DM roll:", err);
       }
     });
+  };
+
+  // -------------------------------------------------------------
+  // STORY JOURNAL WORKSPACE LOGIC
+  // -------------------------------------------------------------
+  const handleCreateNewEntry = () => {
+    setEditingEntry(null);
+    setJournalTitle("");
+    setJournalContent("");
+    setJournalNpcs("");
+    setJournalQuests("");
+    setJournalPublished(true); // Default to published
+    setIsCreatingEntry(true);
+  };
+
+  const handleEditEntry = (entry: JournalEntry) => {
+    setEditingEntry(entry);
+    setJournalTitle(entry.title);
+    setJournalContent(entry.content);
+    setJournalNpcs(entry.npcNames.join(", "));
+    setJournalQuests(entry.questDetails);
+    setJournalPublished(entry.published);
+    setIsCreatingEntry(true);
+  };
+
+  const handleSaveEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!journalTitle.trim()) return;
+
+    const npcsArray = journalNpcs
+      .split(",")
+      .map((name) => name.trim())
+      .filter((name) => name.length > 0);
+
+    try {
+      await saveJournalEntry(campaignId, {
+        id: editingEntry?.id,
+        title: journalTitle,
+        content: journalContent,
+        npcNames: npcsArray,
+        questDetails: journalQuests,
+        published: journalPublished,
+      });
+
+      setIsCreatingEntry(false);
+      setEditingEntry(null);
+      setJournalTitle("");
+      setJournalContent("");
+      setJournalNpcs("");
+      setJournalQuests("");
+    } catch (err) {
+      console.error("Failed to save journal entry:", err);
+    }
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    if (confirm("Are you sure you want to delete this journal entry?")) {
+      try {
+        await deleteJournalEntry(campaignId, id);
+        if (editingEntry?.id === id) {
+          setIsCreatingEntry(false);
+          setEditingEntry(null);
+        }
+      } catch (err) {
+        console.error("Failed to delete journal entry:", err);
+      }
+    }
   };
 
   // -------------------------------------------------------------
@@ -961,61 +1056,264 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           )}
 
           <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4 flex flex-col h-[750px] overflow-hidden">
-            <div className="flex justify-between items-center shrink-0">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
-                <History className={`w-5 h-5 ${theme.text}`} />
-                Live Campaign Log
-              </h2>
-              <span className={`w-2.5 h-2.5 rounded-full ${theme.bg} animate-pulse`} />
-            </div>
-            
-            <p className="text-xs text-slate-500 leading-normal shrink-0">
-              Real-time logs of rolls and status changes sync here automatically from connected player devices.
-            </p>
-
-            {/* Log Feed */}
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 pt-1 scrollbar-thin">
-              {rollLogs.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs py-10">
-                  <p>No rolls made yet in this campaign.</p>
-                </div>
+            {/* Header Tabs */}
+            <div className="flex justify-between items-center shrink-0 border-b border-slate-850/60 pb-2">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveRightTab("history")}
+                  className={`text-sm font-bold flex items-center gap-1.5 pb-1 transition-all ${
+                    activeRightTab === "history"
+                      ? `${theme.text} border-b-2 border-${theme.accent}-500`
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <History className="w-4 h-4" />
+                  <span>Roll History</span>
+                </button>
+                <button
+                  onClick={() => setActiveRightTab("journal")}
+                  className={`text-sm font-bold flex items-center gap-1.5 pb-1 transition-all ${
+                    activeRightTab === "journal"
+                      ? `${theme.text} border-b-2 border-${theme.accent}-500`
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Story Journal</span>
+                </button>
+              </div>
+              
+              {activeRightTab === "history" ? (
+                <span className={`w-2.5 h-2.5 rounded-full ${theme.bg} animate-pulse`} />
               ) : (
-                rollLogs.map((log) => {
-                  let badgeClass = "bg-slate-950 border-slate-850 text-slate-400";
-                  if (log.type === "attack") badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
-                  if (log.type === "damage") badgeClass = "bg-red-500/10 border-red-500/20 text-red-400";
-                  if (log.type === "heal") badgeClass = "bg-teal-500/10 border-teal-500/20 text-teal-400";
-                  if (log.type === "stealth") badgeClass = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
-
-                  return (
-                    <div 
-                      key={log.id}
-                      className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs flex justify-between items-start gap-4 transition-all hover:bg-slate-900"
-                    >
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-200">{log.playerName}</span>
-                          <span className="text-[10px] text-slate-600 font-medium">
-                            {formatTime(log.timestamp)}
-                          </span>
-                        </div>
-                        <p className="text-slate-400 font-medium leading-relaxed">
-                          {log.actionName}
-                        </p>
-                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-950 border border-slate-900 text-[10px] text-slate-500 font-bold tracking-wide">
-                          Formula: {log.rollNotation}
-                        </div>
-                      </div>
-
-                      <div className={`px-3 py-2 rounded-lg border flex flex-col items-center justify-center font-bold min-w-14 shrink-0 shadow-sm ${badgeClass}`}>
-                        <span className="text-[9px] uppercase tracking-wider font-bold opacity-70 leading-none">Total</span>
-                        <span className="text-lg font-black tracking-tight mt-0.5">{log.rollTotal}</span>
-                      </div>
-                    </div>
-                  );
-                })
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">DM Journal</span>
               )}
             </div>
+
+            {/* TAB CONTENT: ROLL HISTORY */}
+            {activeRightTab === "history" && (
+              <div className="flex-1 flex flex-col overflow-hidden space-y-4">
+                <p className="text-xs text-slate-500 leading-normal shrink-0">
+                  Real-time logs of rolls and status changes sync here automatically from connected player devices.
+                </p>
+
+                {/* Log Feed */}
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 pt-1 scrollbar-thin">
+                  {rollLogs.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs py-10">
+                      <p>No rolls made yet in this campaign.</p>
+                    </div>
+                  ) : (
+                    rollLogs.map((log) => {
+                      let badgeClass = "bg-slate-950 border-slate-850 text-slate-400";
+                      if (log.type === "attack") badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+                      if (log.type === "damage") badgeClass = "bg-red-500/10 border-red-500/20 text-red-400";
+                      if (log.type === "heal") badgeClass = "bg-teal-500/10 border-teal-500/20 text-teal-400";
+                      if (log.type === "stealth") badgeClass = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+
+                      return (
+                        <div 
+                          key={log.id}
+                          className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs flex justify-between items-start gap-4 transition-all hover:bg-slate-900"
+                        >
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-200">{log.playerName}</span>
+                              <span className="text-[10px] text-slate-600 font-medium">
+                                {formatTime(log.timestamp)}
+                              </span>
+                            </div>
+                            <p className="text-slate-400 font-medium leading-relaxed">
+                              {log.actionName}
+                            </p>
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-950 border border-slate-900 text-[10px] text-slate-500 font-bold tracking-wide">
+                              Formula: {log.rollNotation}
+                            </div>
+                          </div>
+
+                          <div className={`px-3 py-2 rounded-lg border flex flex-col items-center justify-center font-bold min-w-14 shrink-0 shadow-sm ${badgeClass}`}>
+                            <span className="text-[9px] uppercase tracking-wider font-bold opacity-70 leading-none">Total</span>
+                            <span className="text-lg font-black tracking-tight mt-0.5">{log.rollTotal}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: STORY JOURNAL */}
+            {activeRightTab === "journal" && (
+              <>
+                {isCreatingEntry ? (
+                  <form onSubmit={handleSaveEntry} className="flex-1 flex flex-col space-y-4 overflow-y-auto pr-1 scrollbar-thin">
+                    <div className="flex justify-between items-center shrink-0">
+                      <h3 className="text-sm font-bold text-slate-300">
+                        {editingEntry ? "Edit Recap Entry" : "New Recap Entry"}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCreatingEntry(false);
+                          setEditingEntry(null);
+                        }}
+                        className="text-xs text-slate-500 hover:text-slate-300 font-bold transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-3 shrink-0">
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Entry Title</label>
+                        <input
+                          type="text"
+                          required
+                          value={journalTitle}
+                          onChange={(e) => setJournalTitle(e.target.value)}
+                          placeholder="e.g. The Siege of Cragmaw Castle"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Recap Content</label>
+                        <textarea
+                          required
+                          value={journalContent}
+                          onChange={(e) => setJournalContent(e.target.value)}
+                          placeholder="Describe the events of the session..."
+                          rows={6}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors resize-none scrollbar-thin"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">NPCs Met (Comma separated)</label>
+                        <input
+                          type="text"
+                          value={journalNpcs}
+                          onChange={(e) => setJournalNpcs(e.target.value)}
+                          placeholder="e.g. Gundren Rockseeker, Sildar Hallwinter"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quest Updates / Details</label>
+                        <textarea
+                          value={journalQuests}
+                          onChange={(e) => setJournalQuests(e.target.value)}
+                          placeholder="e.g. Find the Lost Mine of Phandelver (Active)"
+                          rows={2}
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors resize-none scrollbar-thin"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850 select-none">
+                        <div className="space-y-0.5">
+                          <div className="text-xs font-bold text-slate-200">Publish to Players</div>
+                          <div className="text-[10px] text-slate-500 font-semibold leading-none">Drafts are only visible to you</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={journalPublished} 
+                            onChange={(e) => setJournalPublished(e.target.checked)} 
+                            className="sr-only peer" 
+                          />
+                          <div className="w-8 h-4 bg-slate-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-slate-950 peer-checked:after:border-slate-950"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className={`w-full py-3 rounded-xl shrink-0 ${theme.bg} hover:brightness-110 active:scale-98 text-slate-950 font-bold text-xs uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2`}
+                    >
+                      {editingEntry ? "Save Changes" : "Publish Entry"}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
+                    <div className="flex justify-between items-center shrink-0">
+                      <p className="text-xs text-slate-500 leading-normal font-semibold">
+                        Log session summaries, quests, and NPCs.
+                      </p>
+                      <button
+                        onClick={handleCreateNewEntry}
+                        className={`px-2.5 py-1.5 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all flex items-center gap-1 active:scale-95`}
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>New Entry</span>
+                      </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                      {journalEntries.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs py-10">
+                          <p>No journal entries written yet.</p>
+                        </div>
+                      ) : (
+                        journalEntries.map((entry) => (
+                          <div 
+                            key={entry.id}
+                            className="p-4 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-3 transition-all hover:bg-slate-900 flex flex-col"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div className="space-y-1">
+                                <h4 className="font-bold text-slate-200 text-sm leading-tight">{entry.title}</h4>
+                                <div className="flex gap-2">
+                                  <span className="text-[10px] text-slate-555 font-semibold">
+                                    {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                                  </span>
+                                  {entry.published ? (
+                                    <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase tracking-wider">Published</span>
+                                  ) : (
+                                    <span className="text-[9px] font-bold text-slate-400 bg-slate-800 border border-slate-700 px-1.5 py-0.2 rounded uppercase tracking-wider">Draft</span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  onClick={() => handleEditEntry(entry)}
+                                  className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-500 hover:text-indigo-400 transition-colors"
+                                  title="Edit Entry"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteEntry(entry.id)}
+                                  className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-500 hover:text-red-400 transition-colors"
+                                  title="Delete Entry"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <p className="text-slate-400 leading-relaxed line-clamp-3 whitespace-pre-line">
+                              {entry.content}
+                            </p>
+
+                            {entry.npcNames.length > 0 && (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="text-[9px] uppercase tracking-wider font-semibold text-slate-500">NPCs:</span>
+                                {entry.npcNames.map((npc) => (
+                                  <span key={npc} className="px-1.5 py-0.2 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-400 font-medium">{npc}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
