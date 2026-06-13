@@ -72,27 +72,11 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
       <div className="min-h-screen w-full flex flex-col items-center justify-center bg-radial from-[#131722] via-[#090b11] to-[#040508] relative overflow-hidden sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40" />
 
-        {/* Desktop back/switch buttons */}
-        <div className="absolute top-4 left-4 z-20 hidden md:flex flex-col gap-2">
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-slate-200 transition-all text-xs font-semibold hover:border-slate-700"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Tavern
-          </Link>
-          <button
-            onClick={handleSwitchCharacter}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-amber-400 transition-all text-xs font-semibold hover:border-amber-800/50"
-          >
-            ⇄ Switch Hero
-          </button>
-        </div>
-
-        {/* Phone frame */}
-        <div className="w-full h-screen sm:h-[840px] sm:w-[390px] sm:rounded-[44px] sm:border-[10px] sm:border-slate-950 sm:shadow-[0_0_80px_rgba(0,0,0,0.8)] sm:bg-slate-950 relative overflow-hidden flex flex-col flex-shrink-0 animate-fade-in">
-          {/* Desktop status bar sim */}
-          <div className="hidden sm:flex justify-between items-center px-6 pt-3 pb-2 text-[10px] font-bold text-slate-500 bg-slate-950 select-none shrink-0 z-20">
+        {/* Dashboard wrapper - acts as a phone frame on small/medium screens, and expands to a full dashboard panel on tablet/desktop */}
+        <div className="w-full h-screen sm:h-[840px] sm:w-[390px] sm:rounded-[44px] sm:border-[10px] sm:border-slate-950 sm:shadow-[0_0_80px_rgba(0,0,0,0.8)] sm:bg-slate-950 md:w-full md:h-[calc(100vh-3rem)] md:max-w-6xl md:rounded-[32px] md:border md:border-slate-800/80 md:bg-slate-950/90 md:backdrop-blur-md md:p-0 relative overflow-hidden flex flex-col flex-shrink-0 animate-fade-in">
+          
+          {/* Desktop status bar sim (only visible on sm screen phone frames, hidden on mobile <sm and tablet/desktop >=md) */}
+          <div className="hidden sm:flex md:hidden justify-between items-center px-6 pt-3 pb-2 text-[10px] font-bold text-slate-500 bg-slate-950 select-none shrink-0 z-20">
             <span>T&T Mobile Companion</span>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-1.5 border border-slate-600 rounded-xs flex items-center justify-center p-0.5">
@@ -102,10 +86,11 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
             </div>
           </div>
 
-          <div className="hidden sm:block absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4.5 bg-slate-950 rounded-full z-30" />
+          {/* Phone notch sim (only visible on sm screen phone frames) */}
+          <div className="hidden sm:block md:hidden absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4.5 bg-slate-950 rounded-full z-30" />
 
-          {/* Mobile header */}
-          <div className="flex sm:hidden justify-between items-center px-4 py-3 bg-[#0d1322] border-b border-slate-900 select-none">
+          {/* Mobile header (Exit, Title, Switch) - visible on mobile < md */}
+          <div className="flex md:hidden justify-between items-center px-4 py-3 bg-[#0d1322] border-b border-slate-900 select-none shrink-0">
             <Link href="/" className="text-slate-400 flex items-center gap-1 text-xs font-bold">
               <ArrowLeft className="w-3.5 h-3.5" />
               Exit
@@ -119,11 +104,35 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
             </button>
           </div>
 
+          {/* Desktop/Tablet Header - visible on >= md */}
+          <div className="hidden md:flex justify-between items-center px-6 py-4 bg-slate-950/60 backdrop-blur-md border-b border-slate-900 select-none z-20 shrink-0">
+            <div className="flex items-center gap-4">
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-slate-200 transition-all text-xs font-semibold hover:border-slate-700"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Tavern
+              </Link>
+              <h1 className="text-sm font-extrabold text-slate-200 uppercase tracking-wider">
+                Campaign Dashboard
+              </h1>
+            </div>
+            <button
+              onClick={handleSwitchCharacter}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-amber-400 transition-all text-xs font-semibold hover:border-amber-800/50"
+            >
+              ⇄ Switch Hero
+            </button>
+          </div>
+
+          {/* Main Dashboard Panel */}
           <div className="flex-1 flex flex-col bg-slate-950 relative overflow-hidden">
             <PlayerDashboard character={activeCharacter} campaignId={campaignId} />
           </div>
 
-          <div className="hidden sm:block w-32 h-1 bg-slate-800 rounded-full mx-auto my-2 shrink-0 z-20" />
+          {/* Phone home indicator sim (only visible on sm screen phone frames) */}
+          <div className="hidden sm:block md:hidden w-32 h-1 bg-slate-800 rounded-full mx-auto my-2 shrink-0 z-20" />
         </div>
       </div>
     );

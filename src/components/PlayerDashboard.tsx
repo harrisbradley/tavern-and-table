@@ -317,11 +317,11 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   const initiativeDisplay = character.initiative >= 0 ? `+${character.initiative}` : `${character.initiative}`;
 
   return (
-    <div className="flex-1 flex flex-col justify-between overflow-y-auto relative p-4 pb-24">
+    <div className="flex-1 flex flex-col justify-between overflow-y-auto md:overflow-hidden relative p-4 md:p-6 pb-24 md:pb-6">
       <DiceBoxCanvas />
 
       {/* Header */}
-      <header className="flex justify-between items-center mb-4 z-10 select-none">
+      <header className="flex justify-between items-center mb-4 z-10 select-none shrink-0">
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-full ${theme.bg}/20 border ${theme.border} flex items-center justify-center font-black ${theme.text} shadow-inner`}>
             {initial}
@@ -370,7 +370,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
       {/* DM Nudge Alert */}
       {activeNudge && (
-        <div className="mb-4 z-15 bg-radial from-amber-500/10 to-amber-950/20 border border-amber-500/40 p-4 rounded-2xl animate-shake shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col gap-2.5">
+        <div className="mb-4 z-15 bg-radial from-amber-500/10 to-amber-950/20 border border-amber-500/40 p-4 rounded-2xl animate-shake shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col gap-2.5 shrink-0">
           <div className="flex items-center gap-2 text-amber-400 font-extrabold text-xs tracking-wider uppercase">
             <MessageSquare className="w-4 h-4 shrink-0 animate-bounce" />
             DM Requested a Roll!
@@ -387,132 +387,149 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         </div>
       )}
 
-      {activeTab === "combat" ? (
-        <div className="space-y-4 flex-1 flex flex-col justify-start z-10">
-          {/* Health */}
-          <section className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3 select-none">
-            <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Heart className="w-3.5 h-3.5 text-red-500" />
-                Player Health
-              </span>
-              <span className="text-xs font-semibold text-slate-300">
-                {currentHp === 0 ? (
-                  <span className="text-red-500 font-bold uppercase tracking-wider animate-pulse">Unconscious</span>
-                ) : (
-                  <>
-                    <strong className={`${hpTextClass} text-sm font-extrabold`}>{currentHp}</strong>
-                    <span className="text-slate-500"> / {character.maxHp} HP</span>
-                  </>
-                )}
-              </span>
-            </div>
-            <div className="w-full h-5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800/50">
-              <div className={`h-full ${hpColorClass} rounded-full transition-all duration-500`} style={{ width: `${(currentHp / character.maxHp) * 100}%` }} />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-1">
-              <button onClick={() => adjustHp(-1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-red-500/30 text-red-400 flex items-center justify-center gap-2 transition-all font-bold">
-                <Minus className="w-6 h-6 stroke-[3px]" />
-                <span className="text-xs uppercase tracking-wider">Take Damage</span>
-              </button>
-              <button onClick={() => adjustHp(1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-emerald-500/30 text-emerald-400 flex items-center justify-center gap-2 transition-all font-bold">
-                <Plus className="w-6 h-6 stroke-[3px]" />
-                <span className="text-xs uppercase tracking-wider">Heal</span>
-              </button>
-            </div>
-          </section>
+      {/* Main content layout */}
+      <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-hidden min-h-0 z-10">
+        
+        {/* Combat Tab Content */}
+        <div className={`space-y-4 flex-1 flex flex-col justify-start md:overflow-y-auto pr-0 md:pr-1 pb-6 md:pb-0 ${
+          activeTab === "combat" ? "flex" : "hidden md:flex"
+        }`}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* Left Column: Health, Stats, Turn Actions */}
+            <div className="lg:col-span-7 space-y-4">
+              {/* Health */}
+              <section className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3 select-none">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <Heart className="w-3.5 h-3.5 text-red-500" />
+                    Player Health
+                  </span>
+                  <span className="text-xs font-semibold text-slate-300">
+                    {currentHp === 0 ? (
+                      <span className="text-red-500 font-bold uppercase tracking-wider animate-pulse">Unconscious</span>
+                    ) : (
+                      <>
+                        <strong className={`${hpTextClass} text-sm font-extrabold`}>{currentHp}</strong>
+                        <span className="text-slate-500"> / {character.maxHp} HP</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+                <div className="w-full h-5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800/50">
+                  <div className={`h-full ${hpColorClass} rounded-full transition-all duration-500`} style={{ width: `${(currentHp / character.maxHp) * 100}%` }} />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-1">
+                  <button onClick={() => adjustHp(-1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-red-500/30 text-red-400 flex items-center justify-center gap-2 transition-all font-bold">
+                    <Minus className="w-6 h-6 stroke-[3px]" />
+                    <span className="text-xs uppercase tracking-wider">Take Damage</span>
+                  </button>
+                  <button onClick={() => adjustHp(1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-emerald-500/30 text-emerald-400 flex items-center justify-center gap-2 transition-all font-bold">
+                    <Plus className="w-6 h-6 stroke-[3px]" />
+                    <span className="text-xs uppercase tracking-wider">Heal</span>
+                  </button>
+                </div>
+              </section>
 
-          {/* Core stats */}
-          <section className="grid grid-cols-3 gap-2 select-none">
-            <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-              <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-                <Shield className={`w-3.5 h-3.5 ${theme.text}`} />AC
-              </span>
-              <strong className="text-sm font-extrabold text-slate-200">{character.ac}</strong>
-            </div>
-            <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-              <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-                <Compass className={`w-3.5 h-3.5 ${theme.text}`} />Init
-              </span>
-              <strong className="text-sm font-extrabold text-slate-200">{initiativeDisplay}</strong>
-            </div>
-            <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-              <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
-                <Eye className={`w-3.5 h-3.5 ${theme.text}`} />Passive
-              </span>
-              <strong className="text-sm font-extrabold text-slate-200">{character.passivePerception}</strong>
-            </div>
-          </section>
+              {/* Core stats */}
+              <section className="grid grid-cols-3 gap-2 select-none">
+                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                    <Shield className={`w-3.5 h-3.5 ${theme.text}`} />AC
+                  </span>
+                  <strong className="text-sm font-extrabold text-slate-200">{character.ac}</strong>
+                </div>
+                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                    <Compass className={`w-3.5 h-3.5 ${theme.text}`} />Init
+                  </span>
+                  <strong className="text-sm font-extrabold text-slate-200">{initiativeDisplay}</strong>
+                </div>
+                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                    <Eye className={`w-3.5 h-3.5 ${theme.text}`} />Passive
+                  </span>
+                  <strong className="text-sm font-extrabold text-slate-200">{character.passivePerception}</strong>
+                </div>
+              </section>
 
-          {/* Arsenal */}
-          <section className="flex flex-col gap-3 select-none">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">The Arsenal (Tap to Attack)</h3>
-            <div className="grid grid-cols-1 gap-3">
-              {arsenal.map((weapon) => (
-                <button
-                  key={weapon.id}
-                  onClick={() => handleWeaponClick(weapon)}
-                  className={`group flex items-center justify-between p-4 rounded-2xl bg-slate-900/30 border border-slate-800/80 ${weapon.borderColor} transition-all duration-300 text-left`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center border border-slate-850 group-hover:scale-105 transition-all">
-                      {weapon.icon}
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-200 group-hover:text-slate-100">{weapon.name}</h4>
-                      <p className="text-[11px] text-slate-500">
-                        Damage: <span className="text-slate-400 font-medium">{weapon.damageNotation} {weapon.damageType}</span>
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider leading-none">
-                      {weapon.id === "magic-missile" ? "Auto" : "Modifier"}
-                    </span>
-                    <span className="text-lg font-extrabold text-amber-500">
-                      {weapon.id === "magic-missile" ? "Hit" : `+${weapon.toHitModifier}`}
-                    </span>
-                    <span className="text-[9px] text-slate-400 block font-medium">
-                      {weapon.id === "magic-missile" ? "no roll" : "to hit"}
-                    </span>
-                  </div>
-                </button>
-              ))}
+              {/* Turn Actions */}
+              <section className="mt-2 z-10 select-none">
+                <div className="flex justify-between items-center mb-2 px-1">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Turn Actions</h3>
+                  <button 
+                    onClick={() => setShowRestMenu(true)}
+                    className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
+                  >
+                    <Bed className="w-3 h-3" />
+                    Take a Rest
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                    <Footprints className={`w-5 h-5 ${theme.text}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Move ({character.speed}ft)</span>
+                  </button>
+                  <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                    <Eye className={`w-5 h-5 ${theme.text}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Hide (Stealth)</span>
+                  </button>
+                  <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                    <Wine className={`w-5 h-5 ${theme.text}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Drink Potion</span>
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
 
-          {/* Turn Actions */}
-          <section className="mt-6 z-10 select-none">
-            <div className="flex justify-between items-center mb-2 px-1">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Turn Actions</h3>
-              <button 
-                onClick={() => setShowRestMenu(true)}
-                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all`}
-              >
-                <Bed className="w-3 h-3" />
-                Take a Rest
-              </button>
+            {/* Right Column: Arsenal */}
+            <div className="lg:col-span-5 space-y-4">
+              <section className="flex flex-col gap-3 select-none">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">The Arsenal (Tap to Attack)</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {arsenal.map((weapon) => (
+                    <button
+                      key={weapon.id}
+                      onClick={() => handleWeaponClick(weapon)}
+                      className={`group flex items-center justify-between p-4 rounded-2xl bg-slate-900/30 border border-slate-800/80 ${weapon.borderColor} transition-all duration-300 text-left`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center border border-slate-850 group-hover:scale-105 transition-all">
+                          {weapon.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-200 group-hover:text-slate-100">{weapon.name}</h4>
+                          <p className="text-[11px] text-slate-500">
+                            Damage: <span className="text-slate-400 font-medium">{weapon.damageNotation} {weapon.damageType}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-slate-550 font-bold block uppercase tracking-wider leading-none">
+                          {weapon.id === "magic-missile" ? "Auto" : "Modifier"}
+                        </span>
+                        <span className="text-lg font-extrabold text-amber-500">
+                          {weapon.id === "magic-missile" ? "Hit" : `+${weapon.toHitModifier}`}
+                        </span>
+                        <span className="text-[9px] text-slate-400 block font-medium">
+                          {weapon.id === "magic-missile" ? "no roll" : "to hit"}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
-                <Footprints className={`w-5 h-5 ${theme.text}`} />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Move ({character.speed}ft)</span>
-              </button>
-              <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
-                <Eye className={`w-5 h-5 ${theme.text}`} />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Hide (Stealth)</span>
-              </button>
-              <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
-                <Wine className={`w-5 h-5 ${theme.text}`} />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Drink Potion</span>
-              </button>
-            </div>
-          </section>
+
+          </div>
         </div>
-      ) : (
-        <div className="space-y-4 flex-1 flex flex-col justify-start z-10 overflow-hidden">
+
+        {/* Journal Tab Content */}
+        <div className={`space-y-4 flex-1 flex flex-col justify-start md:overflow-y-auto pr-0 md:pr-1 ${
+          activeTab === "journal" ? "flex" : "hidden md:flex"
+        } md:max-w-xs lg:max-w-sm shrink-0`}>
           {/* Story Journal Recap Feed */}
-          <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 flex-1 select-none overflow-hidden h-[540px]">
+          <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 flex-1 select-none overflow-hidden h-[540px] md:h-full">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5 shrink-0">
               <BookOpen className={`w-4 h-4 ${theme.text}`} />
               Story Journal Recap
@@ -567,7 +584,30 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             </div>
           </section>
         </div>
-      )}
+
+      </div>
+
+      {/* Bottom Navigation Tabs */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-6 py-2.5 flex justify-around select-none md:hidden">
+        <button
+          onClick={() => setActiveTab("combat")}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            activeTab === "combat" ? theme.text : "text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          <Swords className="w-5 h-5" />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Combat</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("journal")}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            activeTab === "journal" ? theme.text : "text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          <BookOpen className="w-5 h-5" />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Journal</span>
+        </button>
+      </div>
 
       {showRestMenu && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
