@@ -315,9 +315,8 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   };
 
   const initiativeDisplay = character.initiative >= 0 ? `+${character.initiative}` : `${character.initiative}`;
-
   return (
-    <div className="flex-1 flex flex-col justify-between overflow-y-auto md:overflow-hidden relative p-4 md:p-6 pb-24 md:pb-6">
+    <div className="flex-1 flex flex-col justify-between overflow-y-auto relative p-4 md:p-6 pb-28">
       <DiceBoxCanvas />
 
       {/* Header */}
@@ -387,17 +386,13 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         </div>
       )}
 
-      {/* Main content layout */}
-      <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-hidden min-h-0 z-10">
-        
-        {/* Combat Tab Content */}
-        <div className={`space-y-4 flex-1 flex flex-col justify-start md:overflow-y-auto pr-0 md:pr-1 pb-6 md:pb-0 ${
-          activeTab === "combat" ? "flex" : "hidden md:flex"
-        }`}>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* Main Content Area */}
+      <div className="flex-1 z-10 w-full mb-4">
+        {activeTab === "combat" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in w-full">
             
             {/* Left Column: Health, Stats, Turn Actions */}
-            <div className="lg:col-span-7 space-y-4">
+            <div className="lg:col-span-7 space-y-4 w-full">
               {/* Health */}
               <section className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3 select-none">
                 <div className="flex justify-between items-center">
@@ -483,7 +478,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             </div>
 
             {/* Right Column: Arsenal */}
-            <div className="lg:col-span-5 space-y-4">
+            <div className="lg:col-span-5 space-y-4 w-full">
               <section className="flex flex-col gap-3 select-none">
                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">The Arsenal (Tap to Attack)</h3>
                 <div className="grid grid-cols-1 gap-3">
@@ -522,91 +517,65 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             </div>
 
           </div>
-        </div>
-
-        {/* Journal Tab Content */}
-        <div className={`space-y-4 flex-1 flex flex-col justify-start md:overflow-y-auto pr-0 md:pr-1 ${
-          activeTab === "journal" ? "flex" : "hidden md:flex"
-        } md:max-w-xs lg:max-w-sm shrink-0`}>
-          {/* Story Journal Recap Feed */}
-          <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 flex-1 select-none overflow-hidden h-[540px] md:h-full">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5 shrink-0">
-              <BookOpen className={`w-4 h-4 ${theme.text}`} />
-              Story Journal Recap
-            </h3>
-            
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
-              {journalEntries.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-650 text-xs py-16 text-center">
-                  <BookOpen className="w-10 h-10 text-slate-800 mb-3 opacity-40 animate-pulse" />
-                  <p>No recaps have been published yet by the DM.</p>
-                  <p className="text-[10px] mt-1 text-slate-700">Check back during or after the session!</p>
-                </div>
-              ) : (
-                journalEntries.map((entry) => (
-                  <div 
-                    key={entry.id}
-                    className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-3 shadow-md"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-0.5">
-                        <h4 className="font-extrabold text-slate-200 text-sm tracking-tight">{entry.title}</h4>
-                        <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
-                          {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-slate-350 leading-relaxed whitespace-pre-line text-[11px] font-medium">
-                      {entry.content}
-                    </p>
-
-                    {entry.npcNames.length > 0 && (
-                      <div className="flex flex-wrap gap-1 items-center pt-1">
-                        <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 mr-1">NPCs:</span>
-                        {entry.npcNames.map((npc) => (
-                          <span key={npc} className="px-1.5 py-0.2 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-400 font-medium">{npc}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {entry.questDetails && (
-                      <div className="pt-2 border-t border-slate-850/60">
-                        <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 block mb-1">Quests:</span>
-                        <p className="text-slate-400 font-semibold text-[10px] leading-relaxed whitespace-pre-line italic">
-                          {entry.questDetails}
-                        </p>
-                      </div>
-                    )}
+        ) : (
+          <div className="max-w-4xl mx-auto w-full animate-fade-in">
+            {/* Story Journal Recap Feed */}
+            <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5 shrink-0">
+                <BookOpen className={`w-4 h-4 ${theme.text}`} />
+                Story Journal Recap
+              </h3>
+              
+              <div className="space-y-4">
+                {journalEntries.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center text-slate-650 text-xs py-16 text-center">
+                    <BookOpen className="w-10 h-10 text-slate-800 mb-3 opacity-40 animate-pulse" />
+                    <p>No recaps have been published yet by the DM.</p>
+                    <p className="text-[10px] mt-1 text-slate-700">Check back during or after the session!</p>
                   </div>
-                ))
-              )}
-            </div>
-          </section>
-        </div>
+                ) : (
+                  journalEntries.map((entry) => (
+                    <div 
+                      key={entry.id}
+                      className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-3 shadow-md"
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-0.5">
+                          <h4 className="font-extrabold text-slate-200 text-sm tracking-tight">{entry.title}</h4>
+                          <span className="text-[9px] text-slate-550 font-bold uppercase tracking-wider">
+                            {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
+                        </div>
+                      </div>
 
-      </div>
+                      <p className="text-slate-350 leading-relaxed whitespace-pre-line text-[11px] font-medium">
+                        {entry.content}
+                      </p>
 
-      {/* Bottom Navigation Tabs */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-6 py-2.5 flex justify-around select-none md:hidden">
-        <button
-          onClick={() => setActiveTab("combat")}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === "combat" ? theme.text : "text-slate-500 hover:text-slate-300"
-          }`}
-        >
-          <Swords className="w-5 h-5" />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Combat</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("journal")}
-          className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === "journal" ? theme.text : "text-slate-500 hover:text-slate-300"
-          }`}
-        >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[9px] font-bold uppercase tracking-widest">Journal</span>
-        </button>
+                      {entry.npcNames.length > 0 && (
+                        <div className="flex flex-wrap gap-1 items-center pt-1">
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 mr-1">NPCs:</span>
+                          {entry.npcNames.map((npc) => (
+                            <span key={npc} className="px-1.5 py-0.2 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-400 font-medium">{npc}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {entry.questDetails && (
+                        <div className="pt-2 border-t border-slate-850/60">
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 block mb-1">Quests:</span>
+                          <p className="text-slate-400 font-semibold text-[10px] leading-relaxed whitespace-pre-line italic">
+                            {entry.questDetails}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
 
       {showRestMenu && (
@@ -686,7 +655,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       )}
 
       {/* Bottom Navigation Tabs */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-6 py-2.5 flex justify-around select-none">
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-6 py-2.5 flex justify-around select-none md:max-w-md md:mx-auto md:rounded-t-2xl md:border-x">
         <button
           onClick={() => setActiveTab("combat")}
           className={`flex flex-col items-center gap-1 transition-all ${
