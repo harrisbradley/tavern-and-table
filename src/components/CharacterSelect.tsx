@@ -12,6 +12,7 @@ interface Props {
   onSelect: (character: Character) => void;
   onCharactersChange: (characters: Character[]) => void;
   campaignId?: string;
+  isNested?: boolean;
 }
 
 function HpBar({ current, max }: { current: number; max: number }) {
@@ -117,7 +118,7 @@ function CharacterCard({
   );
 }
 
-export default function CharacterSelect({ characters, onSelect, onCharactersChange, campaignId }: Props) {
+export default function CharacterSelect({ characters, onSelect, onCharactersChange, campaignId, isNested = false }: Props) {
   const handleDelete = (id: string) => {
     deleteCharacter(id);
     if (campaignId) {
@@ -130,6 +131,34 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
     setLastCharacterId(character.id);
     onSelect(character);
   };
+
+  const gridContent = (
+    <div className="max-w-2xl mx-auto w-full pb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        {characters.map((char) => (
+          <CharacterCard
+            key={char.id}
+            character={char}
+            onSelect={() => handleSelect(char)}
+            onDelete={() => handleDelete(char.id)}
+          />
+        ))}
+      </div>
+
+      {/* Create new */}
+      <Link
+        href={campaignId ? `/character/create?join=${campaignId}` : "/character/create"}
+        className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-slate-700 text-slate-500 hover:border-amber-500/40 hover:text-amber-400 transition-all font-semibold text-sm"   
+      >
+        <Plus className="w-4 h-4" />
+        Create New Character
+      </Link>
+    </div>
+  );
+
+  if (isNested) {
+    return gridContent;
+  }
 
   return (
     <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">
@@ -144,26 +173,8 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
       </div>
 
       {/* Character grid */}
-      <div className="flex-1 overflow-y-auto px-4 max-w-2xl mx-auto w-full pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-          {characters.map((char) => (
-            <CharacterCard
-              key={char.id}
-              character={char}
-              onSelect={() => handleSelect(char)}
-              onDelete={() => handleDelete(char.id)}
-            />
-          ))}
-        </div>
-
-        {/* Create new */}
-        <Link
-          href={campaignId ? `/character/create?join=${campaignId}` : "/character/create"}
-          className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-slate-700 text-slate-500 hover:border-amber-500/40 hover:text-amber-400 transition-all font-semibold text-sm"   
-        >
-          <Plus className="w-4 h-4" />
-          Create New Character
-        </Link>
+      <div className="flex-1 overflow-y-auto px-4">
+        {gridContent}
       </div>
     </div>
   );
