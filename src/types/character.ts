@@ -17,6 +17,8 @@ export interface Character {
   speed: number;
   status: "active" | "down" | "hidden";
   tutorialEnabled: boolean;
+  publicBio?: string;
+  privateBio?: string;
   createdAt: string;
 }
 

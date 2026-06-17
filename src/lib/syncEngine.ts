@@ -27,6 +27,8 @@ export interface PlayerStatus {
   initiative: number;
   passivePerception: number;
   status: "active" | "down" | "hidden";
+  publicBio?: string;
+  privateBio?: string;
 }
 
 export interface RollLog {
@@ -443,6 +445,8 @@ export async function syncPlayerProfile(campaignId: string, player: PlayerStatus
       initiative: player.initiative,
       passivePerception: player.passivePerception,
       status: player.status,
+      publicBio: player.publicBio ?? "",
+      privateBio: player.privateBio ?? "",
     }, { merge: true });
   } else {
     const currentList: PlayerStatus[] = getLocalData(`tt_players_${campaignId}`, []);

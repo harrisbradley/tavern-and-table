@@ -18,13 +18,13 @@ import { createCharacter, setLastCharacterId } from "@/lib/characterEngine";
 
 type Mode = "direct" | "guided";
 type Archetype = "warrior" | "striker" | "divine" | "arcane";
-type Step = "name" | "archetype" | "refinement" | "race" | "class" | "background" | "review" | "success";
+type Step = "name" | "archetype" | "refinement" | "race" | "class" | "background" | "bio" | "review" | "success";
 
-const DIRECT_STEPS: Step[] = ["name", "race", "class", "background", "review"];
-const GUIDED_STEPS: Step[] = ["name", "archetype", "refinement", "race", "background", "review"];
+const DIRECT_STEPS: Step[] = ["name", "race", "class", "background", "bio", "review"];
+const GUIDED_STEPS: Step[] = ["name", "archetype", "refinement", "race", "background", "bio", "review"];
 const STEP_LABELS: Record<Step, string> = {
   name: "Name", archetype: "Style", refinement: "Class",
-  race: "Race", class: "Class", background: "Background", review: "Review", success: "Done"
+  race: "Race", class: "Class", background: "Background", bio: "Bio", review: "Review", success: "Done"
 };
 
 const ACCENT: Record<string, { border: string; bg: string; text: string; selectedBorder: string; selectedBg: string }> = {
@@ -171,6 +171,8 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
   const [race, setRace] = useState<Race | null>(null);
   const [characterClass, setCharacterClass] = useState<CharacterClass | null>(null);
   const [background, setBackground] = useState<Background | null>(null);
+  const [publicBio, setPublicBio] = useState("");
+  const [privateBio, setPrivateBio] = useState("");
   const [createdCharacter, setCreatedCharacter] = useState<Character | null>(null);
 
   const steps = mode === "guided" ? GUIDED_STEPS : DIRECT_STEPS;
@@ -188,6 +190,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
     if (step === "race") return race !== null;
     if (step === "class") return characterClass !== null;
     if (step === "background") return background !== null;
+    if (step === "bio") return true;
     return true;
   };
 
@@ -209,7 +212,14 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
 
   const handleCreate = () => {
     if (!name.trim() || !race || !characterClass || !background) return;
-    const char = createCharacter({ name: name.trim(), race, className: characterClass, background });
+    const char = createCharacter({
+      name: name.trim(),
+      race,
+      className: characterClass,
+      background,
+      publicBio: publicBio.trim(),
+      privateBio: privateBio.trim(),
+    });
     setLastCharacterId(char.id);
     setCreatedCharacter(char);
     
@@ -574,6 +584,53 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
               {BACKGROUNDS.map((b) => (
                 <BackgroundCard key={b.id} data={b} selected={background === b.id} onSelect={() => setBackground(b.id)} />
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Bio */}
+        {step === "bio" && (
+          <div>
+            <p className="text-amber-400/70 text-xs font-semibold uppercase tracking-widest mb-3">Your Backstory</p>
+            <h2 className="text-3xl font-bold text-white mb-2">Who were you before?</h2>
+            <p className="text-slate-400 text-sm leading-relaxed mb-6">
+              Write a few details about your character&apos;s history. You can edit this later.
+            </p>
+
+            <div className="space-y-6">
+              {/* Public Bio */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Public Backstory (Visible to Everyone)
+                </label>
+                <textarea
+                  value={publicBio}
+                  onChange={(e) => setPublicBio(e.target.value)}
+                  placeholder="e.g. A former city watch guard who left the city after witnessing corruption..."
+                  rows={4}
+                  className="w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all resize-none"
+                />
+                <p className="text-[10px] text-slate-500 leading-normal">
+                  This bio will be shared with the DM and all other players in the campaign.
+                </p>
+              </div>
+
+              {/* Private Bio */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                  Private Secrets (Visible Only to You & DM)
+                </label>
+                <textarea
+                  value={privateBio}
+                  onChange={(e) => setPrivateBio(e.target.value)}
+                  placeholder="e.g. Actually carrying a cursed locket containing a dormant shadow demon..."
+                  rows={4}
+                  className="w-full bg-slate-900/60 border border-slate-700 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all resize-none"
+                />
+                <p className="text-[10px] text-slate-500 leading-normal">
+                  Use this to share hidden motives, secrets, or plot hooks directly with the DM.
+                </p>
+              </div>
             </div>
           </div>
         )}

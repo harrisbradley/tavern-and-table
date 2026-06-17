@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff, Bed, Coffee, ChevronRight, BookOpen, Dice5 } from "lucide-react";
+import { Swords, Flame, Sparkles, Shield, Compass, Heart, Minus, Plus, Footprints, Eye, Wine, MessageSquare, Target, Zap, Music, TrendingUp, Cloud, WifiOff, Bed, Coffee, ChevronRight, BookOpen, Dice5, User, Users, Check, Edit } from "lucide-react";
 import TutorialOverlay, { TutorialStep } from "./TutorialOverlay";
 import DiceBoxCanvas, { triggerDiceRoll } from "./DiceBoxCanvas";
-import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile, subscribeToCampaignConfig, CampaignConfig, subscribeToJournal } from "@/lib/syncEngine";
+import { updatePlayerHp, addRollLog, subscribeToNudges, clearNudge, subscribeToPlayers, syncPlayerProfile, subscribeToCampaignConfig, CampaignConfig, subscribeToJournal, PlayerStatus } from "@/lib/syncEngine";
 import { updateCharacterHp, levelUpCharacter, setTutorialEnabled } from "@/lib/characterEngine";
 import { getLevelUpInfo } from "@/lib/levelUpData";
 import { isFirebaseConfigured } from "@/lib/firebase";
@@ -95,10 +95,18 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
   const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<"combat" | "journal">("combat");
+  const [activeTab, setActiveTab] = useState<"combat" | "journal" | "bio">("combat");
   
   // Journal entries state
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+
+  // Biography state
+  const [publicBio, setPublicBio] = useState(character.publicBio ?? "");
+  const [privateBio, setPrivateBio] = useState(character.privateBio ?? "");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [tempPublicBio, setTempPublicBio] = useState(character.publicBio ?? "");
+  const [tempPrivateBio, setTempPrivateBio] = useState(character.privateBio ?? "");
+  const [partyMembers, setPartyMembers] = useState<PlayerStatus[]>([]);
 
 
   const hpRef = useRef(currentHp);
@@ -124,8 +132,10 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       initiative: character.initiative,
       passivePerception: character.passivePerception,
       status: currentHp === 0 ? "down" : character.status,
+      publicBio: publicBio,
+      privateBio: privateBio,
     });
-  }, [campaignId, character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception]);
+  }, [campaignId, character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception, publicBio, privateBio]);
 
   useEffect(() => {
     const unsubscribeConfig = subscribeToCampaignConfig(campaignId, (config) => {
@@ -139,6 +149,9 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
       const me = playersList.find((p) => p.id === character.id);
       if (me) setCurrentHp(me.currentHp);
+
+      const others = playersList.filter((p) => p.id !== character.id);
+      setPartyMembers(others);
     });
 
     const unsubscribeJournal = subscribeToJournal(campaignId, (entriesList) => {
@@ -154,6 +167,37 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       unsubscribeJournal();
     };
   }, [campaignId, character.id]);
+
+  const handleSaveBio = async () => {
+    setPublicBio(tempPublicBio);
+    setPrivateBio(tempPrivateBio);
+    
+    // Update local storage
+    const chars = JSON.parse(localStorage.getItem("tt_characters") || "[]");
+    const idx = chars.findIndex((c: any) => c.id === character.id);
+    if (idx >= 0) {
+      chars[idx].publicBio = tempPublicBio;
+      chars[idx].privateBio = tempPrivateBio;
+      localStorage.setItem("tt_characters", JSON.stringify(chars));
+    }
+    
+    // Sync to database
+    await syncPlayerProfile(campaignId, {
+      id: character.id,
+      name: character.name,
+      className: displayClass,
+      maxHp: character.maxHp,
+      currentHp: currentHp,
+      ac: character.ac,
+      initiative: character.initiative,
+      passivePerception: character.passivePerception,
+      status: currentHp === 0 ? "down" : character.status,
+      publicBio: tempPublicBio,
+      privateBio: tempPrivateBio,
+    });
+    
+    setIsEditingBio(false);
+  };
 
   const theme = campaign?.themeColor ? THEME_MAP[campaign.themeColor] || THEME_MAP.indigo : THEME_MAP.indigo;
 
@@ -404,7 +448,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
       {/* Main Content Area */}
       <div className="flex-1 z-10 w-full mb-4">
-        {activeTab === "combat" ? (
+        {activeTab === "combat" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-fade-in w-full">
             
             {/* Left Column: Health, Stats, Turn Actions */}
@@ -535,7 +579,8 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             </div>
 
           </div>
-        ) : (
+        )}
+        {activeTab === "journal" && (
           <div className="max-w-4xl mx-auto w-full animate-fade-in">
             {/* Story Journal Recap Feed */}
             <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
@@ -592,6 +637,132 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                 )}
               </div>
             </section>
+          </div>
+        )}
+
+        {activeTab === "bio" && (
+          <div className="max-w-4xl mx-auto w-full animate-fade-in space-y-4">
+            <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
+              <div className="flex justify-between items-center shrink-0 border-b border-slate-850/60 pb-2">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                  <User className={`w-4 h-4 ${theme.text}`} />
+                  Character Biography
+                </h3>
+                {!isEditingBio ? (
+                  <button
+                    onClick={() => {
+                      setTempPublicBio(publicBio);
+                      setTempPrivateBio(privateBio);
+                      setIsEditingBio(true);
+                    }}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg ${theme.bg}/10 border ${theme.border} text-[10px] ${theme.text} font-bold hover:${theme.bg}/20 transition-all active:scale-95`}
+                  >
+                    <Edit className="w-3.5 h-3.5" />
+                    Edit Bio
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveBio}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 font-bold hover:bg-emerald-500/20 transition-all active:scale-95"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      Save
+                    </button>
+                    <button
+                      onClick={() => setIsEditingBio(false)}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-400 font-bold hover:bg-slate-700 transition-all active:scale-95"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Bio Fields */}
+              <div className="space-y-4 text-xs">
+                {isEditingBio ? (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Public Backstory (Visible to all)
+                      </label>
+                      <textarea
+                        value={tempPublicBio}
+                        onChange={(e) => setTempPublicBio(e.target.value)}
+                        rows={4}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 transition-all resize-none"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                        Private Secrets (Only you & DM)
+                      </label>
+                      <textarea
+                        value={tempPrivateBio}
+                        onChange={(e) => setTempPrivateBio(e.target.value)}
+                        rows={4}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 transition-all resize-none"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Public Bio */}
+                    <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60">
+                      <h4 className="font-extrabold text-slate-300 text-xs uppercase tracking-wider mb-2">Public Backstory</h4>
+                      {publicBio ? (
+                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{publicBio}</p>
+                      ) : (
+                        <p className="text-slate-600 italic">No public backstory provided. Click &quot;Edit Bio&quot; to add one.</p>
+                      )}
+                    </div>
+
+                    {/* Private Bio */}
+                    <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60">
+                      <h4 className="font-extrabold text-amber-500/80 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5" />
+                        Private Secrets (Only visible to you & DM)
+                      </h4>
+                      {privateBio ? (
+                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{privateBio}</p>
+                      ) : (
+                        <p className="text-slate-600 italic">No private secrets recorded. Share notes, motives, or secrets with your DM here.</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Party Backstories */}
+            {partyMembers.length > 0 && (
+              <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
+                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+                  <Users className={`w-4 h-4 ${theme.text}`} />
+                  Campaign Party Backstories
+                </h3>
+                
+                <div className="space-y-3">
+                  {partyMembers.map((member) => (
+                    <div 
+                      key={member.id}
+                      className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-2 select-text"
+                    >
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-extrabold text-slate-200 text-sm">{member.name}</h4>
+                        <span className="text-[10px] text-slate-500 font-semibold">{member.className}</span>
+                      </div>
+                      {member.publicBio ? (
+                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{member.publicBio}</p>
+                      ) : (
+                        <p className="text-slate-600 italic">No backstory shared yet.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </div>
@@ -720,6 +891,15 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         >
           <BookOpen className="w-5 h-5" />
           <span className="text-[9px] font-bold uppercase tracking-widest">Journal</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("bio")}
+          className={`flex flex-col items-center gap-1 transition-all ${
+            activeTab === "bio" ? theme.text : "text-slate-500 hover:text-slate-300"
+          }`}
+        >
+          <User className="w-5 h-5" />
+          <span className="text-[9px] font-bold uppercase tracking-widest">Bio</span>
         </button>
       </div>
     </div>

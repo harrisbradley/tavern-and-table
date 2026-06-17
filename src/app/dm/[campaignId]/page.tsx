@@ -74,6 +74,9 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Expanded Player Bios State
+  const [expandedPlayerBios, setExpandedPlayerBios] = useState<Record<string, boolean>>({});
+
   // Initiative Tracker States
   const [combatants, setCombatants] = useState<Combatant[]>([]);
   const [activeTurnIndex, setActiveTurnIndex] = useState<number | null>(null);
@@ -718,6 +721,51 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                         <Dice5 className="w-3.5 h-3.5 text-indigo-400" />
                         Ask Stealth
                       </button>
+                    </div>
+
+                    {/* Collapsible Bio Section */}
+                    <div className="border-t border-slate-850/60 pt-2.5 mt-2">
+                      <button
+                        onClick={() => {
+                          setExpandedPlayerBios(prev => ({ ...prev, [player.id]: !prev[player.id] }));
+                        }}
+                        className="w-full flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider hover:text-slate-350 transition-colors select-none"
+                      >
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          Character Backstory
+                        </span>
+                        <span>{expandedPlayerBios[player.id] ? "Hide" : "Show"}</span>
+                      </button>
+                      
+                      {expandedPlayerBios[player.id] && (
+                        <div className="mt-3 space-y-2.5 text-[11px] animate-fade-in select-text">
+                          {/* Public Bio */}
+                          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-900">
+                            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                              Public Backstory
+                            </span>
+                            {player.publicBio ? (
+                              <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{player.publicBio}</p>
+                            ) : (
+                              <p className="text-slate-600 italic">No public backstory recorded.</p>
+                            )}
+                          </div>
+
+                          {/* Private Bio */}
+                          <div className="p-2.5 rounded-xl bg-slate-950 border border-amber-950/20">
+                            <span className="text-[9px] font-extrabold text-amber-500/80 uppercase tracking-wider block mb-1 flex items-center gap-1">
+                              <Eye className="w-3.5 h-3.5" />
+                              Private Secrets (DM Eye Only)
+                            </span>
+                            {player.privateBio ? (
+                              <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{player.privateBio}</p>
+                            ) : (
+                              <p className="text-slate-600 italic">No private secrets recorded.</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

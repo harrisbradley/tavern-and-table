@@ -46,6 +46,8 @@ export function createCharacter(data: {
   race: Race;
   className: CharacterClass;
   background: Background;
+  publicBio?: string;
+  privateBio?: string;
 }): Character {
   const stats = calculateStats(data.race, data.className, data.background);
   const char: Character = {
@@ -59,10 +61,21 @@ export function createCharacter(data: {
     currentHp: stats.maxHp,
     status: "active",
     tutorialEnabled: true,
+    publicBio: data.publicBio ?? "",
+    privateBio: data.privateBio ?? "",
     createdAt: new Date().toISOString(),
   };
   saveCharacter(char);
   return char;
+}
+
+export function updateCharacterBio(id: string, publicBio: string, privateBio: string): void {
+  const chars = getCharacters();
+  const char = chars.find((c) => c.id === id);
+  if (!char) return;
+  char.publicBio = publicBio;
+  char.privateBio = privateBio;
+  localStorage.setItem(CHARS_KEY, JSON.stringify(chars));
 }
 
 export function setTutorialEnabled(id: string, enabled: boolean): void {
