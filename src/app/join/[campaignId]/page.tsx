@@ -94,6 +94,7 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
               onSelect={handleSelect} 
               onCharactersChange={setCharacters}
               campaignId={campaignId}
+              isNested={true}
             />
           </div>
         ) : (

@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, Swords, Sparkles, Clock, ArrowRight, X } from "lucide-react";
+import { Shield, Swords, Sparkles, Clock, ArrowRight, X, Trash2, Heart, Plus, Zap } from "lucide-react";
+import { getCharacters, deleteCharacter } from "@/lib/characterEngine";
+import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/character";
+
 
 interface RecentCampaign {
   id: string;
@@ -15,6 +18,7 @@ export default function Home() {
   const router = useRouter();
   const [recentDmCampaigns, setRecentDmCampaigns] = useState<RecentCampaign[]>([]);
   const [joinedCampaigns, setJoinedCampaigns] = useState<RecentCampaign[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
   const [showJoinInput, setShowJoinInput] = useState(false);
   const [joinId, setJoinId] = useState("");
 
@@ -30,6 +34,9 @@ export default function Home() {
     if (playerSaved) {
       try { setJoinedCampaigns(JSON.parse(playerSaved)); } catch (err) { console.error(err); }
     }
+
+    // Load Characters
+    setCharacters(getCharacters());
   }, []);
 
   const handleJoinSubmit = (e: React.FormEvent) => {
@@ -37,6 +44,12 @@ export default function Home() {
     if (joinId.trim()) {
       router.push(`/join/${joinId.trim().toLowerCase()}`);
     }
+  };
+
+  const handleDeleteCharacter = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    deleteCharacter(id);
+    setCharacters(getCharacters());
   };
 
   return (
@@ -194,6 +207,86 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* Characters list section */}
+        {characters.length > 0 ? (
+          <div className="space-y-4 pt-4 border-t border-slate-900/60">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The Tavern (Your Heroes)</h4>
+              </div>
+              <Link
+                href="/character/create"
+                className="text-[10px] font-bold text-amber-500 hover:text-amber-400 uppercase tracking-widest flex items-center gap-1 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[3px]" />
+                Forge a Hero
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {characters.map((char) => (
+                <div
+                  key={char.id}
+                  className="relative group p-5 rounded-3xl border border-slate-800 bg-slate-900/30 hover:border-amber-500/30 hover:bg-slate-900/50 transition-all duration-300"
+                >
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => handleDeleteCharacter(e, char.id)}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 hover:bg-red-950/30 transition-all z-10"
+                    title="Delete character"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div>
+                    <div className="text-white font-bold text-base mb-0.5">{char.name}</div>
+                    <div className="text-slate-500 text-xs font-semibold mb-3">
+                      {RACE_DISPLAY_NAMES[char.race]} · Level {char.level} {CLASS_DISPLAY_NAMES[char.className]}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                      <Heart className="w-3.5 h-3.5 text-red-500/70 mx-auto mb-1" />
+                      <span className="text-slate-200 font-bold font-mono">{char.maxHp}</span>
+                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">HP</span>
+                    </div>
+                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                      <Shield className="w-3.5 h-3.5 text-blue-500/70 mx-auto mb-1" />
+                      <span className="text-slate-200 font-bold font-mono">{char.ac}</span>
+                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">AC</span>
+                    </div>
+                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                      <Zap className="w-3.5 h-3.5 text-amber-500/70 mx-auto mb-1" />
+                      <span className="text-slate-200 font-bold font-mono">
+                        {char.initiative >= 0 ? `+${char.initiative}` : char.initiative}
+                      </span>
+                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">Init</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="border-t border-slate-900/60 pt-4">
+            <Link
+              href="/character/create"
+              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/20 border border-dashed border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/40 transition-all duration-500 text-center w-full"
+            >
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
+                <Plus className="w-8 h-8 text-amber-500 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Forge a Hero</h3>
+                <p className="text-slate-500 text-sm leading-snug max-w-sm mx-auto">
+                  Create and customize a character sheet locally to prepare for your next campaign.
+                </p>
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Footer info */}
