@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, Swords, Sparkles, Clock, ArrowRight, X, Trash2, Heart, Plus, Zap, User } from "lucide-react";
+import { Shield, Swords, Sparkles, Clock, ArrowRight, X, Trash2, Heart, Plus, Zap, User, Lock } from "lucide-react";
 import { getCharacters, deleteCharacter } from "@/lib/characterEngine";
 import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/character";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 
 
 interface RecentCampaign {
@@ -21,6 +23,8 @@ export default function Home() {
   const [characters, setCharacters] = useState<Character[]>([]);
   const [showJoinInput, setShowJoinInput] = useState(false);
   const [joinId, setJoinId] = useState("");
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     // Load DM history
@@ -37,6 +41,18 @@ export default function Home() {
 
     // Load Characters
     setCharacters(getCharacters());
+
+    // Listen for Auth changes
+    let unsubscribeAuth = () => {};
+    if (auth) {
+      unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        setFirebaseUser(user);
+        setAuthLoading(false);
+      });
+    } else {
+      setAuthLoading(false);
+    }
+    return () => unsubscribeAuth();
   }, []);
 
   const handleJoinSubmit = (e: React.FormEvent) => {
@@ -58,13 +74,27 @@ export default function Home() {
       
       {/* Top Header */}
       <div className="absolute top-6 left-6 right-6 flex justify-end z-20 max-w-4xl mx-auto w-full">
-        <Link
-          href="/profile"
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
-        >
-          <User className="w-4 h-4 text-amber-500 animate-pulse" />
-          Profile
-        </Link>
+        {authLoading ? (
+          <div className="px-4 py-2.5 rounded-2xl bg-slate-900/40 border border-slate-800/60 text-slate-550 text-xs font-bold uppercase tracking-wider animate-pulse">
+            Checking status...
+          </div>
+        ) : firebaseUser ? (
+          <Link
+            href="/profile"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+          >
+            <User className="w-4 h-4 text-amber-500 animate-pulse" />
+            Profile
+          </Link>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-950/40 border border-indigo-900/40 hover:border-indigo-500/60 hover:bg-indigo-950/60 text-indigo-400 hover:text-indigo-300 transition-all text-xs font-bold uppercase tracking-wider"
+          >
+            <Lock className="w-4 h-4 text-indigo-400 animate-pulse" />
+            Sign In
+          </Link>
+        )}
       </div>
 
       {/* Hero section */}
