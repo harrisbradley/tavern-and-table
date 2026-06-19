@@ -9,6 +9,7 @@ import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/char
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import ThemeToggle from "@/components/ThemeToggle";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 
 interface RecentCampaign {
@@ -63,10 +64,67 @@ export default function Home() {
     }
   };
 
+  // Delete confirm modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalConfig, setDeleteModalConfig] = useState<{
+    title: string;
+    description: string;
+    itemName: string;
+    onConfirm: () => void;
+  }>({
+    title: "",
+    description: "",
+    itemName: "",
+    onConfirm: () => {},
+  });
+
   const handleDeleteCharacter = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    deleteCharacter(id);
-    setCharacters(getCharacters());
+    const char = characters.find(c => c.id === id);
+    const charName = char ? char.name : "this character";
+    setDeleteModalConfig({
+      title: "Delete Character",
+      description: "Are you sure you want to permanently delete your hero",
+      itemName: charName,
+      onConfirm: () => {
+        deleteCharacter(id);
+        setCharacters(getCharacters());
+      }
+    });
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteDmCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setDeleteModalConfig({
+      title: "Delete DM Campaign",
+      description: "Are you sure you want to delete the campaign registry for",
+      itemName: name,
+      onConfirm: () => {
+        const updated = recentDmCampaigns.filter(c => c.id !== id);
+        setRecentDmCampaigns(updated);
+        localStorage.setItem("tt_dm_history", JSON.stringify(updated));
+      }
+    });
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeletePlayerCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setDeleteModalConfig({
+      title: "Delete Player Campaign",
+      description: "Are you sure you want to leave and delete references to the campaign",
+      itemName: name,
+      onConfirm: () => {
+        const updated = joinedCampaigns.filter(c => c.id !== id);
+        setJoinedCampaigns(updated);
+        localStorage.setItem("tt_player_history", JSON.stringify(updated));
+        localStorage.removeItem(`tt_campaign_char_${id}`);
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   return (
@@ -148,17 +206,22 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {recentDmCampaigns.map((camp) => (
-                    <Link
+                    <div
                       key={camp.id}
-                      href={`/dm/${camp.id}`}
                       className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link href={`/dm/${camp.id}`} className="flex items-center gap-3 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
                         <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={(e) => handleDeleteDmCampaign(e, camp.id, camp.name)}
+                        className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0 ml-2"
+                        title="Remove Campaign"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -233,17 +296,22 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {joinedCampaigns.map((camp) => (
-                    <Link
+                    <div
                       key={camp.id}
-                      href={`/player/${camp.id}`}
                       className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link href={`/player/${camp.id}`} className="flex items-center gap-3 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
                         <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" />
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={(e) => handleDeletePlayerCampaign(e, camp.id, camp.name)}
+                        className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0 ml-2"
+                        title="Remove Campaign"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -336,6 +404,15 @@ export default function Home() {
       <div className="mt-16 text-center text-xs text-theme-text-tertiary font-medium tracking-wide z-10 uppercase">
         Optimized for Mobile viewports &bull; Powered by 3D Physics Dice
       </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={deleteModalConfig.onConfirm}
+        title={deleteModalConfig.title}
+        description={deleteModalConfig.description}
+        itemName={deleteModalConfig.itemName}
+      />
     </main>
   );
 }
