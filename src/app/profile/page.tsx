@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { 
-  ChevronLeft, User, Mail, MessageSquare, Lock, Shield, Swords, Sparkles, Check, AlertCircle 
+  ChevronLeft, User, Mail, MessageSquare, Lock, Shield, Swords, Sparkles, Check, AlertCircle,
+  Plus, Trash2, Heart, Zap, Eye, Edit3, X, Save
 } from "lucide-react";
-import { getCharacters } from "@/lib/characterEngine";
-import { Character } from "@/types/character";
+import { getCharacters, saveCharacter, deleteCharacter } from "@/lib/characterEngine";
+import { Character, CLASS_DISPLAY_NAMES, RACE_DISPLAY_NAMES } from "@/types/character";
+import { syncPlayerProfile, deletePlayerProfile } from "@/lib/syncEngine";
 import { auth } from "@/lib/firebase";
 import { 
   signInWithPopup, 
@@ -70,6 +72,107 @@ export default function ProfilePage() {
   const [dmCampaigns, setDmCampaigns] = useState<CampaignInfo[]>([]);
   const [playerCampaigns, setPlayerCampaigns] = useState<CampaignInfo[]>([]);
   const [localCharacters, setLocalCharacters] = useState<Character[]>([]);
+
+  // Character Registry States
+  const [editingCharId, setEditingCharId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editLevel, setEditLevel] = useState(1);
+  const [editMaxHp, setEditMaxHp] = useState(10);
+  const [editCurrentHp, setEditCurrentHp] = useState(10);
+  const [editAc, setEditAc] = useState(10);
+  const [editInitiative, setEditInitiative] = useState(0);
+  const [editPassivePerception, setEditPassivePerception] = useState(10);
+  const [editPublicBio, setEditPublicBio] = useState("");
+  const [editPrivateBio, setEditPrivateBio] = useState("");
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  const startEditing = (char: Character) => {
+    setEditingCharId(char.id);
+    setEditName(char.name);
+    setEditLevel(char.level);
+    setEditMaxHp(char.maxHp);
+    setEditCurrentHp(char.currentHp);
+    setEditAc(char.ac);
+    setEditInitiative(char.initiative);
+    setEditPassivePerception(char.passivePerception);
+    setEditPublicBio(char.publicBio ?? "");
+    setEditPrivateBio(char.privateBio ?? "");
+  };
+
+  const cancelEditing = () => {
+    setEditingCharId(null);
+  };
+
+  const handleSaveCharacter = async (charId: string) => {
+    const char = localCharacters.find(c => c.id === charId);
+    if (!char) return;
+
+    const updatedChar: Character = {
+      ...char,
+      name: editName.trim() || char.name,
+      level: Number(editLevel),
+      maxHp: Number(editMaxHp),
+      currentHp: Math.min(Number(editCurrentHp), Number(editMaxHp)),
+      ac: Number(editAc),
+      initiative: Number(editInitiative),
+      passivePerception: Number(editPassivePerception),
+      publicBio: editPublicBio.trim(),
+      privateBio: editPrivateBio.trim(),
+    };
+
+    saveCharacter(updatedChar);
+
+    const updatedList = localCharacters.map(c => c.id === charId ? updatedChar : c);
+    setLocalCharacters(updatedList);
+    setEditingCharId(null);
+
+    // Sync changes to any campaign where this character is currently set as active
+    for (const camp of playerCampaigns) {
+      const activeCharId = localStorage.getItem(`tt_campaign_char_${camp.id}`);
+      if (activeCharId === charId) {
+        try {
+          const displayClass = `Level ${updatedChar.level} ${CLASS_DISPLAY_NAMES[updatedChar.className]}`;
+          await syncPlayerProfile(camp.id, {
+            id: updatedChar.id,
+            name: updatedChar.name,
+            className: displayClass,
+            maxHp: updatedChar.maxHp,
+            currentHp: updatedChar.currentHp,
+            ac: updatedChar.ac,
+            initiative: updatedChar.initiative,
+            passivePerception: updatedChar.passivePerception,
+            status: updatedChar.currentHp === 0 ? "down" : updatedChar.status,
+            publicBio: updatedChar.publicBio,
+            privateBio: updatedChar.privateBio,
+          });
+        } catch (err) {
+          console.error("Failed to sync character edits to campaign:", err);
+        }
+      }
+    }
+  };
+
+  const handleDeleteClick = (id: string) => {
+    if (confirmDeleteId === id) {
+      deleteCharacter(id);
+      playerCampaigns.forEach((camp) => {
+        const activeCharId = localStorage.getItem(`tt_campaign_char_${camp.id}`);
+        if (activeCharId === id) {
+          localStorage.removeItem(`tt_campaign_char_${camp.id}`);
+          deletePlayerProfile(camp.id, id).catch(err => console.error("Failed to delete synced player profile:", err));
+        }
+      });
+      const updatedList = localCharacters.filter(c => c.id !== id);
+      setLocalCharacters(updatedList);
+      setConfirmDeleteId(null);
+    } else {
+      setConfirmDeleteId(id);
+      setTimeout(() => {
+        setConfirmDeleteId((prev) => (prev === id ? null : prev));
+      }, 3000);
+    }
+  };
 
   useEffect(() => {
     // Load profile info
@@ -448,6 +551,299 @@ export default function ProfilePage() {
               </form>
             </section>
           )}
+
+          {/* Character Registry */}
+          <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-theme-text-primary mb-1">Character Registry</h2>
+                <p className="text-slate-500 text-xs leading-relaxed">Manage your heroes and edit their background stories.</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                <Swords className="w-5 h-5" />
+              </div>
+            </div>
+
+            {localCharacters.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {localCharacters.map((char) => {
+                  const isEditing = editingCharId === char.id;
+                  if (isEditing) {
+                    return (
+                      <div 
+                        key={char.id}
+                        className="p-5 rounded-2xl border border-amber-500/40 bg-theme-card-bg/95 flex flex-col space-y-4 col-span-1 sm:col-span-2 shadow-xl shadow-amber-500/5 transition-all"
+                      >
+                        <div className="flex justify-between items-center pb-2 border-b border-theme-card-border">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-500" />
+                            <h3 className="text-sm font-bold text-theme-text-primary">Edit Hero: {char.name}</h3>
+                          </div>
+                          <button
+                            onClick={cancelEditing}
+                            className="p-1 rounded-lg text-slate-500 hover:text-slate-350 hover:bg-slate-500/10 transition-all"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Form Fields Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                          
+                          {/* Name Input */}
+                          <div className="space-y-1 sm:col-span-2">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Character Name</label>
+                            <input
+                              type="text"
+                              required
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                          {/* Level Input */}
+                          <div className="space-y-1 col-span-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Level</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              value={editLevel}
+                              onChange={(e) => setEditLevel(Math.max(1, Math.min(20, Number(e.target.value))))}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                          {/* Max HP Input */}
+                          <div className="space-y-1 col-span-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Max HP</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={editMaxHp}
+                              onChange={(e) => {
+                                const val = Math.max(1, Number(e.target.value));
+                                setEditMaxHp(val);
+                                if (editCurrentHp > val) setEditCurrentHp(val);
+                              }}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          
+                          {/* Current HP Input */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Current HP</label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={editMaxHp}
+                              value={editCurrentHp}
+                              onChange={(e) => setEditCurrentHp(Math.max(0, Math.min(editMaxHp, Number(e.target.value))))}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                          {/* AC Input */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Armor Class (AC)</label>
+                            <input
+                              type="number"
+                              min={1}
+                              value={editAc}
+                              onChange={(e) => setEditAc(Math.max(1, Number(e.target.value)))}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                          {/* Initiative Mod Input */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Initiative Mod</label>
+                            <input
+                              type="number"
+                              value={editInitiative}
+                              onChange={(e) => setEditInitiative(Number(e.target.value))}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                          {/* PP Input */}
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Passive Perception</label>
+                            <input
+                              type="number"
+                              min={0}
+                              value={editPassivePerception}
+                              onChange={(e) => setEditPassivePerception(Math.max(0, Number(e.target.value)))}
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all"
+                            />
+                          </div>
+
+                        </div>
+
+                        {/* Bios Section */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Public Backstory</label>
+                            <textarea
+                              rows={3}
+                              value={editPublicBio}
+                              onChange={(e) => setEditPublicBio(e.target.value)}
+                              placeholder="Shared with the rest of the party..."
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all placeholder:text-slate-500/75 resize-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Private Secrets (DM Eye Only)</label>
+                            <textarea
+                              rows={3}
+                              value={editPrivateBio}
+                              onChange={(e) => setEditPrivateBio(e.target.value)}
+                              placeholder="Secret plots or background details..."
+                              className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3 py-2 text-theme-text-primary text-xs focus:outline-none focus:border-amber-500/60 transition-all placeholder:text-slate-500/75 resize-none"
+                            />
+                          </div>
+
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-3 pt-2">
+                          <button
+                            type="button"
+                            onClick={cancelEditing}
+                            className="px-4 py-2.5 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:text-theme-text-primary font-bold text-xs uppercase tracking-widest transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSaveCharacter(char.id)}
+                            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-widest transition-all shadow-md flex items-center gap-1.5"
+                          >
+                            <Save className="w-3.5 h-3.5" />
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div 
+                      key={char.id}
+                      className="relative p-5 rounded-2xl border border-theme-card-border bg-theme-card-bg/60 hover:border-amber-500/30 hover:bg-theme-card-bg/80 transition-all flex flex-col justify-between space-y-4"
+                    >
+                      {/* Card Header (Delete & Edit buttons) */}
+                      <div className="flex justify-between items-start">
+                        <div className="min-w-0 flex-1 pr-6">
+                          <h3 className="text-base font-bold text-theme-text-primary truncate">{char.name}</h3>
+                          <p className="text-theme-text-secondary text-xs font-semibold">
+                            {RACE_DISPLAY_NAMES[char.race]} · {CLASS_DISPLAY_NAMES[char.className]}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => startEditing(char)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-500 hover:bg-amber-500/10 transition-all"
+                            title="Edit character"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteClick(char.id)}
+                            className={`p-1.5 rounded-lg transition-all ${
+                              confirmDeleteId === char.id
+                                ? "bg-red-500 text-white"
+                                : "text-slate-500 hover:text-red-400 hover:bg-red-500/10"
+                            }`}
+                            title={confirmDeleteId === char.id ? "Click again to confirm delete" : "Delete character"}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-4 gap-2">
+                        <div className="flex flex-col items-center bg-theme-input-bg/40 border border-theme-input-border/30 rounded-xl py-1.5 px-1">
+                          <Heart className="w-3.5 h-3.5 text-red-500/80 mb-0.5" />
+                          <span className="text-theme-text-primary text-xs font-bold font-mono">
+                            {char.currentHp}/{char.maxHp}
+                          </span>
+                          <span className="text-slate-500 text-[8px] uppercase tracking-wider font-semibold">HP</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-theme-input-bg/40 border border-theme-input-border/30 rounded-xl py-1.5 px-1">
+                          <Shield className="w-3.5 h-3.5 text-blue-500/80 mb-0.5" />
+                          <span className="text-theme-text-primary text-xs font-bold font-mono">{char.ac}</span>
+                          <span className="text-slate-500 text-[8px] uppercase tracking-wider font-semibold">AC</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-theme-input-bg/40 border border-theme-input-border/30 rounded-xl py-1.5 px-1">
+                          <Zap className="w-3.5 h-3.5 text-amber-500/80 mb-0.5" />
+                          <span className="text-theme-text-primary text-xs font-bold font-mono">
+                            {char.initiative >= 0 ? `+${char.initiative}` : char.initiative}
+                          </span>
+                          <span className="text-slate-500 text-[8px] uppercase tracking-wider font-semibold">Init</span>
+                        </div>
+                        <div className="flex flex-col items-center bg-theme-input-bg/40 border border-theme-input-border/30 rounded-xl py-1.5 px-1">
+                          <Eye className="w-3.5 h-3.5 text-teal-500/80 mb-0.5" />
+                          <span className="text-theme-text-primary text-xs font-bold font-mono">{char.passivePerception}</span>
+                          <span className="text-slate-500 text-[8px] uppercase tracking-wider font-semibold">Percept</span>
+                        </div>
+                      </div>
+
+                      {/* Bios Snippets */}
+                      <div className="space-y-2 pt-1 border-t border-theme-card-border/40 text-[11px] leading-relaxed text-theme-text-secondary">
+                        {char.publicBio ? (
+                          <div className="line-clamp-2">
+                            <span className="font-bold text-amber-500/90 uppercase tracking-wider text-[9px] mr-1">Public Bio:</span>
+                            {char.publicBio}
+                          </div>
+                        ) : (
+                          <div className="italic text-slate-500 text-[10px]">No public backstory written yet.</div>
+                        )}
+                        {char.privateBio ? (
+                          <div className="line-clamp-2">
+                            <span className="font-bold text-indigo-400/90 uppercase tracking-wider text-[9px] mr-1">Secrets (DM):</span>
+                            {char.privateBio}
+                          </div>
+                        ) : null}
+                      </div>
+                      
+                      {/* Level / Status footer */}
+                      <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1">
+                        <span>Level {char.level} Hero</span>
+                        {char.status === "down" ? (
+                          <span className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-bold uppercase tracking-wider">
+                            Down
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold uppercase tracking-wider">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 border border-dashed border-theme-card-border rounded-2xl bg-theme-input-bg/25 flex flex-col items-center">
+                <p className="text-slate-500 text-sm mb-4">No characters created yet.</p>
+                <Link 
+                  href="/character/create" 
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-widest transition-all"
+                >
+                  Create Hero
+                </Link>
+              </div>
+            )}
+          </section>
 
         </div>
 
