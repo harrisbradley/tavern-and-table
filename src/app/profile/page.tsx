@@ -9,7 +9,16 @@ import {
 import { getCharacters } from "@/lib/characterEngine";
 import { Character } from "@/types/character";
 import { auth } from "@/lib/firebase";
-import { signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged, 
+  User as FirebaseUser,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
+} from "firebase/auth";
 
 interface ProfileInfo {
   displayName: string;
@@ -45,9 +54,16 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState("");
   const [hasPassword, setHasPassword] = useState(false);
 
-  // Google Auth States
-  const [googleUser, setGoogleUser] = useState<FirebaseUser | null>(null);
+  // Firebase Auth States
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  // Email/Password Auth Form States
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authConfirmPassword, setAuthConfirmPassword] = useState("");
+  const [authError, setAuthError] = useState("");
 
   // History States
   const [dmCampaigns, setDmCampaigns] = useState<CampaignInfo[]>([]);
@@ -94,7 +110,7 @@ export default function ProfilePage() {
     let unsubscribeAuth: () => void = () => {};
     if (auth) {
       unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-        setGoogleUser(user);
+        setFirebaseUser(user);
         setAuthLoading(false);
       });
     } else {
@@ -165,12 +181,73 @@ export default function ProfilePage() {
     }
   };
 
-  const handleGoogleSignOut = async () => {
+  const handleSignOut = async () => {
     if (!auth) return;
     try {
       await signOut(auth);
     } catch (err) {
-      console.error("Google Sign-Out failed:", err);
+      console.error("Sign-Out failed:", err);
+    }
+  };
+
+  const handleEmailAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+
+    if (!auth) {
+      setAuthError("Firebase Auth is not configured.");
+      return;
+    }
+
+    try {
+      if (authMode === "register") {
+        if (authPassword !== authConfirmPassword) {
+          setAuthError("Passwords do not match.");
+          return;
+        }
+        if (authPassword.length < 6) {
+          setAuthError("Password must be at least 6 characters.");
+          return;
+        }
+
+        const credential = await createUserWithEmailAndPassword(auth, authEmail, authPassword);
+        
+        await updateProfile(credential.user, {
+          displayName: profile.displayName || "Epic Adventurer",
+        });
+
+        const newProfile = {
+          ...profile,
+          email: authEmail,
+        };
+        setProfile(newProfile);
+        localStorage.setItem("tt_profile_info", JSON.stringify(newProfile));
+      } else {
+        const credential = await signInWithEmailAndPassword(auth, authEmail, authPassword);
+        
+        const newProfile = {
+          displayName: credential.user.displayName || profile.displayName || "Epic Adventurer",
+          email: credential.user.email || authEmail,
+          discord: profile.discord || "",
+        };
+        setProfile(newProfile);
+        localStorage.setItem("tt_profile_info", JSON.stringify(newProfile));
+      }
+
+      setAuthEmail("");
+      setAuthPassword("");
+      setAuthConfirmPassword("");
+    } catch (err: any) {
+      console.error("Email authentication failed:", err);
+      if (err.code === "auth/email-already-in-use") {
+        setAuthError("This email is already in use.");
+      } else if (err.code === "auth/invalid-credential") {
+        setAuthError("Invalid email or password.");
+      } else if (err.code === "auth/weak-password") {
+        setAuthError("Password is too weak.");
+      } else {
+        setAuthError(err.message || "Authentication failed.");
+      }
     }
   };
 
@@ -285,7 +362,7 @@ export default function ProfilePage() {
           </section>
 
           {/* Password Info Section */}
-          {!googleUser && (
+          {!firebaseUser && (
             <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -381,43 +458,45 @@ export default function ProfilePage() {
 
             {authLoading ? (
               <div className="text-slate-650 text-xs animate-pulse">Checking credentials...</div>
-            ) : googleUser ? (
+            ) : firebaseUser ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-950/40 border border-slate-850/60">
-                  {googleUser.photoURL ? (
+                  {firebaseUser.photoURL ? (
                     <img 
-                      src={googleUser.photoURL} 
-                      alt="Google Profile" 
+                      src={firebaseUser.photoURL} 
+                      alt="Profile" 
                       className="w-10 h-10 rounded-full border border-indigo-500/20"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-sm">
-                      {googleUser.displayName?.[0] || googleUser.email?.[0] || "G"}
+                      {firebaseUser.displayName?.[0] || firebaseUser.email?.[0] || "G"}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="text-slate-200 text-xs font-bold truncate">{googleUser.displayName || "Google Adventurer"}</div>
-                    <div className="text-slate-500 text-[10px] truncate">{googleUser.email}</div>
+                    <div className="text-slate-200 text-xs font-bold truncate">{firebaseUser.displayName || "Adventurer"}</div>
+                    <div className="text-slate-500 text-[10px] truncate">{firebaseUser.email}</div>
                   </div>
                 </div>
                 
                 <button
-                  onClick={handleGoogleSignOut}
+                  onClick={handleSignOut}
                   className="w-full py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
-                  Unlink Account
+                  Sign Out
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
-                <p className="text-slate-500 text-xs leading-relaxed">
-                  Link your account with Google to log in from other devices and sync your adventurer profile details automatically.
+                <p className="text-slate-500 text-[11px] leading-relaxed pl-0.5">
+                  Link with Google or create an email account to sync your characters across devices.
                 </p>
+                
+                {/* Google Sign-in Option */}
                 <button
                   onClick={handleGoogleSignIn}
-                  className="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 active:scale-95 shadow-md shadow-white/5"
+                  className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 active:scale-95 shadow-md shadow-white/5"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                     <path
                       fill="#4285F4"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -435,8 +514,85 @@ export default function ProfilePage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  Sign in with Google
+                  Google Login
                 </button>
+
+                <div className="flex items-center gap-3 my-2 select-none">
+                  <div className="flex-1 h-px bg-slate-800/60" />
+                  <span className="text-[9px] font-black text-slate-650 uppercase tracking-widest">OR</span>
+                  <div className="flex-1 h-px bg-slate-800/60" />
+                </div>
+
+                {/* Email/Password Sign-in Option */}
+                <form onSubmit={handleEmailAuthSubmit} className="space-y-3.5">
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">Email</label>
+                    <input
+                      type="email"
+                      required
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      placeholder="adventurer@domain.com"
+                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={authPassword}
+                      onChange={(e) => setAuthPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                    />
+                  </div>
+
+                  {authMode === "register" && (
+                    <div className="space-y-1 animate-slide-down">
+                      <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider pl-0.5">Confirm Password</label>
+                      <input
+                        type="password"
+                        required
+                        value={authConfirmPassword}
+                        onChange={(e) => setAuthConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                      />
+                    </div>
+                  )}
+
+                  {authError && (
+                    <div className="flex items-center gap-1.5 text-red-400 text-[10px] font-semibold pl-0.5">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span className="leading-snug">{authError}</span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col gap-2 pt-1.5">
+                    <button
+                      type="submit"
+                      className="w-full py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+                    >
+                      {authMode === "login" ? "Log In" : "Create Account"}
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode(authMode === "login" ? "register" : "login");
+                        setAuthError("");
+                      }}
+                      className="text-[10px] text-slate-550 hover:text-slate-350 font-bold transition-colors text-center py-1"
+                    >
+                      {authMode === "login" 
+                        ? "Don't have an account? Sign Up" 
+                        : "Already have an account? Log In"
+                      }
+                    </button>
+                  </div>
+                </form>
               </div>
             )}
           </section>
