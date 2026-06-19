@@ -85,6 +85,7 @@ interface Props {
 export default function PlayerDashboard({ character, campaignId }: Props) {
   const [currentHp, setCurrentHp] = useState(character.currentHp);
   const [currentLevel, setCurrentLevel] = useState(character.level);
+  const [maxHp, setMaxHp] = useState(character.maxHp);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [tutorialEnabled, setTutorialEnabledState] = useState(character.tutorialEnabled !== false);
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>({ type: "idle" });
@@ -126,7 +127,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       id: character.id,
       name: character.name,
       className: displayClass,
-      maxHp: character.maxHp,
+      maxHp: maxHp,
       currentHp: currentHp,
       ac: character.ac,
       initiative: character.initiative,
@@ -135,7 +136,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       publicBio: publicBio,
       privateBio: privateBio,
     });
-  }, [campaignId, character.id, character.name, displayClass, character.maxHp, character.ac, character.initiative, character.passivePerception, publicBio, privateBio]);
+  }, [campaignId, character.id, character.name, displayClass, maxHp, character.ac, character.initiative, character.passivePerception, publicBio, privateBio]);
 
   useEffect(() => {
     const unsubscribeConfig = subscribeToCampaignConfig(campaignId, (config) => {
@@ -186,7 +187,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       id: character.id,
       name: character.name,
       className: displayClass,
-      maxHp: character.maxHp,
+      maxHp: maxHp,
       currentHp: currentHp,
       ac: character.ac,
       initiative: character.initiative,
@@ -203,17 +204,17 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
   const adjustHp = async (amount: number) => {
     const latestHp = hpRef.current;
-    const targetHp = Math.min(Math.max(0, latestHp + amount), character.maxHp);
+    const targetHp = Math.min(Math.max(0, latestHp + amount), maxHp);
     setCurrentHp(targetHp);
     updateCharacterHp(character.id, targetHp);
     try {
-      await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
+      await updatePlayerHp(campaignId, character.id, targetHp, maxHp);
     } catch (err) {
       console.error("Failed to sync HP:", err);
     }
   };
 
-  const hpRatio = currentHp / character.maxHp;
+  const hpRatio = currentHp / maxHp;
   let hpColorClass = "bg-emerald-500";
   let hpTextClass = "text-emerald-400";
   if (hpRatio <= 0.25) { hpColorClass = "bg-red-500"; hpTextClass = "text-red-500"; }
@@ -281,12 +282,12 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     setTutorialStep({ type: "rolling", actionName: "Drinking Healing Potion" });
     triggerDiceRoll("2d4+2", async (total) => {
       const prevHp = hpRef.current;
-      const targetHp = Math.min(prevHp + total, character.maxHp);
+      const targetHp = Math.min(prevHp + total, maxHp);
       const actualHealed = targetHp - prevHp;
       setCurrentHp(targetHp);
       updateCharacterHp(character.id, targetHp);
       try {
-        await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
+        await updatePlayerHp(campaignId, character.id, targetHp, maxHp);
         await addRollLog(campaignId, character.name, `drank a Potion of Healing and restored ${actualHealed} HP`, "2d4+2", actualHealed, "heal");
       } catch (err) { console.error("Failed to sync healing:", err); }
       setTutorialStep({ type: "potion-drank", healAmount: actualHealed, currentHp: targetHp });
@@ -324,19 +325,20 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     if (updated) {
       setCurrentLevel(updated.level);
       setCurrentHp(updated.currentHp);
+      setMaxHp(updated.maxHp);
     }
     setShowLevelUp(false);
   };
 
   const handleLongRest = async () => {
-    setCurrentHp(character.maxHp);
-    updateCharacterHp(character.id, character.maxHp);
+    setCurrentHp(maxHp);
+    updateCharacterHp(character.id, maxHp);
     try {
-      await updatePlayerHp(campaignId, character.id, character.maxHp, character.maxHp, { status: "active" });
-      await addRollLog(campaignId, character.name, "took a Long Rest and is fully restored!", "Long Rest", character.maxHp, "heal");
+      await updatePlayerHp(campaignId, character.id, maxHp, maxHp, { status: "active" });
+      await addRollLog(campaignId, character.name, "took a Long Rest and is fully restored!", "Long Rest", maxHp, "heal");
     } catch (err) { console.error("Failed to sync long rest:", err); }
     setShowRestMenu(false);
-    setTutorialStep({ type: "rest-completed", healAmount: character.maxHp, currentHp: character.maxHp, isLongRest: true });
+    setTutorialStep({ type: "rest-completed", healAmount: maxHp, currentHp: maxHp, isLongRest: true });
   };
 
   const handleShortRest = () => {
@@ -347,13 +349,13 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
     setTutorialStep({ type: "rolling", actionName: "Short Rest (Hit Die)" });
     triggerDiceRoll(notation, async (total) => {
       const prevHp = hpRef.current;
-      const targetHp = Math.min(prevHp + total, character.maxHp);
+      const targetHp = Math.min(prevHp + total, maxHp);
       const actualHealed = targetHp - prevHp;
       setCurrentHp(targetHp);
       updateCharacterHp(character.id, targetHp);
       try {
-        await updatePlayerHp(campaignId, character.id, targetHp, character.maxHp);
-        await addRollLog(campaignId, character.name, `took a Short Rest and healed ${actualHealed} HP`, notation, actualHealed, "heal");
+        await updatePlayerHp(campaignId, character.id, targetHp, maxHp);
+        await addRollLog(campaignId, campaignId, `took a Short Rest and healed ${actualHealed} HP`, notation, actualHealed, "heal");
       } catch (err) { console.error("Failed to sync short rest:", err); }
       setTutorialStep({ type: "rest-completed", healAmount: actualHealed, currentHp: targetHp, isLongRest: false });
     });
@@ -466,13 +468,13 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                     ) : (
                       <>
                         <strong className={`${hpTextClass} text-sm font-extrabold`}>{currentHp}</strong>
-                        <span className="text-theme-text-tertiary"> / {character.maxHp} HP</span>
+                        <span className="text-theme-text-tertiary"> / {maxHp} HP</span>
                       </>
                     )}
                   </span>
                 </div>
                 <div className="w-full h-5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden p-0.5 border border-theme-input-border/50">
-                  <div className={`h-full ${hpColorClass} rounded-full transition-all duration-500`} style={{ width: `${(currentHp / character.maxHp) * 100}%` }} />
+                  <div className={`h-full ${hpColorClass} rounded-full transition-all duration-500`} style={{ width: `${(currentHp / maxHp) * 100}%` }} />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-1">
                   <button onClick={() => adjustHp(-1)} className="py-3.5 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg active:scale-95 border border-theme-card-border hover:border-red-500/30 text-red-500 dark:text-red-400 flex items-center justify-center gap-2 transition-all font-bold">
