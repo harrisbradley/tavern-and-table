@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* dice-box creates a canvas with no sizing CSS — force it to fill its fixed container */
 .dice-box-canvas {
   position: absolute;
@@ -9,10 +11,65 @@
 }
 
 :root {
+  /* Default: Light mode values */
+  --theme-radial-start: #f5f3ff;
+  --theme-radial-mid: #f8fafc;
+  --theme-radial-end: #e2e8f0;
+  --theme-bg: #f1f5f9;
+  
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  --theme-text-primary: #0f172a;
+  --theme-text-secondary: #475569;
+  --theme-text-tertiary: #64748b;
+  
+  --theme-card-bg: rgba(255, 255, 255, 0.7);
+  --theme-card-border: rgba(203, 213, 225, 0.8);
+  
+  --theme-input-bg: rgba(255, 255, 255, 0.9);
+  --theme-input-border: #cbd5e1;
+  
+  --theme-btn-secondary-bg: rgba(15, 23, 42, 0.05);
+  --theme-btn-secondary-border: rgba(15, 23, 42, 0.1);
+  --theme-btn-secondary-text: #334155;
+  
+  --theme-accent-indigo-bg: rgba(99, 102, 241, 0.1);
+  --theme-accent-indigo-border: rgba(99, 102, 241, 0.2);
+  --theme-accent-indigo-text: #4f46e5;
+
+  --accent-gold: #d97706;
+  --accent-gold-hover: #b45309;
+}
+
+.dark {
+  /* Dark mode values */
+  --theme-radial-start: #1e1135;
+  --theme-radial-mid: #090b12;
+  --theme-radial-end: #040508;
+  --theme-bg: #040508;
+  
   --background: #0b0f19;
   --foreground: #f1f5f9;
-  --card-bg: #131b2e;
-  --card-border: #1e293b;
+  
+  --theme-text-primary: #f1f5f9;
+  --theme-text-secondary: #94a3b8;
+  --theme-text-tertiary: #475569;
+  
+  --theme-card-bg: rgba(15, 23, 42, 0.4);
+  --theme-card-border: rgba(30, 41, 59, 0.8);
+  
+  --theme-input-bg: rgba(2, 6, 23, 0.6);
+  --theme-input-border: #1e293b;
+  
+  --theme-btn-secondary-bg: rgba(2, 6, 23, 0.4);
+  --theme-btn-secondary-border: #1e293b;
+  --theme-btn-secondary-text: #94a3b8;
+  
+  --theme-accent-indigo-bg: rgba(99, 102, 241, 0.1);
+  --theme-accent-indigo-border: rgba(99, 102, 241, 0.2);
+  --theme-accent-indigo-text: #818cf8;
+
   --accent-gold: #f59e0b;
   --accent-gold-hover: #d97706;
 }
@@ -20,8 +77,6 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card-bg: var(--card-bg);
-  --color-card-border: var(--card-border);
   --color-gold: var(--accent-gold);
   --color-gold-hover: var(--accent-gold-hover);
   --font-sans: var(--font-geist-sans);
@@ -29,6 +84,29 @@
   
   --animate-shake: shake 0.5s ease-in-out;
   --animate-pulse-glow: pulse-glow 2s infinite alternate;
+
+  --color-theme-radial-start: var(--theme-radial-start);
+  --color-theme-radial-mid: var(--theme-radial-mid);
+  --color-theme-radial-end: var(--theme-radial-end);
+  --color-theme-bg: var(--theme-bg);
+
+  --color-theme-text-primary: var(--theme-text-primary);
+  --color-theme-text-secondary: var(--theme-text-secondary);
+  --color-theme-text-tertiary: var(--theme-text-tertiary);
+
+  --color-theme-card-bg: var(--theme-card-bg);
+  --color-theme-card-border: var(--theme-card-border);
+  
+  --color-theme-input-bg: var(--theme-input-bg);
+  --color-theme-input-border: var(--theme-input-border);
+  
+  --color-theme-btn-sec-bg: var(--theme-btn-secondary-bg);
+  --color-theme-btn-sec-border: var(--theme-btn-secondary-border);
+  --color-theme-btn-sec-text: var(--theme-btn-secondary-text);
+  
+  --color-theme-acc-indigo-bg: var(--theme-accent-indigo-bg);
+  --color-theme-acc-indigo-border: var(--theme-accent-indigo-border);
+  --color-theme-acc-indigo-text: var(--theme-accent-indigo-text);
 }
 
 @keyframes shake {
@@ -43,10 +121,11 @@
 }
 
 body {
-  background-color: #080b11;
+  background-color: var(--theme-bg);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Beautiful custom scrollbar for retro/modern style */
@@ -54,14 +133,14 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080b11;
+  background: var(--theme-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--color-slate-800);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--color-slate-700);
 }
 
 /* Simulated Mobile Viewport Frame for Desktop view */
@@ -71,7 +150,7 @@ body {
   height: 100%;
   max-height: 892px;
   background-color: var(--background);
-  border: 1px solid #1e293b;
+  border: 1px solid var(--color-slate-800);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border-radius: 40px;
   position: relative;
@@ -85,7 +164,7 @@ body {
   .phone-bezel {
     border: 12px solid #000;
     border-radius: 48px;
-    box-shadow: 0 0 0 2px #334155, 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 0 2px var(--color-slate-800), 0 25px 60px -15px rgba(0, 0, 0, 0.8);
   }
 }
 

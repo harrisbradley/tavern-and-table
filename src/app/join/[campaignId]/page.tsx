@@ -55,40 +55,40 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full bg-[#040508] flex items-center justify-center">
+      <div className="min-h-screen w-full bg-theme-bg flex items-center justify-center">
         <div className="text-slate-600 text-sm animate-pulse uppercase tracking-[0.2em] font-black">Brewing Adventure...</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col items-center justify-center p-6">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col items-center justify-center p-6">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
       
       <div className="z-10 w-full max-w-4xl space-y-8 animate-fade-in">
         {/* Campaign Welcome Header */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 shadow-xl">
+            <div className="p-2 rounded-xl bg-theme-card-bg border border-theme-card-border shadow-xl">
               <Shield className={`w-6 h-6 ${theme.text}`} />
             </div>
-            <div className="h-6 w-px bg-slate-800" />
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 shadow-xl">
+            <div className="h-6 w-px bg-theme-card-border" />
+            <div className="p-2 rounded-xl bg-theme-card-bg border border-theme-card-border shadow-xl">
               <Swords className="w-6 h-6 text-amber-500" />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight sm:text-4xl">
+          <h1 className="text-3xl font-black text-theme-text-primary tracking-tight sm:text-4xl">
             {campaign?.name || `Join Campaign: ${campaignId}`}
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base font-medium max-w-md mx-auto">
+          <p className="text-theme-text-secondary text-sm sm:text-base font-medium max-w-md mx-auto">
             {campaign?.synopsis || "You've been invited to join an adventure. Choose your hero to enter the battlefield."}
           </p>
         </div>
 
         {characters.length > 0 ? (
-          <div className={`bg-slate-900/30 border ${theme.border} rounded-3xl p-2 sm:p-6 shadow-2xl transition-colors`}>
+          <div className={`bg-theme-card-bg border ${theme.border} rounded-3xl p-2 sm:p-6 shadow-2xl transition-colors`}>
             <div className="px-4 pt-2 pb-6 text-center">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Select Your Hero</p>
+              <p className="text-[10px] font-black text-theme-text-tertiary uppercase tracking-[0.2em]">Select Your Hero</p>
             </div>
             <CharacterSelect 
               characters={characters} 
@@ -99,13 +99,13 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
             />
           </div>
         ) : (
-          <div className={`bg-slate-900/40 border-2 ${theme.border} border-dashed rounded-[32px] p-12 text-center space-y-6`}>
-            <div className="w-16 h-16 bg-slate-950 rounded-2xl flex items-center justify-center mx-auto border border-slate-800">
+          <div className={`bg-theme-card-bg border-2 ${theme.border} border-dashed rounded-[32px] p-12 text-center space-y-6`}>
+            <div className="w-16 h-16 bg-theme-input-bg rounded-2xl flex items-center justify-center mx-auto border border-theme-input-border">
               <Sparkles className="w-8 h-8 text-amber-500" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white mb-2">No Heroes Found</h2>
-              <p className="text-slate-500 text-sm max-w-xs mx-auto">
+              <h2 className="text-xl font-bold text-theme-text-primary mb-2">No Heroes Found</h2>
+              <p className="text-theme-text-secondary text-sm max-w-xs mx-auto">
                 You haven't created any characters yet on this device. Forge a new legend to join the campaign.
               </p>
             </div>
@@ -120,7 +120,7 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
         )}
 
         <div className="text-center">
-          <Link href="/" className="text-xs font-bold text-slate-600 hover:text-slate-400 uppercase tracking-widest transition-colors">
+          <Link href="/" className="text-xs font-bold text-theme-text-tertiary hover:text-theme-text-secondary uppercase tracking-widest transition-colors">
             Cancel & Return to Tavern
           </Link>
         </div>

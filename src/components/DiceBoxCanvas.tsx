@@ -146,7 +146,7 @@ export default function DiceBoxCanvas() {
 
       {/* Manual clear hint when dice are settled */}
       {hasDice && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-slate-900/80 border border-slate-700 px-4 py-2 rounded-full text-[10px] font-bold text-slate-300 uppercase tracking-widest pointer-events-none animate-bounce shadow-2xl">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 bg-theme-card-bg/90 border border-theme-card-border px-4 py-2 rounded-full text-[10px] font-bold text-theme-text-primary uppercase tracking-widest pointer-events-none animate-bounce shadow-2xl backdrop-blur-md">
           Tap anywhere to clear dice
         </div>
       )}

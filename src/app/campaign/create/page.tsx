@@ -55,7 +55,7 @@ export default function CreateCampaignPage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col items-center p-6 sm:p-12">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col items-center p-6 sm:p-12">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
 
       <div className="z-10 w-full max-w-2xl space-y-8 animate-fade-in">
@@ -63,22 +63,22 @@ export default function CreateCampaignPage() {
         <div className="flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors text-sm font-medium"
+            className="flex items-center gap-1 text-theme-text-secondary hover:text-theme-text-primary transition-colors text-sm font-medium"
           >
             <ChevronLeft className="w-4 h-4" />
             Back to Tavern
           </Link>
           <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-indigo-400" />
-            <span className="text-indigo-400 text-xs font-bold uppercase tracking-widest">DM Workshop</span>
+            <Shield className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+            <span className="text-indigo-500 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest">DM Workshop</span>
           </div>
         </div>
 
         <div className="space-y-2 text-center sm:text-left">
-          <h1 className="text-4xl font-black text-white tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-black text-theme-text-primary tracking-tight sm:text-5xl">
             Forge Your Campaign
           </h1>
-          <p className="text-slate-400 font-medium leading-relaxed max-w-lg">
+          <p className="text-theme-text-secondary font-medium leading-relaxed max-w-lg">
             Create a dedicated space for your party to track their heroes and roll their destiny.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function CreateCampaignPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Campaign Name */}
           <div className="space-y-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-xs font-bold text-theme-text-tertiary uppercase tracking-widest ml-1">
               <Type className="w-3.5 h-3.5" />
               Campaign Title
             </label>
@@ -96,18 +96,18 @@ export default function CreateCampaignPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Lost Mine of Phandelver"
-              className="w-full bg-slate-900/60 border border-slate-700 rounded-2xl px-5 py-4 text-white text-lg placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+              className="w-full bg-theme-input-bg border border-theme-input-border rounded-2xl px-5 py-4 text-theme-text-primary text-lg placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
             />
           </div>
 
           {/* Custom URL ID */}
           <div className="space-y-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-xs font-bold text-theme-text-tertiary uppercase tracking-widest ml-1">
               <Layout className="w-3.5 h-3.5" />
               Invite Slug (URL)
             </label>
             <div className="relative group">
-              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 text-sm font-medium pointer-events-none select-none">
+              <div className="absolute left-5 top-1/2 -translate-y-1/2 text-theme-text-tertiary text-sm font-medium pointer-events-none select-none">
                 tavern-and-table.app/dm/
               </div>
               <input
@@ -116,17 +116,17 @@ export default function CreateCampaignPage() {
                 value={id}
                 onChange={(e) => setId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="campaign-url-slug"
-                className="w-full bg-slate-900/60 border border-slate-700 rounded-2xl pl-[175px] pr-5 py-4 text-indigo-300 font-bold placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                className="w-full bg-theme-input-bg border border-theme-input-border rounded-2xl pl-[175px] pr-5 py-4 text-indigo-650 dark:text-indigo-400 font-bold placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               />
             </div>
-            <p className="text-[10px] text-slate-500 font-medium ml-1">
+            <p className="text-[10px] text-theme-text-tertiary font-medium ml-1">
               This will be the permanent address of your campaign dashboard.
             </p>
           </div>
 
           {/* Synopsis */}
           <div className="space-y-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-xs font-bold text-theme-text-tertiary uppercase tracking-widest ml-1">
               <FileText className="w-3.5 h-3.5" />
               Adventure Synopsis (Optional)
             </label>
@@ -135,13 +135,13 @@ export default function CreateCampaignPage() {
               onChange={(e) => setSynopsis(e.target.value)}
               placeholder="A short hook for your players..."
               rows={3}
-              className="w-full bg-slate-900/60 border border-slate-700 rounded-2xl px-5 py-4 text-slate-300 text-sm placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all resize-none"
+              className="w-full bg-theme-input-bg border border-theme-input-border rounded-2xl px-5 py-4 text-theme-text-secondary text-sm placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all resize-none"
             />
           </div>
 
           {/* Theme Color */}
           <div className="space-y-3">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">
+            <label className="flex items-center gap-2 text-xs font-bold text-theme-text-tertiary uppercase tracking-widest ml-1">
               <Palette className="w-3.5 h-3.5" />
               Visual Branding
             </label>
@@ -153,17 +153,17 @@ export default function CreateCampaignPage() {
                   onClick={() => setThemeColor(color.id)}
                   className={`relative group flex flex-col items-center gap-2 p-3 rounded-2xl border transition-all ${
                     themeColor === color.id
-                      ? "border-white/40 bg-white/5"
-                      : "border-slate-800 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/60"
+                      ? "border-indigo-500/50 bg-indigo-500/10 dark:border-white/40 dark:bg-white/5"
+                      : "border-theme-card-border bg-theme-card-bg/40 hover:border-indigo-500/30 hover:bg-theme-card-bg/80"
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-full ${color.bg} shadow-lg group-hover:scale-110 transition-transform`} />
-                  <span className={`text-[10px] font-bold uppercase tracking-tight ${themeColor === color.id ? "text-white" : "text-slate-500"}`}>
+                  <span className={`text-[10px] font-bold uppercase tracking-tight ${themeColor === color.id ? "text-theme-text-primary" : "text-theme-text-tertiary"}`}>
                     {color.label}
                   </span>
                   {themeColor === color.id && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-white rounded-full flex items-center justify-center border-2 border-slate-950">
-                      <Sparkles className="w-2 h-2 text-indigo-600" />
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-indigo-500 dark:bg-white rounded-full flex items-center justify-center border-2 border-theme-radial-start">
+                      <Sparkles className="w-2 h-2 text-white dark:text-indigo-600" />
                     </div>
                   )}
                 </button>
@@ -178,7 +178,7 @@ export default function CreateCampaignPage() {
               disabled={!name || !id || isSubmitting}
               className={`w-full py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl ${
                 !name || !id || isSubmitting
-                  ? "bg-slate-800 text-slate-600 cursor-not-allowed"
+                  ? "bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-tertiary cursor-not-allowed"
                   : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/20 active:scale-95"
               }`}
             >

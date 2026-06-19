@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { 
   ArrowLeft, 
   Shield, 
@@ -485,19 +486,19 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <main className="min-h-screen bg-theme-bg text-theme-text-primary flex flex-col">
       {/* Top Navbar */}
-      <nav className="border-b border-slate-900 bg-slate-950/60 backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
+      <nav className="border-b border-theme-card-border bg-theme-card-bg/60 backdrop-blur-md sticky top-0 z-20 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link 
             href="/" 
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-2 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:text-theme-text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div className="flex items-center gap-2">
             <Shield className={`w-6 h-6 ${theme.text}`} />
-            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-100 to-indigo-300">
+            <h1 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-theme-text-primary to-indigo-600 dark:to-indigo-350">
               {campaign?.name || "Tavern & Table Screen"}
             </h1>
             <span className={`px-2 py-0.5 rounded ${theme.bg}/10 border ${theme.border} ${theme.text} text-[10px] font-bold uppercase tracking-wider`}>
@@ -508,6 +509,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
         {/* Connection Status & Campaign Info */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             onClick={handleCopyInvite}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all select-none ${
@@ -541,7 +543,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+          <div className="flex items-center gap-2 text-xs font-medium text-theme-text-secondary bg-theme-btn-sec-bg px-3 py-1.5 rounded-full border border-theme-btn-sec-border">
             <span className={`w-2 h-2 rounded-full ${theme.bg} animate-pulse`} />
             ID: <strong>{campaignId}</strong>
           </div>
@@ -555,14 +557,14 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
         <div className="lg:col-span-2 space-y-6">
           
           {/* PARTY STATUS BOARD */}
-          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-6">
+          <div className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-6 space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
+              <h2 className="text-lg font-bold flex items-center gap-2 text-theme-text-primary">
                 <Users className={`w-5 h-5 ${theme.text}`} />
                 Active Party Members
               </h2>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-slate-500 font-semibold">{players.length} players connected</span>
+                <span className="text-xs text-theme-text-tertiary font-semibold">{players.length} players connected</span>
                 <button
                   onClick={async () => {
                     if (confirm("Clear ALL connected players from the DM dashboard? Players will reappear when they next load their dashboard.")) {
@@ -575,7 +577,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                       }
                     }
                   }}
-                  className="px-2 py-1 rounded bg-red-950/20 border border-red-900/30 text-[10px] font-bold text-red-400 hover:bg-red-950/40 transition-all uppercase tracking-wider"
+                  className="px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-[10px] font-bold text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-all uppercase tracking-wider"
                 >
                   Purge All
                 </button>
@@ -587,38 +589,38 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
               {players.map((player) => {
                 const ratio = player.currentHp / player.maxHp;
                 let barColor = "bg-emerald-500";
-                let textHpColor = "text-emerald-400";
+                let textHpColor = "text-emerald-600 dark:text-emerald-400";
                 if (ratio <= 0.25) {
                   barColor = "bg-red-500";
-                  textHpColor = "text-red-500";
+                  textHpColor = "text-red-600 dark:text-red-500";
                 } else if (ratio <= 0.5) {
                   barColor = "bg-amber-500";
-                  textHpColor = "text-amber-500";
+                  textHpColor = "text-amber-600 dark:text-amber-500";
                 }
 
                 return (
                   <div 
                     key={player.id}
-                    className="p-5 rounded-2xl bg-slate-900/40 border border-slate-850/80 hover:border-slate-800 transition-colors space-y-4 shadow-sm"
+                    className="p-5 rounded-2xl bg-theme-input-bg border border-theme-input-border/70 hover:border-theme-input-border transition-colors space-y-4 shadow-sm"
                   >
                     {/* Character Card Header */}
                     <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="font-bold text-slate-200 text-base leading-tight truncate">{player.name}</h3>
-                        <p className="text-xs text-slate-500 font-medium truncate">{player.className}</p>
+                       <div className="flex-1 min-w-0 pr-2">
+                        <h3 className="font-bold text-theme-text-primary text-base leading-tight truncate">{player.name}</h3>
+                        <p className="text-xs text-theme-text-secondary font-medium truncate">{player.className}</p>
                       </div>
                       
                       <div className="flex flex-col items-end gap-1.5">
                         {player.status === "down" ? (
-                          <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                          <span className="px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20 text-red-550 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
                             Down!
                           </span>
                         ) : player.status === "hidden" ? (
-                          <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                          <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold uppercase tracking-wider animate-pulse">
                             Hidden
                           </span>
                         ) : (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
                             Active
                           </span>
                         )}
@@ -633,7 +635,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                               }
                             }
                           }}
-                          className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-600 hover:text-red-400 hover:border-red-900/50 transition-all group/del"
+                          className="p-1 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-tertiary hover:text-red-550 dark:hover:text-red-400 hover:border-red-500/30 transition-all group/del"
                           title="Remove from campaign"
                         >
                           <Trash2 className="w-3 h-3" />
@@ -642,27 +644,27 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     </div>
 
                     {/* Stats summary (Armor, Initiative, Passive Perception) */}
-                    <div className="grid grid-cols-3 gap-1 bg-slate-950/40 p-2 rounded-xl border border-slate-900 text-[10px] sm:text-[11px] select-none">
-                      <div className="text-slate-400 font-semibold text-center border-r border-slate-850">
-                        AC: <span className="text-slate-200 font-extrabold">{player.ac}</span>
+                    <div className="grid grid-cols-3 gap-1 bg-theme-btn-sec-bg p-2 rounded-xl border border-theme-btn-sec-border text-[10px] sm:text-[11px] select-none">
+                      <div className="text-theme-text-secondary font-semibold text-center border-r border-theme-btn-sec-border/60">
+                        AC: <span className="text-theme-text-primary font-extrabold">{player.ac}</span>
                       </div>
-                      <div className="text-slate-400 font-semibold text-center border-r border-slate-850">
-                        Init: <span className="text-slate-200 font-extrabold">+{player.initiative}</span>
+                      <div className="text-theme-text-secondary font-semibold text-center border-r border-theme-btn-sec-border/60">
+                        Init: <span className="text-theme-text-primary font-extrabold">+{player.initiative}</span>
                       </div>
-                      <div className="text-slate-400 font-semibold text-center">
-                        Passive: <span className="text-slate-200 font-extrabold">{player.passivePerception}</span>
+                      <div className="text-theme-text-secondary font-semibold text-center">
+                        Passive: <span className="text-theme-text-primary font-extrabold">{player.passivePerception}</span>
                       </div>
                     </div>
 
                     {/* HP Bar */}
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-semibold select-none">
-                        <span className="text-slate-400">Health Points</span>
-                        <span className="text-slate-300">
+                        <span className="text-theme-text-secondary">Health Points</span>
+                        <span className="text-theme-text-primary">
                           <span className={`${textHpColor} font-bold`}>{player.currentHp}</span> / {player.maxHp} HP
                         </span>
                       </div>
-                      <div className="w-full h-3 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-900/60">
+                      <div className="w-full h-3 bg-theme-btn-sec-bg rounded-full overflow-hidden p-0.5 border border-theme-btn-sec-border">
                         <div 
                           className={`h-full ${barColor} rounded-full transition-all duration-300`}
                           style={{ width: `${(player.currentHp / player.maxHp) * 100}%` }}
@@ -672,32 +674,32 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
                     {/* Quick DM Health Adjusters */}
                     <div className="flex items-center justify-between gap-2 pt-1 select-none">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">DM Health Adjust:</span>
+                      <span className="text-[10px] text-theme-text-tertiary font-bold uppercase tracking-wider">DM Health Adjust:</span>
                       <div className="flex gap-1.5">
                         <button 
                           onClick={() => adjustPlayerHp(player.id, -5)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-900 text-red-400 hover:bg-slate-900 transition-colors text-xs font-extrabold"
+                          className="px-2.5 py-1 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors text-xs font-extrabold"
                           title="Apply 5 damage"
                         >
                           -5 HP
                         </button>
                         <button 
                           onClick={() => adjustPlayerHp(player.id, -1)}
-                          className="px-2 py-1 rounded-lg bg-slate-950 border border-slate-900 text-red-500 hover:bg-slate-900 transition-colors text-xs font-extrabold"
+                          className="px-2 py-1 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-red-650 dark:text-red-550 hover:bg-red-500/10 transition-colors text-xs font-extrabold"
                           title="Apply 1 damage"
                         >
                           -1 HP
                         </button>
                         <button 
                           onClick={() => adjustPlayerHp(player.id, 1)}
-                          className="px-2 py-1 rounded-lg bg-slate-950 border border-slate-900 text-emerald-500 hover:bg-slate-900 transition-colors text-xs font-extrabold"
+                          className="px-2 py-1 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-emerald-600 dark:text-emerald-500 hover:bg-emerald-500/10 transition-colors text-xs font-extrabold"
                           title="Heal 1 HP"
                         >
                           +1 HP
                         </button>
                         <button 
                           onClick={() => adjustPlayerHp(player.id, 5)}
-                          className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-900 text-emerald-400 hover:bg-slate-900 transition-colors text-xs font-extrabold"
+                          className="px-2.5 py-1 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors text-xs font-extrabold"
                           title="Heal 5 HP"
                         >
                           +5 HP
@@ -706,30 +708,30 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     </div>
 
                     {/* DM Nudge Buttons */}
-                    <div className="border-t border-slate-850 pt-3 flex gap-2">
+                    <div className="border-t border-theme-btn-sec-border/60 pt-3 flex gap-2">
                       <button
                         onClick={() => handleSendNudge(player.id, player.name, "Initiative Check")}
-                        className="flex-1 py-2 rounded-lg bg-slate-900 hover:bg-slate-850 active:scale-98 border border-slate-800 text-[10px] font-bold text-slate-300 tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all"
+                        className="flex-1 py-2 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-[10px] font-bold text-theme-text-secondary hover:text-theme-text-primary tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all"
                       >
-                        <Dice5 className="w-3.5 h-3.5 text-indigo-400" />
+                        <Dice5 className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                         Ask Init
                       </button>
                       <button
                         onClick={() => handleSendNudge(player.id, player.name, "Stealth Check")}
-                        className="flex-1 py-2 rounded-lg bg-slate-900 hover:bg-slate-850 active:scale-98 border border-slate-800 text-[10px] font-bold text-slate-300 tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all"
+                        className="flex-1 py-2 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-[10px] font-bold text-theme-text-secondary hover:text-theme-text-primary tracking-wider uppercase flex items-center justify-center gap-1.5 transition-all"
                       >
-                        <Dice5 className="w-3.5 h-3.5 text-indigo-400" />
+                        <Dice5 className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
                         Ask Stealth
                       </button>
                     </div>
 
                     {/* Collapsible Bio Section */}
-                    <div className="border-t border-slate-850/60 pt-2.5 mt-2">
+                    <div className="border-t border-theme-btn-sec-border/60 pt-2.5 mt-2">
                       <button
                         onClick={() => {
                           setExpandedPlayerBios(prev => ({ ...prev, [player.id]: !prev[player.id] }));
                         }}
-                        className="w-full flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider hover:text-slate-350 transition-colors select-none"
+                        className="w-full flex items-center justify-between text-[10px] font-bold text-theme-text-tertiary uppercase tracking-wider hover:text-theme-text-secondary transition-colors select-none"
                       >
                         <span className="flex items-center gap-1">
                           <BookOpen className="w-3.5 h-3.5" />
@@ -741,27 +743,27 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                       {expandedPlayerBios[player.id] && (
                         <div className="mt-3 space-y-2.5 text-[11px] animate-fade-in select-text">
                           {/* Public Bio */}
-                          <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-900">
-                            <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block mb-1">
+                          <div className="p-2.5 rounded-xl bg-theme-card-bg border border-theme-card-border/60">
+                            <span className="text-[9px] font-extrabold text-theme-text-tertiary uppercase tracking-wider block mb-1">
                               Public Backstory
                             </span>
                             {player.publicBio ? (
-                              <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{player.publicBio}</p>
+                              <p className="text-theme-text-secondary leading-relaxed whitespace-pre-wrap">{player.publicBio}</p>
                             ) : (
-                              <p className="text-slate-600 italic">No public backstory recorded.</p>
+                              <p className="text-theme-text-tertiary italic">No public backstory recorded.</p>
                             )}
                           </div>
 
                           {/* Private Bio */}
-                          <div className="p-2.5 rounded-xl bg-slate-950 border border-amber-950/20">
-                            <span className="text-[9px] font-extrabold text-amber-500/80 uppercase tracking-wider block mb-1 flex items-center gap-1">
+                          <div className="p-2.5 rounded-xl bg-amber-500/5 dark:bg-amber-955/10 border border-amber-500/20 dark:border-amber-955/20">
+                            <span className="text-[9px] font-extrabold text-amber-600 dark:text-amber-500/80 uppercase tracking-wider block mb-1 flex items-center gap-1">
                               <Eye className="w-3.5 h-3.5" />
                               Private Secrets (DM Eye Only)
                             </span>
                             {player.privateBio ? (
-                              <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{player.privateBio}</p>
+                              <p className="text-theme-text-secondary leading-relaxed whitespace-pre-wrap">{player.privateBio}</p>
                             ) : (
-                              <p className="text-slate-600 italic">No private secrets recorded.</p>
+                              <p className="text-theme-text-tertiary italic">No private secrets recorded.</p>
                             )}
                           </div>
                         </div>
@@ -774,16 +776,16 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           </div>
 
           {/* INITIATIVE TRACKER / COMBAT SEQUENCER */}
-          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-6">
+          <div className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-6 space-y-6">
             <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
               <div className="flex items-center gap-2">
                 <Swords className="w-5 h-5 text-amber-500 animate-pulse" />
-                <h2 className="text-lg font-bold text-slate-200">
+                <h2 className="text-lg font-bold text-theme-text-primary">
                   Combat Initiative Sequencer
                 </h2>
                 {combatActive && (
-                  <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
-                    <Zap className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Active
+                  <span className="px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-500 text-[9px] font-bold uppercase tracking-wider animate-pulse flex items-center gap-1">
+                    <Zap className="w-2.5 h-2.5 fill-amber-550 dark:fill-amber-500 text-amber-600 dark:text-amber-500" /> Active
                   </span>
                 )}
               </div>
@@ -792,14 +794,14 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
               <div className="flex gap-2">
                 <button
                   onClick={handleAddPartyToInitiative}
-                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-xs font-bold text-indigo-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-xs font-bold text-indigo-650 dark:text-indigo-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
                 >
                   <Users className="w-3.5 h-3.5" />
                   Add Connected Party
                 </button>
                 <button
                   onClick={handleResetCombat}
-                  className="px-3 py-1.5 rounded-lg bg-red-950/20 hover:bg-red-955/30 border border-red-900/30 text-xs font-bold text-red-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-xs font-bold text-red-650 dark:text-red-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Clear List
@@ -810,9 +812,9 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
             {/* Combatants List */}
             <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
               {combatants.length === 0 ? (
-                <div className="py-12 text-center rounded-2xl border border-dashed border-slate-850/80 bg-slate-950/10 select-none">
-                  <p className="text-slate-500 text-sm font-semibold">No combatants added to the order yet.</p>
-                  <p className="text-slate-650 text-xs mt-1">Use the quick "Add Connected Party" button or add a monster below!</p>
+                <div className="py-12 text-center rounded-2xl border border-dashed border-theme-card-border/60 bg-theme-btn-sec-bg/30 select-none">
+                  <p className="text-theme-text-secondary text-sm font-semibold">No combatants added to the order yet.</p>
+                  <p className="text-theme-text-tertiary text-xs mt-1">Use the quick "Add Connected Party" button or add a monster below!</p>
                 </div>
               ) : (
                 combatants.map((c, index) => {
@@ -827,8 +829,8 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                       key={c.id}
                       className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-3 rounded-xl border transition-all duration-300 ${
                         isActiveTurn 
-                          ? "border-amber-500/50 bg-radial from-amber-500/10 via-amber-950/5 to-slate-950/40 shadow-[0_0_20px_rgba(245,158,11,0.15)] scale-[1.01]" 
-                          : "border-slate-850/80 bg-slate-900/10 hover:border-slate-800"
+                          ? "border-amber-500/50 bg-amber-500/10 dark:bg-amber-500/5 shadow-[0_0_20px_rgba(245,158,11,0.15)] scale-[1.01]" 
+                          : "border-theme-card-border/60 bg-theme-card-bg/30 hover:border-theme-card-border"
                       }`}
                     >
                       {/* Left: Indicator, Initiative Score, Name & HP */}
@@ -836,8 +838,8 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                         {/* Initiative Score Badge */}
                         <div className={`w-10 h-10 rounded-lg flex flex-col items-center justify-center font-extrabold border shrink-0 text-center leading-none ${
                           isActiveTurn 
-                            ? "bg-gold border-gold-hover text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse" 
-                            : "bg-slate-950 border-slate-850 text-slate-200"
+                            ? "bg-amber-500 border-amber-600 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse" 
+                            : "bg-theme-btn-sec-bg border-theme-btn-sec-border text-theme-text-primary"
                         }`}>
                           <span className="text-[9px] uppercase font-bold opacity-60 leading-none">Init</span>
                           <span className="text-lg font-black tracking-tight mt-0.5">{c.initiative}</span>
@@ -846,20 +848,20 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                         {/* Name, Type & HP stats */}
                         <div className="flex-1 min-w-0 space-y-1">
                           <div className="flex items-center gap-2 select-none">
-                            <span className={`font-bold text-sm truncate ${isActiveTurn ? "text-amber-400" : "text-slate-200"}`}>
+                            <span className={`font-bold text-sm truncate ${isActiveTurn ? "text-amber-600 dark:text-amber-450" : "text-theme-text-primary"}`}>
                               {c.name}
                             </span>
                             {c.isMonster ? (
-                              <span className="px-1.5 py-0.2 rounded bg-red-500/10 border border-red-500/20 text-red-500 text-[9px] font-bold uppercase tracking-wider">
+                              <span className="px-1.5 py-0.2 rounded bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-500 text-[9px] font-bold uppercase tracking-wider">
                                 Monster
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[9px] font-bold uppercase tracking-wider">
+                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-650 dark:text-indigo-400 text-[9px] font-bold uppercase tracking-wider">
                                 Player
                               </span>
                             )}
                             {isActiveTurn && (
-                              <span className="px-2 py-0.2 rounded bg-gold/10 border border-gold/30 text-gold text-[9px] font-black uppercase tracking-wider animate-bounce select-none">
+                              <span className="px-2 py-0.2 rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-550 text-[9px] font-black uppercase tracking-wider animate-bounce select-none">
                                 Active Turn
                               </span>
                             )}
@@ -867,47 +869,47 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
                           {/* HP Tracker row */}
                           <div className="flex items-center gap-2 select-none">
-                            <div className="w-16 h-1.5 bg-slate-950 border border-slate-900 rounded-full overflow-hidden p-0.2 shrink-0">
+                            <div className="w-16 h-1.5 bg-theme-btn-sec-bg border border-theme-btn-sec-border rounded-full overflow-hidden p-0.2 shrink-0">
                               <div 
                                 className={`h-full ${hpBarColor} rounded-full transition-all`}
                                 style={{ width: `${(c.currentHp / c.maxHp) * 100}%` }}
                               />
                             </div>
-                            <span className="text-[10px] text-slate-400 font-medium">
-                              HP: <strong className="text-slate-300 font-semibold">{c.currentHp}</strong>/{c.maxHp}
+                            <span className="text-[10px] text-theme-text-secondary font-medium">
+                              HP: <strong className="text-theme-text-primary font-semibold">{c.currentHp}</strong>/{c.maxHp}
                             </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right Side Controls: HP adjustment, Move order, Delete */}
-                      <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 pt-2.5 sm:pt-0 border-t border-slate-850/50 sm:border-t-0 select-none">
+                      <div className="flex items-center justify-between sm:justify-end gap-3 mt-3 sm:mt-0 pt-2.5 sm:pt-0 border-t border-theme-btn-sec-border/60 sm:border-t-0 select-none">
                         {/* HP Quick Adjusters (Monster damage/heal) */}
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => handleAdjustCombatantHp(c.id, -5)}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-red-400 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-red-650 dark:text-red-400 hover:bg-red-500/10 transition-colors text-[10px] font-black flex items-center justify-center"
                             title="Subtract 5 HP"
                           >
                             -5
                           </button>
                           <button
                             onClick={() => handleAdjustCombatantHp(c.id, -1)}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-red-500 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-red-650 dark:text-red-550 hover:bg-red-500/10 transition-colors text-[10px] font-black flex items-center justify-center"
                             title="Subtract 1 HP"
                           >
                             -1
                           </button>
                           <button
                             onClick={() => handleAdjustCombatantHp(c.id, 1)}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-emerald-500 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-emerald-650 dark:text-emerald-500 hover:bg-emerald-500/10 transition-colors text-[10px] font-black flex items-center justify-center"
                             title="Add 1 HP"
                           >
                             +1
                           </button>
                           <button
                             onClick={() => handleAdjustCombatantHp(c.id, 5)}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-emerald-400 hover:bg-slate-900 transition-colors text-[10px] font-black flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-emerald-650 dark:text-emerald-400 hover:bg-emerald-500/10 transition-colors text-[10px] font-black flex items-center justify-center"
                             title="Add 5 HP"
                           >
                             +5
@@ -919,7 +921,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                           <button
                             onClick={() => handleMoveCombatant(index, "up")}
                             disabled={index === 0}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-slate-400 hover:bg-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-secondary hover:text-theme-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
                             title="Move Up"
                           >
                             <ChevronUp className="w-4 h-4" />
@@ -927,7 +929,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                           <button
                             onClick={() => handleMoveCombatant(index, "down")}
                             disabled={index === combatants.length - 1}
-                            className="w-7 h-7 rounded bg-slate-950 border border-slate-900 text-slate-400 hover:bg-slate-900 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
+                            className="w-7 h-7 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-secondary hover:text-theme-text-primary disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center justify-center"
                             title="Move Down"
                           >
                             <ChevronDown className="w-4 h-4" />
@@ -937,7 +939,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                         {/* Delete from combat */}
                         <button
                           onClick={() => handleRemoveCombatant(c.id)}
-                          className="w-7 h-7 rounded bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 transition-colors flex items-center justify-center"
+                          className="w-7 h-7 rounded bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-650 dark:text-red-400 transition-colors flex items-center justify-center"
                           title="Remove from Combat"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -950,38 +952,38 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
             </div>
 
             {/* Combat Cycle Trigger buttons */}
-            <div className="border-t border-slate-850/80 pt-4 flex gap-3">
+            <div className="border-t border-theme-card-border/60 pt-4 flex gap-3">
               {!combatActive ? (
                 <button
                   onClick={handleStartCombat}
                   disabled={combatants.length === 0}
-                  className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 disabled:opacity-40 disabled:pointer-events-none text-slate-950 font-bold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
+                  className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 disabled:opacity-40 disabled:pointer-events-none text-white font-bold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
                 >
-                  <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                  <Play className="w-4 h-4 fill-white text-white" />
                   Start Combat Run
                 </button>
               ) : (
                 <>
                   <button
                     onClick={handlePrevTurn}
-                    className="py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-850 active:scale-98 border border-slate-800 text-xs font-bold text-slate-300 tracking-wider uppercase transition-all"
+                    className="py-3 px-4 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-xs font-bold text-theme-text-secondary hover:text-theme-text-primary active:scale-98 transition-all"
                   >
                     Prev Turn
                   </button>
                   <button
                     onClick={handleNextTurn}
-                    className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 text-slate-950 font-extrabold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
+                    className={`flex-1 py-3.5 rounded-xl ${theme.bg} hover:brightness-110 active:scale-98 text-white font-extrabold text-sm tracking-wide uppercase transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-[1.01]`}
                   >
                     Next Turn
-                    <Play className="w-4 h-4 fill-slate-950 text-slate-950" />
+                    <Play className="w-4 h-4 fill-white text-white" />
                   </button>
                 </>
               )}
             </div>
 
             {/* Add Custom Combatant Mini-Form */}
-            <form onSubmit={handleAddCombatant} className="border-t border-slate-850/80 pt-4 space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-0.5">
+            <form onSubmit={handleAddCombatant} className="border-t border-theme-card-border/60 pt-4 space-y-3">
+              <h3 className="text-xs font-bold text-theme-text-secondary uppercase tracking-wider pl-0.5">
                 Add Custom Combatant (Monster/NPC)
               </h3>
               
@@ -992,7 +994,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                   placeholder="Combatant Name (e.g. Goblin 1)"
                   value={newCombatantName}
                   onChange={(e) => setNewCombatantName(e.target.value)}
-                  className="sm:col-span-2 px-3 py-2 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors"
+                  className="sm:col-span-2 px-3 py-2 text-xs rounded-lg bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors"
                 />
 
                 {/* HP */}
@@ -1002,7 +1004,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     placeholder="HP"
                     value={newCombatantHp}
                     onChange={(e) => setNewCombatantHp(e.target.value)}
-                    className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                   <Heart className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-red-500/60" />
                 </div>
@@ -1015,7 +1017,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                       placeholder="Init"
                       value={newCombatantInitiative}
                       onChange={(e) => setNewCombatantInitiative(e.target.value)}
-                      className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-600 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      className="w-full px-3 py-2 pr-7 text-xs rounded-lg bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                     <Dice5 className="absolute right-2.5 top-2.5 w-3.5 h-3.5 text-indigo-400/60" />
                   </div>
@@ -1024,7 +1026,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                   <button
                     type="button"
                     onClick={handleRollFormInitiative}
-                    className="px-2 rounded-lg bg-indigo-950/20 hover:bg-indigo-950/40 border border-indigo-900/30 text-indigo-400 text-xs transition-colors flex items-center justify-center"
+                    className="px-2 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-indigo-650 dark:text-indigo-400 text-xs transition-colors flex items-center justify-center"
                     title="Quick roll d20"
                   >
                     Roll
@@ -1035,14 +1037,14 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
               {/* Type Toggle & Submit button */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1">
                 {/* Type Selection Tabs */}
-                <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-850 select-none">
+                <div className="flex bg-theme-btn-sec-bg p-0.5 rounded-lg border border-theme-btn-sec-border select-none">
                   <button
                     type="button"
                     onClick={() => setNewCombatantIsMonster(true)}
                     className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
                       newCombatantIsMonster 
-                        ? "bg-red-500/10 border border-red-500/20 text-red-400" 
-                        : "text-slate-500 hover:text-slate-350"
+                        ? "bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400" 
+                        : "text-theme-text-tertiary hover:text-theme-text-secondary"
                     }`}
                   >
                     Monster/NPC
@@ -1052,8 +1054,8 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     onClick={() => setNewCombatantIsMonster(false)}
                     className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
                       !newCombatantIsMonster 
-                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-400" 
-                        : "text-slate-500 hover:text-slate-350"
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-650 dark:text-indigo-400" 
+                        : "text-theme-text-tertiary hover:text-theme-text-secondary"
                     }`}
                   >
                     Player
@@ -1063,7 +1065,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                 <button
                   type="submit"
                   disabled={!newCombatantName}
-                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:pointer-events-none active:scale-98 text-slate-950 font-bold text-xs uppercase tracking-wide transition-all"
+                  className="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:pointer-events-none active:scale-98 text-white font-bold text-xs uppercase tracking-wide transition-all"
                 >
                   Add to Queue
                 </button>
@@ -1077,8 +1079,8 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
         <div className="space-y-6">
           
           {/* DM TOOLBOX: QUICK DICE */}
-          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4">
-            <h2 className="text-lg font-bold flex items-center gap-2 text-slate-200">
+          <div className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-6 space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2 text-theme-text-primary">
               <Dice5 className={`w-5 h-5 ${theme.text}`} />
               DM Quick Dice
             </h2>
@@ -1087,7 +1089,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                 <button
                   key={dice}
                   onClick={() => handleDmRoll(dice.includes("d") && !dice.startsWith("d") ? dice : `1${dice}`)}
-                  className="py-2 rounded-lg bg-slate-900 hover:bg-slate-850 border border-slate-800 text-[10px] font-bold text-slate-300 transition-all active:scale-95"
+                  className="py-2 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-[10px] font-bold text-theme-btn-sec-text hover:text-theme-text-primary transition-all active:scale-95"
                 >
                   {dice.toUpperCase()}
                 </button>
@@ -1098,21 +1100,21 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
           {/* Notification bar for nudges */}
           {nudgeMessage && (
             <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 flex items-center gap-3 animate-slide-up shadow-md">
-              <MessageSquareText className="w-5 h-5 text-indigo-400 shrink-0" />
-              <p className="text-xs font-semibold text-slate-200">{nudgeMessage}</p>
+              <MessageSquareText className="w-5 h-5 text-indigo-500 dark:text-indigo-400 shrink-0" />
+              <p className="text-xs font-semibold text-theme-text-primary">{nudgeMessage}</p>
             </div>
           )}
 
-          <div className="bg-slate-900/30 border border-slate-900 rounded-3xl p-6 space-y-4 flex flex-col h-[750px] overflow-hidden">
+          <div className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-6 space-y-4 flex flex-col h-[750px] overflow-hidden">
             {/* Header Tabs */}
-            <div className="flex justify-between items-center shrink-0 border-b border-slate-850/60 pb-2">
+            <div className="flex justify-between items-center shrink-0 border-b border-theme-card-border pb-2">
               <div className="flex gap-4">
                 <button
                   onClick={() => setActiveRightTab("history")}
                   className={`text-sm font-bold flex items-center gap-1.5 pb-1 transition-all ${
                     activeRightTab === "history"
                       ? `${theme.text} border-b-2 border-${theme.accent}-500`
-                      : "text-slate-400 hover:text-slate-200"
+                      : "text-theme-text-secondary hover:text-theme-text-primary"
                   }`}
                 >
                   <History className="w-4 h-4" />
@@ -1123,7 +1125,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                   className={`text-sm font-bold flex items-center gap-1.5 pb-1 transition-all ${
                     activeRightTab === "journal"
                       ? `${theme.text} border-b-2 border-${theme.accent}-500`
-                      : "text-slate-400 hover:text-slate-200"
+                      : "text-theme-text-secondary hover:text-theme-text-primary"
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -1134,47 +1136,47 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
               {activeRightTab === "history" ? (
                 <span className={`w-2.5 h-2.5 rounded-full ${theme.bg} animate-pulse`} />
               ) : (
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">DM Journal</span>
+                <span className="text-[10px] text-theme-text-tertiary font-bold uppercase tracking-wider">DM Journal</span>
               )}
             </div>
 
             {/* TAB CONTENT: ROLL HISTORY */}
             {activeRightTab === "history" && (
               <div className="flex-1 flex flex-col overflow-hidden space-y-4">
-                <p className="text-xs text-slate-500 leading-normal shrink-0">
+                <p className="text-xs text-theme-text-secondary leading-normal shrink-0">
                   Real-time logs of rolls and status changes sync here automatically from connected player devices.
                 </p>
 
                 {/* Log Feed */}
                 <div className="flex-1 overflow-y-auto space-y-3 pr-1 pt-1 scrollbar-thin">
                   {rollLogs.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs py-10">
+                    <div className="h-full flex flex-col items-center justify-center text-theme-text-tertiary text-xs py-10">
                       <p>No rolls made yet in this campaign.</p>
                     </div>
                   ) : (
                     rollLogs.map((log) => {
-                      let badgeClass = "bg-slate-950 border-slate-850 text-slate-400";
-                      if (log.type === "attack") badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
-                      if (log.type === "damage") badgeClass = "bg-red-500/10 border-red-500/20 text-red-400";
-                      if (log.type === "heal") badgeClass = "bg-teal-500/10 border-teal-500/20 text-teal-400";
-                      if (log.type === "stealth") badgeClass = "bg-indigo-500/10 border-indigo-500/20 text-indigo-400";
+                      let badgeClass = "bg-theme-btn-sec-bg border-theme-btn-sec-border text-theme-text-tertiary";
+                      if (log.type === "attack") badgeClass = "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400";
+                      if (log.type === "damage") badgeClass = "bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400";
+                      if (log.type === "heal") badgeClass = "bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400";
+                      if (log.type === "stealth") badgeClass = "bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400";
 
                       return (
                         <div 
                           key={log.id}
-                          className="p-3.5 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs flex justify-between items-start gap-4 transition-all hover:bg-slate-900"
+                          className="p-3.5 rounded-xl bg-theme-input-bg border border-theme-input-border/70 text-xs flex justify-between items-start gap-4 transition-all hover:bg-theme-input-bg/85"
                         >
                           <div className="space-y-1.5 flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-200">{log.playerName}</span>
-                              <span className="text-[10px] text-slate-600 font-medium">
+                              <span className="font-bold text-theme-text-primary">{log.playerName}</span>
+                              <span className="text-[10px] text-theme-text-tertiary font-medium">
                                 {formatTime(log.timestamp)}
                               </span>
                             </div>
-                            <p className="text-slate-400 font-medium leading-relaxed">
+                            <p className="text-theme-text-secondary font-medium leading-relaxed">
                               {log.actionName}
                             </p>
-                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-slate-950 border border-slate-900 text-[10px] text-slate-500 font-bold tracking-wide">
+                            <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-[10px] text-theme-text-secondary font-bold tracking-wide">
                               Formula: {log.rollNotation}
                             </div>
                           </div>
@@ -1197,7 +1199,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                 {isCreatingEntry ? (
                   <form onSubmit={handleSaveEntry} className="flex-1 flex flex-col space-y-4 overflow-y-auto pr-1 scrollbar-thin">
                     <div className="flex justify-between items-center shrink-0">
-                      <h3 className="text-sm font-bold text-slate-300">
+                      <h3 className="text-sm font-bold text-theme-text-primary">
                         {editingEntry ? "Edit Recap Entry" : "New Recap Entry"}
                       </h3>
                       <button
@@ -1206,7 +1208,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                           setIsCreatingEntry(false);
                           setEditingEntry(null);
                         }}
-                        className="text-xs text-slate-500 hover:text-slate-300 font-bold transition-colors"
+                        className="text-xs text-theme-text-tertiary hover:text-theme-text-secondary font-bold transition-colors"
                       >
                         Cancel
                       </button>
@@ -1214,55 +1216,55 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     
                     <div className="space-y-3 shrink-0">
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Entry Title</label>
+                        <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-1">Entry Title</label>
                         <input
                           type="text"
                           required
                           value={journalTitle}
                           onChange={(e) => setJournalTitle(e.target.value)}
                           placeholder="e.g. The Siege of Cragmaw Castle"
-                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Recap Content</label>
+                        <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-1">Recap Content</label>
                         <textarea
                           required
                           value={journalContent}
                           onChange={(e) => setJournalContent(e.target.value)}
                           placeholder="Describe the events of the session..."
                           rows={6}
-                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors resize-none scrollbar-thin"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors resize-none scrollbar-thin"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">NPCs Met (Comma separated)</label>
+                        <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-1">NPCs Met (Comma separated)</label>
                         <input
                           type="text"
                           value={journalNpcs}
                           onChange={(e) => setJournalNpcs(e.target.value)}
                           placeholder="e.g. Gundren Rockseeker, Sildar Hallwinter"
-                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Quest Updates / Details</label>
+                        <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider mb-1">Quest Updates / Details</label>
                         <textarea
                           value={journalQuests}
                           onChange={(e) => setJournalQuests(e.target.value)}
                           placeholder="e.g. Find the Lost Mine of Phandelver (Active)"
                           rows={2}
-                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-950 border border-slate-850 hover:border-slate-800 focus:border-indigo-500 focus:outline-hidden text-slate-100 placeholder:text-slate-650 transition-colors resize-none scrollbar-thin"
+                          className="w-full px-3.5 py-2 text-xs rounded-xl bg-theme-input-bg border border-theme-input-border hover:border-theme-input-border/80 focus:border-indigo-500 focus:outline-hidden text-theme-text-primary placeholder:text-theme-text-tertiary transition-colors resize-none scrollbar-thin"
                         />
                       </div>
 
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-850 select-none">
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-theme-input-bg border border-theme-input-border select-none">
                         <div className="space-y-0.5">
-                          <div className="text-xs font-bold text-slate-200">Publish to Players</div>
-                          <div className="text-[10px] text-slate-500 font-semibold leading-none">Drafts are only visible to you</div>
+                          <div className="text-xs font-bold text-theme-text-primary">Publish to Players</div>
+                          <div className="text-[10px] text-theme-text-tertiary font-semibold leading-none">Drafts are only visible to you</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input 
@@ -1271,14 +1273,14 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                             onChange={(e) => setJournalPublished(e.target.checked)} 
                             className="sr-only peer" 
                           />
-                          <div className="w-8 h-4 bg-slate-800 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-300 after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-slate-950 peer-checked:after:border-slate-950"></div>
+                          <div className="w-8 h-4 bg-slate-350 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-650 dark:peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
                         </label>
                       </div>
                     </div>
 
                     <button
                       type="submit"
-                      className={`w-full py-3 rounded-xl shrink-0 ${theme.bg} hover:brightness-110 active:scale-98 text-slate-950 font-bold text-xs uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2`}
+                      className={`w-full py-3 rounded-xl shrink-0 ${theme.bg} hover:brightness-110 active:scale-98 text-white font-bold text-xs uppercase tracking-wide transition-all shadow-lg flex items-center justify-center gap-2`}
                     >
                       {editingEntry ? "Save Changes" : "Publish Entry"}
                     </button>
@@ -1286,7 +1288,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                 ) : (
                   <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
                     <div className="flex justify-between items-center shrink-0">
-                      <p className="text-xs text-slate-500 leading-normal font-semibold">
+                      <p className="text-xs text-theme-text-secondary leading-normal font-semibold">
                         Log session summaries, quests, and NPCs.
                       </p>
                       <button
@@ -1300,26 +1302,26 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
                     <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
                       {journalEntries.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-600 text-xs py-10">
+                        <div className="h-full flex flex-col items-center justify-center text-theme-text-tertiary text-xs py-10">
                           <p>No journal entries written yet.</p>
                         </div>
                       ) : (
                         journalEntries.map((entry) => (
                           <div 
                             key={entry.id}
-                            className="p-4 rounded-xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-3 transition-all hover:bg-slate-900 flex flex-col"
+                            className="p-4 rounded-xl bg-theme-input-bg border border-theme-input-border/70 text-xs space-y-3 transition-all hover:bg-theme-input-bg/85 flex flex-col"
                           >
                             <div className="flex justify-between items-start">
                               <div className="space-y-1">
-                                <h4 className="font-bold text-slate-200 text-sm leading-tight">{entry.title}</h4>
+                                <h4 className="font-bold text-theme-text-primary text-sm leading-tight">{entry.title}</h4>
                                 <div className="flex gap-2">
-                                  <span className="text-[10px] text-slate-555 font-semibold">
+                                  <span className="text-[10px] text-theme-text-secondary font-semibold">
                                     {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
                                   </span>
                                   {entry.published ? (
-                                    <span className="text-[9px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase tracking-wider">Published</span>
+                                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded uppercase tracking-wider">Published</span>
                                   ) : (
-                                    <span className="text-[9px] font-bold text-slate-400 bg-slate-800 border border-slate-700 px-1.5 py-0.2 rounded uppercase tracking-wider">Draft</span>
+                                    <span className="text-[9px] font-bold text-theme-text-secondary bg-theme-btn-sec-bg border border-theme-btn-sec-border px-1.5 py-0.2 rounded uppercase tracking-wider">Draft</span>
                                   )}
                                 </div>
                               </div>
@@ -1327,14 +1329,14 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                               <div className="flex gap-1.5 shrink-0">
                                 <button
                                   onClick={() => handleEditEntry(entry)}
-                                  className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-500 hover:text-indigo-400 transition-colors"
+                                  className="p-1 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-secondary hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                   title="Edit Entry"
                                 >
                                   <Edit className="w-3 h-3" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteEntry(entry.id)}
-                                  className="p-1 rounded bg-slate-950 border border-slate-900 text-slate-500 hover:text-red-400 transition-colors"
+                                  className="p-1 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-secondary hover:text-red-550 dark:hover:text-red-400 transition-colors"
                                   title="Delete Entry"
                                 >
                                   <Trash2 className="w-3 h-3" />
@@ -1342,15 +1344,15 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                               </div>
                             </div>
 
-                            <p className="text-slate-400 leading-relaxed line-clamp-3 whitespace-pre-line">
+                            <p className="text-theme-text-secondary leading-relaxed line-clamp-3 whitespace-pre-line">
                               {entry.content}
                             </p>
 
                             {entry.npcNames.length > 0 && (
                               <div className="flex flex-wrap gap-1 items-center">
-                                <span className="text-[9px] uppercase tracking-wider font-semibold text-slate-500">NPCs:</span>
+                                <span className="text-[9px] uppercase tracking-wider font-semibold text-theme-text-tertiary">NPCs:</span>
                                 {entry.npcNames.map((npc) => (
-                                  <span key={npc} className="px-1.5 py-0.2 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-400 font-medium">{npc}</span>
+                                  <span key={npc} className="px-1.5 py-0.2 rounded bg-theme-btn-sec-bg border border-theme-btn-sec-border text-[10px] text-theme-text-secondary font-medium">{npc}</span>
                                 ))}
                               </div>
                             )}

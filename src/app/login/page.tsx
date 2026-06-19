@@ -134,21 +134,21 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex items-center justify-center p-6 text-slate-500 text-sm font-bold uppercase tracking-wider animate-pulse">
+      <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex items-center justify-center p-6 text-slate-500 text-sm font-bold uppercase tracking-wider animate-pulse">
         Checking credentials...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-y-auto p-6 flex flex-col items-center justify-center">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-y-auto p-6 flex flex-col items-center justify-center">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
 
       {/* Back Button */}
       <div className="absolute top-6 left-6 z-10">
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-350 transition-colors text-sm font-bold uppercase tracking-wider"
+          className="flex items-center gap-1.5 text-theme-text-secondary hover:text-theme-text-primary transition-colors text-sm font-bold uppercase tracking-wider"
         >
           <ChevronLeft className="w-4 h-4" />
           Home
@@ -160,28 +160,28 @@ export default function LoginPage() {
         {/* Logo and Greeting */}
         <div className="text-center space-y-3">
           <div className="flex items-center justify-center gap-2 mb-1">
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl">
-              <Shield className="w-6 h-6 text-indigo-400" />
+            <div className="p-2 rounded-xl bg-theme-card-bg border border-theme-card-border shadow-2xl">
+              <Shield className="w-6 h-6 text-indigo-500 dark:text-indigo-400" />
             </div>
-            <div className="h-6 w-px bg-slate-800" />
-            <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 shadow-2xl">
+            <div className="h-6 w-px bg-theme-card-border" />
+            <div className="p-2 rounded-xl bg-theme-card-bg border border-theme-card-border shadow-2xl">
               <Swords className="w-6 h-6 text-amber-500" />
             </div>
           </div>
-          <h1 className="text-3xl font-black text-white tracking-tight">Tavern &amp; Table</h1>
-          <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-1.5">
+          <h1 className="text-3xl font-black text-theme-text-primary tracking-tight">Tavern &amp; Table</h1>
+          <p className="text-theme-text-secondary text-xs font-semibold uppercase tracking-widest flex items-center justify-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             Join the Adventure
           </p>
         </div>
 
         {/* Auth Box */}
-        <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6 backdrop-blur-md">
+        <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 sm:p-8 space-y-6 backdrop-blur-md">
           <div>
-            <h2 className="text-lg font-bold text-white mb-0.5">
+            <h2 className="text-lg font-bold text-theme-text-primary mb-0.5">
               {authMode === "login" ? "Account Sign In" : "Register Account"}
             </h2>
-            <p className="text-slate-500 text-[10px] leading-relaxed font-semibold uppercase tracking-wider">
+            <p className="text-theme-text-tertiary text-[10px] leading-relaxed font-semibold uppercase tracking-wider">
               {authMode === "login" ? "Welcome back, hero" : "Forge a new profile"}
             </p>
           </div>
@@ -191,7 +191,7 @@ export default function LoginPage() {
             <button
               onClick={handleGoogleSignIn}
               disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 active:scale-95 shadow-md shadow-white/5"
+              className="w-full py-3 rounded-xl bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 active:scale-95 shadow-md shadow-white/5 border border-slate-200"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -215,62 +215,62 @@ export default function LoginPage() {
             </button>
 
             <div className="flex items-center gap-3 my-2 select-none">
-              <div className="flex-1 h-px bg-slate-800/60" />
-              <span className="text-[9px] font-black text-slate-650 uppercase tracking-widest">OR</span>
-              <div className="flex-1 h-px bg-slate-800/60" />
+              <div className="flex-1 h-px bg-theme-card-border/60" />
+              <span className="text-[9px] font-black text-theme-text-tertiary uppercase tracking-widest">OR</span>
+              <div className="flex-1 h-px bg-theme-card-border/60" />
             </div>
 
             {/* Email/Password Sign-in */}
             <form onSubmit={handleEmailAuthSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-0.5">Email</label>
+                <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider pl-0.5">Email</label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-3.5 w-4 h-4 text-slate-600" />
+                  <Mail className="absolute left-4 top-3.5 w-4 h-4 text-slate-400 dark:text-slate-650" />
                   <input
                     type="email"
                     required
                     value={authEmail}
                     onChange={(e) => setAuthEmail(e.target.value)}
                     placeholder="adventurer@domain.com"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-0.5">Password</label>
+                <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider pl-0.5">Password</label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-600" />
+                  <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-400 dark:text-slate-650" />
                   <input
                     type="password"
                     required
                     value={authPassword}
                     onChange={(e) => setAuthPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                   />
                 </div>
               </div>
 
               {authMode === "register" && (
                 <div className="space-y-1.5 animate-slide-down">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-0.5">Confirm Password</label>
+                  <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider pl-0.5">Confirm Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-600" />
+                    <Lock className="absolute left-4 top-3.5 w-4 h-4 text-slate-400 dark:text-slate-650" />
                     <input
                       type="password"
                       required
                       value={authConfirmPassword}
                       onChange={(e) => setAuthConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                 </div>
               )}
 
               {authError && (
-                <div className="flex items-center gap-1.5 text-red-400 text-xs font-semibold pl-1">
+                <div className="flex items-center gap-1.5 text-red-500 dark:text-red-400 text-xs font-semibold pl-1">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span className="leading-snug">{authError}</span>
                 </div>
@@ -280,7 +280,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest transition-all active:scale-95"
+                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest transition-all active:scale-95"
                 >
                   {isSubmitting ? "Processing..." : authMode === "login" ? "Log In" : "Create Account"}
                 </button>
@@ -291,7 +291,7 @@ export default function LoginPage() {
                     setAuthMode(authMode === "login" ? "register" : "login");
                     setAuthError("");
                   }}
-                  className="text-xs text-slate-550 hover:text-slate-350 font-bold transition-colors text-center py-1.5"
+                  className="text-xs text-theme-text-secondary hover:text-theme-text-primary font-bold transition-colors text-center py-1.5"
                 >
                   {authMode === "login" 
                     ? "Don't have an account? Sign Up" 

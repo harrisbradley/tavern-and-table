@@ -8,6 +8,7 @@ import { getCharacters, deleteCharacter } from "@/lib/characterEngine";
 import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/character";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 interface RecentCampaign {
@@ -69,19 +70,20 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
       
       {/* Top Header */}
-      <div className="absolute top-6 left-6 right-6 flex justify-end z-20 max-w-4xl mx-auto w-full">
+      <div className="absolute top-6 left-6 right-6 flex justify-end items-center gap-3 z-20 max-w-4xl mx-auto w-full">
+        <ThemeToggle />
         {authLoading ? (
-          <div className="px-4 py-2.5 rounded-2xl bg-slate-900/40 border border-slate-800/60 text-slate-550 text-xs font-bold uppercase tracking-wider animate-pulse">
+          <div className="px-4 py-2.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-tertiary text-xs font-bold uppercase tracking-wider animate-pulse">
             Checking status...
           </div>
         ) : firebaseUser ? (
           <Link
             href="/profile"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border hover:border-amber-500/40 hover:bg-theme-btn-sec-bg/85 text-theme-btn-sec-text hover:text-theme-text-primary transition-all text-xs font-bold uppercase tracking-wider"
           >
             <User className="w-4 h-4 text-amber-500 animate-pulse" />
             Profile
@@ -89,9 +91,9 @@ export default function Home() {
         ) : (
           <Link
             href="/login"
-            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-950/40 border border-indigo-900/40 hover:border-indigo-500/60 hover:bg-indigo-950/60 text-indigo-400 hover:text-indigo-300 transition-all text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-500/10 dark:bg-indigo-950/40 border border-indigo-500/20 dark:border-indigo-900/40 hover:border-indigo-550 dark:hover:border-indigo-500/60 hover:bg-indigo-550/15 dark:hover:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all text-xs font-bold uppercase tracking-wider"
           >
-            <Lock className="w-4 h-4 text-indigo-400 animate-pulse" />
+            <Lock className="w-4 h-4 text-indigo-600 dark:text-indigo-400 animate-pulse" />
             Sign In
           </Link>
         )}
@@ -100,18 +102,18 @@ export default function Home() {
       {/* Hero section */}
       <div className="text-center z-10 space-y-4 mb-12 animate-fade-in">
         <div className="flex items-center justify-center gap-3 mb-2">
-          <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
-            <Shield className="w-10 h-10 text-indigo-400" />
+          <div className="p-3 rounded-2xl bg-theme-card-bg border border-theme-card-border shadow-2xl">
+            <Shield className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
           </div>
-          <div className="h-10 w-px bg-slate-800" />
-          <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl">
+          <div className="h-10 w-px bg-theme-card-border" />
+          <div className="p-3 rounded-2xl bg-theme-card-bg border border-theme-card-border shadow-2xl">
             <Swords className="w-10 h-10 text-amber-500" />
           </div>
         </div>
-        <h1 className="text-5xl font-black text-white tracking-tighter sm:text-6xl lg:text-7xl">
+        <h1 className="text-5xl font-black text-theme-text-primary tracking-tighter sm:text-6xl lg:text-7xl">
           Tavern &amp; Table
         </h1>
-        <p className="text-slate-400 text-lg sm:text-xl font-medium max-w-md mx-auto leading-relaxed">
+        <p className="text-theme-text-secondary text-lg sm:text-xl font-medium max-w-md mx-auto leading-relaxed">
           The ultimate mobile-first companion for your D&amp;D campaign. 3D dice, real-time sync, pure adventure.
         </p>
       </div>
@@ -123,14 +125,14 @@ export default function Home() {
           <div className="space-y-4 flex flex-col">
             <Link
               href="/campaign/create"
-              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border border-slate-800 hover:border-indigo-500/50 hover:bg-slate-900/60 transition-all duration-500 text-center flex-1"
+              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-theme-card-bg border border-theme-card-border hover:border-indigo-500/50 hover:bg-theme-card-bg/90 transition-all duration-500 text-center flex-1"
             >
               <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 group-hover:scale-110 transition-transform duration-500">
                 <Shield className="w-8 h-8 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">I am the DM</h3>
-                <p className="text-slate-500 text-sm leading-snug">
+                <h3 className="text-xl font-bold text-theme-text-primary mb-2">I am the DM</h3>
+                <p className="text-theme-text-secondary text-sm leading-snug">
                   Create a new campaign and manage your party's initiative and health.
                 </p>
               </div>
@@ -141,21 +143,21 @@ export default function Home() {
             {recentDmCampaigns.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2 px-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Resume Your Campaigns</h4>
+                  <Clock className="w-3.5 h-3.5 text-theme-text-tertiary" />
+                  <h4 className="text-[10px] font-black text-theme-text-tertiary uppercase tracking-widest">Resume Your Campaigns</h4>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {recentDmCampaigns.map((camp) => (
                     <Link
                       key={camp.id}
                       href={`/dm/${camp.id}`}
-                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-indigo-500/40 hover:bg-slate-900 transition-all"
+                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
-                        <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{camp.name}</span>
+                        <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
                       </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
                     </Link>
                   ))}
                 </div>
@@ -167,8 +169,8 @@ export default function Home() {
           <div className="space-y-4 flex flex-col">
             <div 
               onClick={() => !showJoinInput && setShowJoinInput(true)}
-              className={`group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/40 border transition-all duration-500 text-center flex-1 ${
-                showJoinInput ? "border-amber-500/50 bg-slate-900/60" : "border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/60 cursor-pointer"
+              className={`group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-theme-card-bg border transition-all duration-500 text-center flex-1 ${
+                showJoinInput ? "border-amber-500/50 bg-theme-card-bg/85" : "border-theme-card-border hover:border-amber-500/50 hover:bg-theme-card-bg/90 cursor-pointer"
               }`}
             >
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
@@ -178,13 +180,13 @@ export default function Home() {
               {!showJoinInput ? (
                 <>
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-2">I am a Player</h3>
-                    <p className="text-slate-500 text-sm leading-snug">
+                    <h3 className="text-xl font-bold text-theme-text-primary mb-2">I am a Player</h3>
+                    <p className="text-theme-text-secondary text-sm leading-snug">
                       Join your DM's campaign via invite link or enter a Campaign ID manually.
                     </p>
                   </div>
                   <div className="mt-2 py-1.5 px-4 rounded-full bg-amber-500/10 border border-amber-500/20">
-                    <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.15em]">Enter Campaign ID</span>
+                    <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-[0.15em]">Enter Campaign ID</span>
                   </div>
                 </>
               ) : (
@@ -197,14 +199,14 @@ export default function Home() {
                       placeholder="e.g. CAMP-XYZ123"
                       value={joinId}
                       onChange={(e) => setJoinId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white text-center font-bold placeholder:text-slate-700 focus:outline-none focus:border-amber-500 transition-all uppercase"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-4 py-3 text-theme-text-primary text-center font-bold placeholder:text-theme-text-tertiary focus:outline-none focus:border-amber-500 transition-all uppercase"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setShowJoinInput(false)}
-                      className="p-3 rounded-xl bg-slate-800 text-slate-400 hover:bg-slate-700 transition-colors"
+                      className="p-3 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-secondary hover:bg-theme-btn-sec-bg/80 transition-colors"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -226,21 +228,21 @@ export default function Home() {
             {joinedCampaigns.length > 0 && (
               <div className="space-y-3 pt-2">
                 <div className="flex items-center gap-2 px-1">
-                  <Swords className="w-3.5 h-3.5 text-slate-500" />
-                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Adventures</h4>
+                  <Swords className="w-3.5 h-3.5 text-theme-text-tertiary" />
+                  <h4 className="text-[10px] font-black text-theme-text-tertiary uppercase tracking-widest">Active Adventures</h4>
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {joinedCampaigns.map((camp) => (
                     <Link
                       key={camp.id}
                       href={`/player/${camp.id}`}
-                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 transition-all"
+                      className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
-                        <span className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors">{camp.name}</span>
+                        <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
                       </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all" />
+                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" />
                     </Link>
                   ))}
                 </div>
@@ -251,15 +253,15 @@ export default function Home() {
 
         {/* Characters list section */}
         {characters.length > 0 ? (
-          <div className="space-y-4 pt-4 border-t border-slate-900/60">
+          <div className="space-y-4 pt-4 border-t border-theme-card-border/60">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">The Tavern (Your Heroes)</h4>
+                <h4 className="text-[10px] font-black text-theme-text-tertiary uppercase tracking-widest">The Tavern (Your Heroes)</h4>
               </div>
               <Link
                 href="/character/create"
-                className="text-[10px] font-bold text-amber-500 hover:text-amber-400 uppercase tracking-widest flex items-center gap-1 transition-colors"
+                className="text-[10px] font-bold text-amber-600 dark:text-amber-500 hover:text-amber-500 dark:hover:text-amber-400 uppercase tracking-widest flex items-center gap-1 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[3px]" />
                 Forge a Hero
@@ -269,41 +271,41 @@ export default function Home() {
               {characters.map((char) => (
                 <div
                   key={char.id}
-                  className="relative group p-5 rounded-3xl border border-slate-800 bg-slate-900/30 hover:border-amber-500/30 hover:bg-slate-900/50 transition-all duration-300"
+                  className="relative group p-5 rounded-3xl border border-theme-card-border bg-theme-card-bg hover:border-amber-500/30 hover:bg-theme-card-bg/90 transition-all duration-300"
                 >
                   {/* Delete button */}
                   <button
                     onClick={(e) => handleDeleteCharacter(e, char.id)}
-                    className="absolute top-4 right-4 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 hover:bg-red-950/30 transition-all z-10"
+                    className="absolute top-4 right-4 p-1.5 rounded-lg opacity-0 group-hover:opacity-100 text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/20 transition-all z-10"
                     title="Delete character"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
 
                   <div>
-                    <div className="text-white font-bold text-base mb-0.5">{char.name}</div>
-                    <div className="text-slate-500 text-xs font-semibold mb-3">
+                    <div className="text-theme-text-primary font-bold text-base mb-0.5">{char.name}</div>
+                    <div className="text-theme-text-secondary text-xs font-semibold mb-3">
                       {RACE_DISPLAY_NAMES[char.race]} · Level {char.level} {CLASS_DISPLAY_NAMES[char.className]}
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                    <div className="flex flex-col bg-theme-input-bg rounded-xl py-2 border border-theme-input-border/40">
                       <Heart className="w-3.5 h-3.5 text-red-500/70 mx-auto mb-1" />
-                      <span className="text-slate-200 font-bold font-mono">{char.maxHp}</span>
-                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">HP</span>
+                      <span className="text-theme-text-primary font-bold font-mono">{char.maxHp}</span>
+                      <span className="text-[9px] text-theme-text-tertiary font-semibold uppercase tracking-wider">HP</span>
                     </div>
-                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                    <div className="flex flex-col bg-theme-input-bg rounded-xl py-2 border border-theme-input-border/40">
                       <Shield className="w-3.5 h-3.5 text-blue-500/70 mx-auto mb-1" />
-                      <span className="text-slate-200 font-bold font-mono">{char.ac}</span>
-                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">AC</span>
+                      <span className="text-theme-text-primary font-bold font-mono">{char.ac}</span>
+                      <span className="text-[9px] text-theme-text-tertiary font-semibold uppercase tracking-wider">AC</span>
                     </div>
-                    <div className="flex flex-col bg-slate-950/50 rounded-xl py-2 border border-slate-800/40">
+                    <div className="flex flex-col bg-theme-input-bg rounded-xl py-2 border border-theme-input-border/40">
                       <Zap className="w-3.5 h-3.5 text-amber-500/70 mx-auto mb-1" />
-                      <span className="text-slate-200 font-bold font-mono">
+                      <span className="text-theme-text-primary font-bold font-mono">
                         {char.initiative >= 0 ? `+${char.initiative}` : char.initiative}
                       </span>
-                      <span className="text-[9px] text-slate-600 font-semibold uppercase tracking-wider">Init</span>
+                      <span className="text-[9px] text-theme-text-tertiary font-semibold uppercase tracking-wider">Init</span>
                     </div>
                   </div>
                 </div>
@@ -311,17 +313,17 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="border-t border-slate-900/60 pt-4">
+          <div className="border-t border-theme-card-border/60 pt-4">
             <Link
               href="/character/create"
-              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-slate-900/20 border border-dashed border-slate-800 hover:border-amber-500/50 hover:bg-slate-900/40 transition-all duration-500 text-center w-full"
+              className="group relative flex flex-col items-center gap-4 p-8 rounded-[32px] bg-theme-card-bg/40 border border-dashed border-theme-card-border hover:border-amber-500/50 hover:bg-theme-card-bg/70 transition-all duration-500 text-center w-full"
             >
               <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 group-hover:scale-110 transition-transform duration-500">
                 <Plus className="w-8 h-8 text-amber-500 animate-pulse" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">Forge a Hero</h3>
-                <p className="text-slate-500 text-sm leading-snug max-w-sm mx-auto">
+                <h3 className="text-xl font-bold text-theme-text-primary mb-2">Forge a Hero</h3>
+                <p className="text-theme-text-secondary text-sm leading-snug max-w-sm mx-auto">
                   Create and customize a character sheet locally to prepare for your next campaign.
                 </p>
               </div>
@@ -331,7 +333,7 @@ export default function Home() {
       </div>
 
       {/* Footer info */}
-      <div className="mt-16 text-center text-xs text-slate-600 font-medium tracking-wide z-10 uppercase">
+      <div className="mt-16 text-center text-xs text-theme-text-tertiary font-medium tracking-wide z-10 uppercase">
         Optimized for Mobile viewports &bull; Powered by 3D Physics Dice
       </div>
     </main>

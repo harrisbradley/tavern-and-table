@@ -13,7 +13,7 @@ function WizardWrapper() {
 
 export default function CreateCharacterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen w-full bg-[#040508]" />}>
+    <Suspense fallback={<div className="min-h-screen w-full bg-theme-bg" />}>
       <WizardWrapper />
     </Suspense>
   );
