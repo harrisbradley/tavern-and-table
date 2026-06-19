@@ -285,85 +285,87 @@ export default function ProfilePage() {
           </section>
 
           {/* Password Info Section */}
-          <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-white mb-1">Passcode Credentials</h2>
-                <p className="text-slate-500 text-xs leading-relaxed">Modify your local app lock password.</p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                <Lock className="w-5 h-5" />
-              </div>
-            </div>
-
-            <form onSubmit={handlePasswordSave} className="space-y-4">
-              {hasPassword ? (
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                  />
+          {!googleUser && (
+            <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-1">Passcode Credentials</h2>
+                  <p className="text-slate-500 text-xs leading-relaxed">Modify your local app lock password.</p>
                 </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 text-slate-450 text-xs leading-relaxed">
-                  No passcode set on this device yet. Enter a new password below to secure your local profile.
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">New Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Min 6 characters"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confirm New Password</label>
-                  <input
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-enter password"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                  />
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                  <Lock className="w-5 h-5" />
                 </div>
               </div>
 
-              {pwError && (
-                <div className="flex items-center gap-2 text-red-400 text-xs font-semibold pl-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {pwError}
-                </div>
-              )}
+              <form onSubmit={handlePasswordSave} className="space-y-4">
+                {hasPassword ? (
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 text-slate-450 text-xs leading-relaxed">
+                    No passcode set on this device yet. Enter a new password below to secure your local profile.
+                  </div>
+                )}
 
-              <div className="flex items-center justify-between pt-2">
-                {pwSaved ? (
-                  <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold uppercase tracking-wider animate-pulse">
-                    <Check className="w-4 h-4 stroke-[3px]" /> Password Changed!
-                  </span>
-                ) : <span />}
-                
-                <button
-                  type="submit"
-                  className="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
-                >
-                  Change Password
-                </button>
-              </div>
-            </form>
-          </section>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">New Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Min 6 characters"
+                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confirm New Password</label>
+                    <input
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password"
+                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {pwError && (
+                  <div className="flex items-center gap-2 text-red-400 text-xs font-semibold pl-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {pwError}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2">
+                  {pwSaved ? (
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold uppercase tracking-wider animate-pulse">
+                      <Check className="w-4 h-4 stroke-[3px]" /> Password Changed!
+                    </span>
+                  ) : <span />}
+                  
+                  <button
+                    type="submit"
+                    className="px-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-black text-xs uppercase tracking-widest transition-all shadow-md active:scale-95"
+                  >
+                    Change Password
+                  </button>
+                </div>
+              </form>
+            </section>
+          )}
 
         </div>
 
