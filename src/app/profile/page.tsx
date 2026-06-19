@@ -291,10 +291,10 @@ export default function ProfilePage() {
         <div className="md:col-span-2 space-y-8">
           
           {/* Edit Contact Info */}
-          <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6">
+          <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 sm:p-8 space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Adventurer Details</h2>
+                <h2 className="text-xl font-bold text-theme-text-primary mb-1">Adventurer Details</h2>
                 <p className="text-slate-500 text-xs leading-relaxed">Update your contact profile info below.</p>
               </div>
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
@@ -313,7 +313,7 @@ export default function ProfilePage() {
                     value={profile.displayName}
                     onChange={(e) => setProfile({ ...profile, displayName: e.target.value })}
                     placeholder="Enter your name"
-                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
+                    className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
                   />
                 </div>
               </div>
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                       value={profile.email}
                       onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                       placeholder="adventurer@domain.com"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
                 </div>
@@ -343,7 +343,7 @@ export default function ProfilePage() {
                       value={profile.discord}
                       onChange={(e) => setProfile({ ...profile, discord: e.target.value })}
                       placeholder="e.g. Brad#1234"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl pl-11 pr-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl pl-11 pr-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/20 transition-all"
                     />
                   </div>
                 </div>
@@ -368,10 +368,10 @@ export default function ProfilePage() {
 
           {/* Password Info Section */}
           {!firebaseUser && (
-            <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 sm:p-8 space-y-6">
+            <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 sm:p-8 space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-1">Passcode Credentials</h2>
+                  <h2 className="text-xl font-bold text-theme-text-primary mb-1">Passcode Credentials</h2>
                   <p className="text-slate-500 text-xs leading-relaxed">Modify your local app lock password.</p>
                 </div>
                 <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
@@ -389,7 +389,7 @@ export default function ProfilePage() {
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                 ) : (
@@ -407,7 +407,7 @@ export default function ProfilePage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Min 6 characters"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
 
@@ -419,7 +419,7 @@ export default function ProfilePage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter password"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-4 py-3 text-theme-text-primary text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
                     />
                   </div>
                 </div>
@@ -455,9 +455,9 @@ export default function ProfilePage() {
         <div className="space-y-8">
           
           {/* Account Integration Card */}
-          <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 space-y-6">
+          <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">Account Sync</h2>
+              <h2 className="text-xl font-bold text-theme-text-primary mb-1">Account Sync</h2>
               <p className="text-slate-500 text-xs leading-relaxed font-semibold uppercase tracking-wider">Authentication</p>
             </div>
 
@@ -465,7 +465,7 @@ export default function ProfilePage() {
               <div className="text-slate-650 text-xs animate-pulse">Checking credentials...</div>
             ) : firebaseUser ? (
               <div className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-2xl bg-slate-950/40 border border-slate-850/60">
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-theme-input-bg border border-theme-input-border/40">
                   {firebaseUser.photoURL ? (
                     <img 
                       src={firebaseUser.photoURL} 
@@ -478,14 +478,14 @@ export default function ProfilePage() {
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="text-slate-200 text-xs font-bold truncate">{firebaseUser.displayName || "Adventurer"}</div>
+                    <div className="text-theme-text-primary text-xs font-bold truncate">{firebaseUser.displayName || "Adventurer"}</div>
                     <div className="text-slate-500 text-[10px] truncate">{firebaseUser.email}</div>
                   </div>
                 </div>
                 
                 <button
                   onClick={handleSignOut}
-                  className="w-full py-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200 font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:text-theme-text-primary font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
                   Sign Out
                 </button>
@@ -538,7 +538,7 @@ export default function ProfilePage() {
                       value={authEmail}
                       onChange={(e) => setAuthEmail(e.target.value)}
                       placeholder="adventurer@domain.com"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3.5 py-2.5 text-theme-text-primary text-xs placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/60 transition-all"
                     />
                   </div>
 
@@ -550,7 +550,7 @@ export default function ProfilePage() {
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                      className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3.5 py-2.5 text-theme-text-primary text-xs placeholder:text-slate-550 focus:outline-none focus:border-indigo-500/60 transition-all"
                     />
                   </div>
 
@@ -563,7 +563,7 @@ export default function ProfilePage() {
                         value={authConfirmPassword}
                         onChange={(e) => setAuthConfirmPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-3.5 py-2.5 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 transition-all"
+                        className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3.5 py-2.5 text-theme-text-primary text-xs placeholder:text-slate-550 focus:outline-none focus:border-indigo-500/60 transition-all"
                       />
                     </div>
                   )}
@@ -602,9 +602,9 @@ export default function ProfilePage() {
             )}
           </section>
 
-          <section className="bg-slate-900/40 border border-slate-800/80 rounded-[32px] p-6 space-y-6">
+          <section className="bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 space-y-6">
             <div>
-              <h2 className="text-xl font-bold text-white mb-1">Your Campaigns</h2>
+              <h2 className="text-xl font-bold text-theme-text-primary mb-1">Your Campaigns</h2>
               <p className="text-slate-500 text-xs leading-relaxed font-semibold uppercase tracking-wider">Tavern Registry</p>
             </div>
 
@@ -620,11 +620,11 @@ export default function ProfilePage() {
                   {dmCampaigns.map((camp) => (
                     <div 
                       key={camp.id}
-                      className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-850/60 flex items-center justify-between"
+                      className="p-3.5 rounded-2xl bg-theme-input-bg border border-theme-input-border/45 flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2.5">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500`} />
-                        <span className="text-sm font-bold text-slate-200">{camp.name}</span>
+                        <span className="text-sm font-bold text-theme-text-primary">{camp.name}</span>
                       </div>
                       <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
                         DM
@@ -649,19 +649,19 @@ export default function ProfilePage() {
                   {playerCampaigns.map((camp) => (
                     <div 
                       key={camp.id}
-                      className="p-3.5 rounded-2xl bg-slate-950/40 border border-slate-850/60 flex flex-col space-y-1.5"
+                      className="p-3.5 rounded-2xl bg-theme-input-bg border border-theme-input-border/45 flex flex-col space-y-1.5"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
                           <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500`} />
-                          <span className="text-sm font-bold text-slate-200">{camp.name}</span>
+                          <span className="text-sm font-bold text-theme-text-primary">{camp.name}</span>
                         </div>
                         <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500">
                           Player
                         </span>
                       </div>
                       <div className="text-[10px] pl-4 text-slate-500 font-medium">
-                        Active Hero: <span className="text-slate-350 font-bold">{getCampaignCharacterName(camp.id)}</span>
+                        Active Hero: <span className="text-theme-text-primary font-bold">{getCampaignCharacterName(camp.id)}</span>
                       </div>
                     </div>
                   ))}

@@ -403,10 +403,10 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
           <button
             onClick={handleToggleTutorial}
             title={tutorialEnabled ? "Guidance on — tap to turn off" : "Guidance off — tap to turn on"}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-bold transition-colors ${
               tutorialEnabled
                 ? `${theme.bg}/10 ${theme.border} ${theme.text} hover:${theme.bg}/20`
-                : "bg-slate-900/40 border-slate-800 text-slate-600 hover:text-slate-400"
+                : "bg-theme-btn-sec-bg border-theme-btn-sec-border text-theme-text-tertiary hover:text-theme-text-secondary"
             }`}
           >
             <Sparkles className="w-3 h-3" />
@@ -454,32 +454,32 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             {/* Left Column: Health, Stats, Turn Actions */}
             <div className="lg:col-span-7 space-y-4 w-full">
               {/* Health */}
-              <section className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3 select-none">
+              <section className="bg-theme-card-bg border border-theme-card-border rounded-2xl p-4 flex flex-col gap-3 select-none">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <span className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider flex items-center gap-1">
                     <Heart className="w-3.5 h-3.5 text-red-500" />
                     Player Health
                   </span>
-                  <span className="text-xs font-semibold text-slate-300">
+                  <span className="text-xs font-semibold text-theme-text-secondary">
                     {currentHp === 0 ? (
                       <span className="text-red-500 font-bold uppercase tracking-wider animate-pulse">Unconscious</span>
                     ) : (
                       <>
                         <strong className={`${hpTextClass} text-sm font-extrabold`}>{currentHp}</strong>
-                        <span className="text-slate-500"> / {character.maxHp} HP</span>
+                        <span className="text-theme-text-tertiary"> / {character.maxHp} HP</span>
                       </>
                     )}
                   </span>
                 </div>
-                <div className="w-full h-5 bg-slate-950 rounded-full overflow-hidden p-0.5 border border-slate-800/50">
+                <div className="w-full h-5 bg-slate-200 dark:bg-slate-950 rounded-full overflow-hidden p-0.5 border border-theme-input-border/50">
                   <div className={`h-full ${hpColorClass} rounded-full transition-all duration-500`} style={{ width: `${(currentHp / character.maxHp) * 100}%` }} />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-1">
-                  <button onClick={() => adjustHp(-1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-red-500/30 text-red-400 flex items-center justify-center gap-2 transition-all font-bold">
+                  <button onClick={() => adjustHp(-1)} className="py-3.5 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg active:scale-95 border border-theme-card-border hover:border-red-500/30 text-red-500 dark:text-red-400 flex items-center justify-center gap-2 transition-all font-bold">
                     <Minus className="w-6 h-6 stroke-[3px]" />
                     <span className="text-xs uppercase tracking-wider">Take Damage</span>
                   </button>
-                  <button onClick={() => adjustHp(1)} className="py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 border border-slate-800 hover:border-emerald-500/30 text-emerald-400 flex items-center justify-center gap-2 transition-all font-bold">
+                  <button onClick={() => adjustHp(1)} className="py-3.5 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg active:scale-95 border border-theme-card-border hover:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-2 transition-all font-bold">
                     <Plus className="w-6 h-6 stroke-[3px]" />
                     <span className="text-xs uppercase tracking-wider">Heal</span>
                   </button>
@@ -488,30 +488,30 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
               {/* Core stats */}
               <section className="grid grid-cols-3 gap-2 select-none">
-                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                <div className="bg-theme-input-bg border border-theme-input-border/30 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-theme-text-tertiary font-semibold flex items-center gap-1 mb-1">
                     <Shield className={`w-3.5 h-3.5 ${theme.text}`} />AC
                   </span>
-                  <strong className="text-sm font-extrabold text-slate-200">{character.ac}</strong>
+                  <strong className="text-sm font-extrabold text-theme-text-primary">{character.ac}</strong>
                 </div>
-                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                <div className="bg-theme-input-bg border border-theme-input-border/30 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-theme-text-tertiary font-semibold flex items-center gap-1 mb-1">
                     <Compass className={`w-3.5 h-3.5 ${theme.text}`} />Init
                   </span>
-                  <strong className="text-sm font-extrabold text-slate-200">{initiativeDisplay}</strong>
+                  <strong className="text-sm font-extrabold text-theme-text-primary">{initiativeDisplay}</strong>
                 </div>
-                <div className="bg-slate-900/40 border border-slate-800/80 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
-                  <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mb-1">
+                <div className="bg-theme-input-bg border border-theme-input-border/30 rounded-xl p-2.5 flex flex-col justify-center items-center text-center">
+                  <span className="text-[10px] text-theme-text-tertiary font-semibold flex items-center gap-1 mb-1">
                     <Eye className={`w-3.5 h-3.5 ${theme.text}`} />Passive
                   </span>
-                  <strong className="text-sm font-extrabold text-slate-200">{character.passivePerception}</strong>
+                  <strong className="text-sm font-extrabold text-theme-text-primary">{character.passivePerception}</strong>
                 </div>
               </section>
 
               {/* Turn Actions */}
               <section className="mt-2 z-10 select-none">
                 <div className="flex justify-between items-center mb-2 px-1">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Turn Actions</h3>
+                  <h3 className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider">Turn Actions</h3>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => setShowCheckMenu(true)} 
@@ -529,17 +529,17 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                  <button onClick={handleMoveClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg border border-theme-card-border active:scale-95 text-theme-btn-sec-text hover:text-theme-text-primary transition-all gap-1.5">
                     <Footprints className={`w-5 h-5 ${theme.text}`} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Move ({character.speed}ft)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">Move ({character.speed}ft)</span>
                   </button>
-                  <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                  <button onClick={handleHideClick} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg border border-theme-card-border active:scale-95 text-theme-btn-sec-text hover:text-theme-text-primary transition-all gap-1.5">
                     <Eye className={`w-5 h-5 ${theme.text}`} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Hide (Stealth)</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">Hide (Stealth)</span>
                   </button>
-                  <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-slate-900/50 hover:bg-slate-900 border border-slate-800 active:scale-95 text-slate-400 transition-all gap-1.5">
+                  <button onClick={handleDrinkPotion} className="flex flex-col items-center justify-center py-3.5 px-1 rounded-xl bg-theme-card-bg hover:bg-theme-btn-sec-bg border border-theme-card-border active:scale-95 text-theme-btn-sec-text hover:text-theme-text-primary transition-all gap-1.5">
                     <Wine className={`w-5 h-5 ${theme.text}`} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Drink Potion</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-theme-text-secondary">Drink Potion</span>
                   </button>
                 </div>
               </section>
@@ -548,29 +548,29 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
             {/* Right Column: Arsenal */}
             <div className="lg:col-span-5 space-y-4 w-full">
               <section className="flex flex-col gap-3 select-none">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">The Arsenal (Tap to Attack)</h3>
+                <h3 className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider pl-1">The Arsenal (Tap to Attack)</h3>
                 <div className="grid grid-cols-1 gap-3">
                   {arsenal.map((weapon) => (
                     <button
                       key={weapon.id}
                       onClick={() => handleWeaponClick(weapon)}
-                      className={`group flex items-center justify-between p-4 rounded-2xl bg-slate-900/30 border border-slate-800/80 ${weapon.borderColor} transition-all duration-300 text-left`}
+                      className={`group flex items-center justify-between p-4 rounded-2xl bg-theme-card-bg border border-theme-card-border ${weapon.borderColor} transition-all duration-300 text-left`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center border border-slate-850 group-hover:scale-105 transition-all">
+                        <div className="w-11 h-11 rounded-xl bg-theme-input-bg flex items-center justify-center border border-theme-input-border/60 group-hover:scale-105 transition-all">
                           {weapon.icon}
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm text-slate-200 group-hover:text-slate-100">{weapon.name}</h4>
-                          <p className="text-[11px] text-slate-500">
-                            Damage: <span className="text-slate-400 font-medium">{weapon.damageNotation} {weapon.damageType}</span>
+                          <h4 className="font-bold text-sm text-theme-text-primary group-hover:text-theme-text-primary/95">{weapon.name}</h4>
+                          <p className="text-[11px] text-theme-text-tertiary">
+                            Damage: <span className="text-theme-text-secondary font-medium">{weapon.damageNotation} {weapon.damageType}</span>
                           </p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] text-slate-555 font-bold block uppercase leading-none">{weapon.id === "magic-missile" ? "Auto" : "Modifier"}</span>
+                        <span className="text-[10px] text-theme-text-tertiary font-bold block uppercase leading-none">{weapon.id === "magic-missile" ? "Auto" : "Modifier"}</span>
                         <span className="text-lg font-extrabold text-amber-500">{weapon.id === "magic-missile" ? "Hit" : `+${weapon.toHitModifier}`}</span>
-                        <span className="text-[9px] text-slate-400 block font-medium">{weapon.id === "magic-missile" ? "no roll" : "to hit"}</span>
+                        <span className="text-[9px] text-theme-text-tertiary block font-medium">{weapon.id === "magic-missile" ? "no roll" : "to hit"}</span>
                       </div>
                     </button>
                   ))}
@@ -583,51 +583,51 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         {activeTab === "journal" && (
           <div className="max-w-4xl mx-auto w-full animate-fade-in">
             {/* Story Journal Recap Feed */}
-            <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5 shrink-0">
+            <section className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-5 flex flex-col space-y-4 select-none">
+              <h3 className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider pl-1 flex items-center gap-1.5 shrink-0">
                 <BookOpen className={`w-4 h-4 ${theme.text}`} />
                 Story Journal Recap
               </h3>
               
               <div className="space-y-4">
                 {journalEntries.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-slate-650 text-xs py-16 text-center">
-                    <BookOpen className="w-10 h-10 text-slate-800 mb-3 opacity-40 animate-pulse" />
+                  <div className="flex flex-col items-center justify-center text-theme-text-tertiary text-xs py-16 text-center">
+                    <BookOpen className="w-10 h-10 text-theme-card-border mb-3 opacity-40 animate-pulse" />
                     <p>No recaps have been published yet by the DM.</p>
-                    <p className="text-[10px] mt-1 text-slate-700">Check back during or after the session!</p>
+                    <p className="text-[10px] mt-1">Check back during or after the session!</p>
                   </div>
                 ) : (
                   journalEntries.map((entry) => (
                     <div 
                       key={entry.id}
-                      className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-3 shadow-md"
+                      className="p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border/50 text-xs space-y-3 shadow-md"
                     >
                       <div className="flex justify-between items-start">
                         <div className="space-y-0.5">
-                          <h4 className="font-extrabold text-slate-200 text-sm tracking-tight">{entry.title}</h4>
-                          <span className="text-[9px] text-slate-555 font-bold uppercase tracking-wider">
+                          <h4 className="font-extrabold text-theme-text-primary text-sm tracking-tight">{entry.title}</h4>
+                          <span className="text-[9px] text-theme-text-tertiary font-bold uppercase tracking-wider">
                             {new Date(entry.createdAt).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
                           </span>
                         </div>
                       </div>
 
-                      <p className="text-slate-350 leading-relaxed whitespace-pre-line text-[11px] font-medium">
+                      <p className="text-theme-text-secondary leading-relaxed whitespace-pre-line text-[11px] font-medium">
                         {entry.content}
                       </p>
 
                       {entry.npcNames.length > 0 && (
                         <div className="flex flex-wrap gap-1 items-center pt-1">
-                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 mr-1">NPCs:</span>
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-theme-text-tertiary mr-1">NPCs:</span>
                           {entry.npcNames.map((npc) => (
-                            <span key={npc} className="px-1.5 py-0.2 rounded bg-slate-950 border border-slate-850 text-[10px] text-slate-400 font-medium">{npc}</span>
+                            <span key={npc} className="px-1.5 py-0.2 rounded bg-theme-input-bg border border-theme-input-border/40 text-[10px] text-theme-text-secondary font-medium">{npc}</span>
                           ))}
                         </div>
                       )}
 
                       {entry.questDetails && (
-                        <div className="pt-2 border-t border-slate-850/60">
-                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-500 block mb-1">Quests:</span>
-                          <p className="text-slate-400 font-semibold text-[10px] leading-relaxed whitespace-pre-line italic">
+                        <div className="pt-2 border-t border-theme-card-border/60">
+                          <span className="text-[9px] uppercase tracking-wider font-extrabold text-theme-text-tertiary block mb-1">Quests:</span>
+                          <p className="text-theme-text-secondary font-semibold text-[10px] leading-relaxed whitespace-pre-line italic">
                             {entry.questDetails}
                           </p>
                         </div>
@@ -642,9 +642,9 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
         {activeTab === "bio" && (
           <div className="max-w-4xl mx-auto w-full animate-fade-in space-y-4">
-            <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
-              <div className="flex justify-between items-center shrink-0 border-b border-slate-850/60 pb-2">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+            <section className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-5 flex flex-col space-y-4 select-none">
+              <div className="flex justify-between items-center shrink-0 border-b border-theme-card-border/60 pb-2">
+                <h3 className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider pl-1 flex items-center gap-1.5">
                   <User className={`w-4 h-4 ${theme.text}`} />
                   Character Biography
                 </h3>
@@ -671,7 +671,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                     </button>
                     <button
                       onClick={() => setIsEditingBio(false)}
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-400 font-bold hover:bg-slate-700 transition-all active:scale-95"
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-theme-btn-sec-bg border border-theme-btn-sec-border text-[10px] text-theme-btn-sec-text font-bold hover:bg-theme-btn-sec-bg/85 transition-all active:scale-95"
                     >
                       Cancel
                     </button>
@@ -684,50 +684,50 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                 {isEditingBio ? (
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                         Public Backstory (Visible to all)
                       </label>
                       <textarea
                         value={tempPublicBio}
                         onChange={(e) => setTempPublicBio(e.target.value)}
                         rows={4}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 transition-all resize-none"
+                        className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3.5 py-2 text-theme-text-primary text-xs placeholder:text-theme-text-tertiary focus:outline-none focus:border-amber-500/60 transition-all resize-none"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-[10px] font-bold text-slate-450 uppercase tracking-wider">
+                      <label className="block text-[10px] font-bold text-theme-text-secondary uppercase tracking-wider">
                         Private Secrets (Only you & DM)
                       </label>
                       <textarea
                         value={tempPrivateBio}
                         onChange={(e) => setTempPrivateBio(e.target.value)}
                         rows={4}
-                        className="w-full bg-slate-950 border border-slate-850 rounded-xl px-3.5 py-2 text-slate-200 text-xs placeholder:text-slate-700 focus:outline-none focus:border-amber-500/60 transition-all resize-none"
+                        className="w-full bg-theme-input-bg border border-theme-input-border rounded-xl px-3.5 py-2 text-theme-text-primary text-xs placeholder:text-theme-text-tertiary focus:outline-none focus:border-amber-500/60 transition-all resize-none"
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {/* Public Bio */}
-                    <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60">
-                      <h4 className="font-extrabold text-slate-300 text-xs uppercase tracking-wider mb-2">Public Backstory</h4>
+                    <div className="p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border/30">
+                      <h4 className="font-extrabold text-theme-text-primary text-xs uppercase tracking-wider mb-2">Public Backstory</h4>
                       {publicBio ? (
-                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{publicBio}</p>
+                        <p className="text-theme-text-secondary leading-relaxed whitespace-pre-wrap">{publicBio}</p>
                       ) : (
-                        <p className="text-slate-600 italic">No public backstory provided. Click &quot;Edit Bio&quot; to add one.</p>
+                        <p className="text-theme-text-tertiary italic">No public backstory provided. Click &quot;Edit Bio&quot; to add one.</p>
                       )}
                     </div>
 
                     {/* Private Bio */}
-                    <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60">
-                      <h4 className="font-extrabold text-amber-500/80 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border/30">
+                      <h4 className="font-extrabold text-amber-600 dark:text-amber-550/80 text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
                         <Eye className="w-3.5 h-3.5" />
                         Private Secrets (Only visible to you & DM)
                       </h4>
                       {privateBio ? (
-                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{privateBio}</p>
+                        <p className="text-theme-text-secondary leading-relaxed whitespace-pre-wrap">{privateBio}</p>
                       ) : (
-                        <p className="text-slate-600 italic">No private secrets recorded. Share notes, motives, or secrets with your DM here.</p>
+                        <p className="text-theme-text-tertiary italic">No private secrets recorded. Share notes, motives, or secrets with your DM here.</p>
                       )}
                     </div>
                   </div>
@@ -737,8 +737,8 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
             {/* Party Backstories */}
             {partyMembers.length > 0 && (
-              <section className="bg-slate-900/30 border border-slate-900 rounded-3xl p-5 flex flex-col space-y-4 select-none">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1 flex items-center gap-1.5">
+              <section className="bg-theme-card-bg border border-theme-card-border rounded-3xl p-5 flex flex-col space-y-4 select-none">
+                <h3 className="text-xs font-bold text-theme-text-tertiary uppercase tracking-wider pl-1 flex items-center gap-1.5">
                   <Users className={`w-4 h-4 ${theme.text}`} />
                   Campaign Party Backstories
                 </h3>
@@ -747,16 +747,16 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
                   {partyMembers.map((member) => (
                     <div 
                       key={member.id}
-                      className="p-4 rounded-2xl bg-slate-900/50 border border-slate-900/60 text-xs space-y-2 select-text"
+                      className="p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border/30 text-xs space-y-2 select-text"
                     >
                       <div className="flex justify-between items-center">
-                        <h4 className="font-extrabold text-slate-200 text-sm">{member.name}</h4>
-                        <span className="text-[10px] text-slate-500 font-semibold">{member.className}</span>
+                        <h4 className="font-extrabold text-theme-text-primary text-sm">{member.name}</h4>
+                        <span className="text-[10px] text-theme-text-tertiary font-semibold">{member.className}</span>
                       </div>
                       {member.publicBio ? (
-                        <p className="text-slate-350 leading-relaxed whitespace-pre-wrap">{member.publicBio}</p>
+                        <p className="text-theme-text-secondary leading-relaxed whitespace-pre-wrap">{member.publicBio}</p>
                       ) : (
-                        <p className="text-slate-600 italic">No backstory shared yet.</p>
+                        <p className="text-theme-text-tertiary italic">No backstory shared yet.</p>
                       )}
                     </div>
                   ))}
@@ -769,28 +769,28 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
       {showCheckMenu && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+          <div className="w-full max-w-sm bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
             <div className="text-center space-y-2 mb-6">
               <div className={`w-14 h-14 rounded-2xl ${theme.bg}/10 border ${theme.border} flex items-center justify-center mx-auto mb-2`}>
                 <Dice5 className={`w-7 h-7 ${theme.text}`} />
               </div>
-              <h2 className="text-xl font-bold text-white">Ability Check / Save</h2>
-              <p className="text-slate-400 text-sm">Roll a d20 with a custom modifier.</p>
+              <h2 className="text-xl font-bold text-theme-text-primary">Ability Check / Save</h2>
+              <p className="text-theme-text-secondary text-sm">Roll a d20 with a custom modifier.</p>
             </div>
             <div className="space-y-6">
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Modifier</label>
-                <div className="flex items-center justify-center gap-6 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-                  <button onClick={() => setCustomMod(prev => prev - 1)} className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-red-400 transition-all"><Minus className="w-6 h-6" /></button>
-                  <div className="text-center min-w-16"><span className="text-4xl font-black text-white">{customMod >= 0 ? `+${customMod}` : customMod}</span></div>
-                  <button onClick={() => setCustomMod(prev => prev + 1)} className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-emerald-400 transition-all"><Plus className="w-6 h-6" /></button>
+                <label className="text-[10px] font-black text-theme-text-tertiary uppercase tracking-[0.2em] ml-1">Modifier</label>
+                <div className="flex items-center justify-center gap-6 bg-theme-input-bg p-4 rounded-2xl border border-theme-input-border">
+                  <button onClick={() => setCustomMod(prev => prev - 1)} className="w-12 h-12 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:text-red-400 transition-all"><Minus className="w-6 h-6" /></button>
+                  <div className="text-center min-w-16"><span className="text-4xl font-black text-theme-text-primary">{customMod >= 0 ? `+${customMod}` : customMod}</span></div>
+                  <button onClick={() => setCustomMod(prev => prev + 1)} className="w-12 h-12 rounded-xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:text-emerald-400 transition-all"><Plus className="w-6 h-6" /></button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button onClick={() => handleAdHocRoll(`1d20${customMod >= 0 ? "+" : ""}${customMod}`, "Ability Check")} className={`py-4 rounded-2xl ${theme.bg} text-slate-950 font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg`}>Roll Check</button>
                 <button onClick={() => handleAdHocRoll(`1d20${customMod >= 0 ? "+" : ""}${customMod}`, "Saving Throw")} className={`py-4 rounded-2xl border ${theme.border} ${theme.text} hover:${theme.bg}/10 font-black text-xs uppercase tracking-widest transition-all active:scale-95`}>Roll Save</button>
               </div>
-              <button onClick={() => setShowCheckMenu(false)} className="w-full py-2 text-slate-500 hover:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] transition-colors">Cancel</button>
+              <button onClick={() => setShowCheckMenu(false)} className="w-full py-2 text-theme-text-secondary hover:text-theme-text-primary font-bold text-[10px] uppercase tracking-[0.2em] transition-colors">Cancel</button>
             </div>
           </div>
         </div>
@@ -798,51 +798,51 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
       {showRestMenu && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
+          <div className="w-full max-w-sm bg-theme-card-bg border border-theme-card-border rounded-[32px] p-6 shadow-2xl animate-in slide-in-from-bottom-8 duration-300">
             <div className="text-center space-y-2 mb-6">
               <div className={`w-14 h-14 rounded-2xl ${theme.bg}/10 border ${theme.border} flex items-center justify-center mx-auto mb-2`}>
                 <Bed className={`w-7 h-7 ${theme.text}`} />
               </div>
-              <h2 className="text-xl font-bold text-white">Time for a Rest?</h2>
-              <p className="text-slate-400 text-sm">Recover your strength before the next encounter.</p>
+              <h2 className="text-xl font-bold text-theme-text-primary">Time for a Rest?</h2>
+              <p className="text-theme-text-secondary text-sm">Recover your strength before the next encounter.</p>
             </div>
 
             <div className="space-y-3">
               <button
                 onClick={handleShortRest}
-                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-slate-850 border border-slate-700 hover:border-emerald-500/50 transition-all text-left"
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border hover:border-emerald-500/50 transition-all text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 dark:text-emerald-400">
                     <Coffee className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-white font-bold text-sm">Short Rest</div>
-                    <div className="text-slate-500 text-[10px]">Spend 1 Hit Die ({CLASSES.find(c => c.id === character.className)?.hitDie}+2)</div>
+                    <div className="text-theme-text-primary font-bold text-sm">Short Rest</div>
+                    <div className="text-theme-text-tertiary text-[10px]">Spend 1 Hit Die ({CLASSES.find(c => c.id === character.className)?.hitDie}+2)</div>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-theme-text-tertiary group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors" />
               </button>
 
               <button
                 onClick={handleLongRest}
-                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-slate-850 border border-slate-700 hover:border-indigo-500/50 transition-all text-left"
+                className="w-full group flex items-center justify-between p-4 rounded-2xl bg-theme-input-bg border border-theme-input-border hover:border-indigo-500/50 transition-all text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                  <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 dark:text-indigo-400">
                     <Bed className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-white font-bold text-sm">Long Rest</div>
-                    <div className="text-slate-550 text-[10px]">Restore full health and resources</div>
+                    <div className="text-theme-text-primary font-bold text-sm">Long Rest</div>
+                    <div className="text-theme-text-tertiary text-[10px]">Restore full health and resources</div>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-theme-text-tertiary group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors" />
               </button>
 
               <button
                 onClick={() => setShowRestMenu(false)}
-                className="w-full py-3 text-slate-500 hover:text-slate-300 font-bold text-xs uppercase tracking-widest transition-colors"
+                className="w-full py-3 text-theme-text-secondary hover:text-theme-text-primary font-bold text-xs uppercase tracking-widest transition-colors"
               >
                 Cancel
               </button>
@@ -873,11 +873,11 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
       )}
 
       {/* Bottom Navigation Tabs */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 bg-slate-950/95 backdrop-blur-md border-t border-slate-900 px-6 py-2.5 flex justify-around select-none md:max-w-md md:mx-auto md:rounded-t-2xl md:border-x">
+      <div className="absolute bottom-0 left-0 right-0 z-20 bg-theme-card-bg/95 backdrop-blur-md border-t border-theme-card-border px-6 py-2.5 flex justify-around select-none md:max-w-md md:mx-auto md:rounded-t-2xl md:border-x md:border-theme-card-border">
         <button
           onClick={() => setActiveTab("combat")}
           className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === "combat" ? theme.text : "text-slate-500 hover:text-slate-300"
+            activeTab === "combat" ? theme.text : "text-theme-text-tertiary hover:text-theme-text-secondary"
           }`}
         >
           <Swords className="w-5 h-5" />
@@ -886,7 +886,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         <button
           onClick={() => setActiveTab("journal")}
           className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === "journal" ? theme.text : "text-slate-500 hover:text-slate-300"
+            activeTab === "journal" ? theme.text : "text-theme-text-tertiary hover:text-theme-text-secondary"
           }`}
         >
           <BookOpen className="w-5 h-5" />
@@ -895,7 +895,7 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
         <button
           onClick={() => setActiveTab("bio")}
           className={`flex flex-col items-center gap-1 transition-all ${
-            activeTab === "bio" ? theme.text : "text-slate-500 hover:text-slate-300"
+            activeTab === "bio" ? theme.text : "text-theme-text-tertiary hover:text-theme-text-secondary"
           }`}
         >
           <User className="w-5 h-5" />

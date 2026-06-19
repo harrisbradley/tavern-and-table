@@ -19,7 +19,7 @@ function HpBar({ current, max }: { current: number; max: number }) {
   const pct = Math.max(0, Math.min(100, (current / max) * 100));
   const color = pct > 50 ? "bg-emerald-500" : pct > 25 ? "bg-amber-500" : "bg-red-500";
   return (
-    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+    <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
       <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${pct}%` }} />
     </div>
   );
@@ -49,7 +49,7 @@ function CharacterCard({
   return (
     <div
       onClick={onSelect}
-      className="relative group p-4 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-amber-500/40 hover:bg-slate-900/80 transition-all cursor-pointer"
+      className="relative group p-4 rounded-2xl border border-theme-card-border bg-theme-card-bg hover:border-amber-500/40 hover:bg-theme-card-bg/90 transition-all cursor-pointer"
     >
       {/* Delete button */}
       <button
@@ -57,7 +57,7 @@ function CharacterCard({
         className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 ${
           confirmDelete
             ? "bg-red-500 text-white"
-            : "opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 hover:bg-red-900/30"
+            : "opacity-0 group-hover:opacity-100 text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/20"
         }`}
         title={confirmDelete ? "Tap again to confirm delete" : "Delete character"}
       >
@@ -66,8 +66,8 @@ function CharacterCard({
 
       {/* Name and class */}
       <div className="pr-8">
-        <div className="text-white font-bold text-base leading-tight mb-0.5">{character.name}</div>
-        <div className="text-slate-500 text-xs font-medium mb-3">
+        <div className="text-theme-text-primary font-bold text-base leading-tight mb-0.5">{character.name}</div>
+        <div className="text-theme-text-secondary text-xs font-medium mb-3">
           {RACE_DISPLAY_NAMES[character.race]} · Lv{character.level}{" "}
           {CLASS_DISPLAY_NAMES[character.className]}
         </div>
@@ -76,11 +76,11 @@ function CharacterCard({
       {/* HP bar */}
       <div className="mb-3">
         <div className="flex justify-between items-center mb-1">
-          <div className="flex items-center gap-1 text-slate-500 text-[10px] font-semibold uppercase tracking-wide">
+          <div className="flex items-center gap-1 text-theme-text-tertiary text-[10px] font-semibold uppercase tracking-wide">
             <Heart className="w-3 h-3" />
             HP
           </div>
-          <span className="text-slate-400 text-xs font-mono">
+          <span className="text-theme-text-secondary text-xs font-mono">
             {character.currentHp}/{character.maxHp}
           </span>
         </div>
@@ -89,22 +89,22 @@ function CharacterCard({
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="flex flex-col items-center bg-slate-900/60 rounded-lg py-1.5">
-          <Shield className="w-3 h-3 text-slate-600 mb-0.5" />
-          <span className="text-white text-sm font-bold">{character.ac}</span>
-          <span className="text-slate-600 text-[9px] uppercase tracking-wide">AC</span>
+        <div className="flex flex-col items-center bg-theme-input-bg border border-theme-input-border/30 rounded-lg py-1.5">
+          <Shield className="w-3 h-3 text-theme-text-tertiary mb-0.5" />
+          <span className="text-theme-text-primary text-sm font-bold">{character.ac}</span>
+          <span className="text-theme-text-tertiary text-[9px] uppercase tracking-wide">AC</span>
         </div>
-        <div className="flex flex-col items-center bg-slate-900/60 rounded-lg py-1.5">
-          <Zap className="w-3 h-3 text-slate-600 mb-0.5" />
-          <span className="text-white text-sm font-bold">
+        <div className="flex flex-col items-center bg-theme-input-bg border border-theme-input-border/30 rounded-lg py-1.5">
+          <Zap className="w-3 h-3 text-theme-text-tertiary mb-0.5" />
+          <span className="text-theme-text-primary text-sm font-bold">
             {character.initiative >= 0 ? `+${character.initiative}` : character.initiative}
           </span>
-          <span className="text-slate-600 text-[9px] uppercase tracking-wide">Init</span>
+          <span className="text-theme-text-tertiary text-[9px] uppercase tracking-wide">Init</span>
         </div>
-        <div className="flex flex-col items-center bg-slate-900/60 rounded-lg py-1.5">
-          <Eye className="w-3 h-3 text-slate-600 mb-0.5" />
-          <span className="text-white text-sm font-bold">{character.passivePerception}</span>
-          <span className="text-slate-600 text-[9px] uppercase tracking-wide">PP</span>
+        <div className="flex flex-col items-center bg-theme-input-bg border border-theme-input-border/30 rounded-lg py-1.5">
+          <Eye className="w-3 h-3 text-theme-text-tertiary mb-0.5" />
+          <span className="text-theme-text-primary text-sm font-bold">{character.passivePerception}</span>
+          <span className="text-theme-text-tertiary text-[9px] uppercase tracking-wide">PP</span>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
       {/* Create new */}
       <Link
         href={campaignId ? `/character/create?join=${campaignId}` : "/character/create"}
-        className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-slate-700 text-slate-500 hover:border-amber-500/40 hover:text-amber-400 transition-all font-semibold text-sm"   
+        className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl border border-dashed border-theme-card-border text-theme-text-secondary hover:border-amber-500/40 hover:text-amber-500 transition-all font-semibold text-sm"   
       >
         <Plus className="w-4 h-4" />
         Create New Character
@@ -165,11 +165,11 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
       {/* Header */}
       <div className="px-4 pt-8 pb-4 max-w-2xl mx-auto w-full">
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-4 h-4 text-amber-400" />
-          <span className="text-amber-400 text-xs font-bold uppercase tracking-widest">Tavern &amp; Table</span>
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span className="text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-widest">Tavern &amp; Table</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-white mb-1">Who answers the call?</h1>
-        <p className="text-slate-400 text-sm">Choose your hero or forge a new legend.</p>
+        <h1 className="text-3xl font-extrabold text-theme-text-primary mb-1">Who answers the call?</h1>
+        <p className="text-theme-text-secondary text-sm">Choose your hero or forge a new legend.</p>
       </div>
 
       {/* Character grid */}
