@@ -154,7 +154,10 @@ export default function ProfilePage() {
   };
 
   const handleDeleteClick = (id: string) => {
-    if (confirmDeleteId === id) {
+    const char = localCharacters.find(c => c.id === id);
+    const charName = char ? char.name : "this character";
+    const confirmation = prompt(`Are you sure you want to delete ${charName}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
       deleteCharacter(id);
       playerCampaigns.forEach((camp) => {
         const activeCharId = localStorage.getItem(`tt_campaign_char_${camp.id}`);
@@ -165,12 +168,29 @@ export default function ProfilePage() {
       });
       const updatedList = localCharacters.filter(c => c.id !== id);
       setLocalCharacters(updatedList);
-      setConfirmDeleteId(null);
-    } else {
-      setConfirmDeleteId(id);
-      setTimeout(() => {
-        setConfirmDeleteId((prev) => (prev === id ? null : prev));
-      }, 3000);
+    }
+  };
+
+  const handleDeleteDmCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const confirmation = prompt(`Are you sure you want to delete the DM campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
+      const updated = dmCampaigns.filter(c => c.id !== id);
+      setDmCampaigns(updated);
+      localStorage.setItem("tt_dm_history", JSON.stringify(updated));
+    }
+  };
+
+  const handleDeletePlayerCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const confirmation = prompt(`Are you sure you want to delete the Player campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
+      const updated = playerCampaigns.filter(c => c.id !== id);
+      setPlayerCampaigns(updated);
+      localStorage.setItem("tt_player_history", JSON.stringify(updated));
+      localStorage.removeItem(`tt_campaign_char_${id}`);
     }
   };
 
@@ -1022,9 +1042,18 @@ export default function ProfilePage() {
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500`} />
                         <span className="text-sm font-bold text-theme-text-primary">{camp.name}</span>
                       </div>
-                      <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                        DM
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+                          DM
+                        </span>
+                        <button
+                          onClick={(e) => handleDeleteDmCampaign(e, camp.id, camp.name)}
+                          className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all"
+                          title="Remove Campaign"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1052,9 +1081,18 @@ export default function ProfilePage() {
                           <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500`} />
                           <span className="text-sm font-bold text-theme-text-primary">{camp.name}</span>
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500">
-                          Player
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                            Player
+                          </span>
+                          <button
+                            onClick={(e) => handleDeletePlayerCampaign(e, camp.id, camp.name)}
+                            className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all"
+                            title="Remove Campaign"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <div className="text-[10px] pl-4 text-slate-500 font-medium">
                         Active Hero: <span className="text-theme-text-primary font-bold">{getCampaignCharacterName(camp.id)}</span>

@@ -34,15 +34,11 @@ function CharacterCard({
   onSelect: () => void;
   onDelete: () => void;
 }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
-
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirmDelete) {
+    const confirmation = prompt(`Are you sure you want to delete ${character.name}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
       onDelete();
-    } else {
-      setConfirmDelete(true);
-      setTimeout(() => setConfirmDelete(false), 3000);
     }
   };
 
@@ -54,12 +50,8 @@ function CharacterCard({
       {/* Delete button */}
       <button
         onClick={handleDeleteClick}
-        className={`absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 ${
-          confirmDelete
-            ? "bg-red-500 text-white"
-            : "opacity-0 group-hover:opacity-100 text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/20"
-        }`}
-        title={confirmDelete ? "Tap again to confirm delete" : "Delete character"}
+        className="absolute top-3 right-3 p-1.5 rounded-lg transition-all z-10 opacity-0 group-hover:opacity-100 text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/20"
+        title="Delete character"
       >
         <Trash2 className="w-3.5 h-3.5" />
       </button>

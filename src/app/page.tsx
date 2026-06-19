@@ -65,8 +65,36 @@ export default function Home() {
 
   const handleDeleteCharacter = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    deleteCharacter(id);
-    setCharacters(getCharacters());
+    const char = characters.find(c => c.id === id);
+    const charName = char ? char.name : "this character";
+    const confirmation = prompt(`Are you sure you want to delete ${charName}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
+      deleteCharacter(id);
+      setCharacters(getCharacters());
+    }
+  };
+
+  const handleDeleteDmCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const confirmation = prompt(`Are you sure you want to delete the DM campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
+      const updated = recentDmCampaigns.filter(c => c.id !== id);
+      setRecentDmCampaigns(updated);
+      localStorage.setItem("tt_dm_history", JSON.stringify(updated));
+    }
+  };
+
+  const handleDeletePlayerCampaign = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const confirmation = prompt(`Are you sure you want to delete the Player campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
+    if (confirmation === "DELETE") {
+      const updated = joinedCampaigns.filter(c => c.id !== id);
+      setJoinedCampaigns(updated);
+      localStorage.setItem("tt_player_history", JSON.stringify(updated));
+      localStorage.removeItem(`tt_campaign_char_${id}`);
+    }
   };
 
   return (
@@ -148,17 +176,22 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {recentDmCampaigns.map((camp) => (
-                    <Link
+                    <div
                       key={camp.id}
-                      href={`/dm/${camp.id}`}
                       className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link href={`/dm/${camp.id}`} className="flex items-center gap-3 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
                         <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={(e) => handleDeleteDmCampaign(e, camp.id, camp.name)}
+                        className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0 ml-2"
+                        title="Remove Campaign"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -233,17 +266,22 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-1 gap-2">
                   {joinedCampaigns.map((camp) => (
-                    <Link
+                    <div
                       key={camp.id}
-                      href={`/player/${camp.id}`}
                       className="group flex items-center justify-between p-3.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-btn-sec-text hover:bg-theme-btn-sec-bg/85 transition-all"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link href={`/player/${camp.id}`} className="flex items-center gap-3 flex-1">
                         <div className={`w-1.5 h-1.5 rounded-full bg-${camp.themeColor}-500 shadow-[0_0_8px_rgba(var(--color-${camp.themeColor}-500),0.5)]`} />
                         <span className="text-sm font-bold text-theme-text-primary group-hover:text-theme-text-primary/80 transition-colors">{camp.name}</span>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 text-theme-text-tertiary group-hover:text-amber-500 group-hover:translate-x-0.5 transition-all" />
-                    </Link>
+                      </Link>
+                      <button
+                        onClick={(e) => handleDeletePlayerCampaign(e, camp.id, camp.name)}
+                        className="p-1 rounded-lg text-theme-text-tertiary hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0 ml-2"
+                        title="Remove Campaign"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
