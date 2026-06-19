@@ -112,9 +112,13 @@ export default function ProfilePage() {
       unsubscribeAuth = onAuthStateChanged(auth, (user) => {
         setFirebaseUser(user);
         setAuthLoading(false);
+        if (!user) {
+          router.replace("/login");
+        }
       });
     } else {
       setAuthLoading(false);
+      router.replace("/login");
     }
     return () => {
       unsubscribeAuth();
