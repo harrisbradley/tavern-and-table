@@ -41,6 +41,7 @@ export default function ProfilePage() {
   const [infoSaved, setInfoSaved] = useState(false);
   const [pwSaved, setPwSaved] = useState(false);
   const [pwError, setPwError] = useState("");
+  const [hasPassword, setHasPassword] = useState(false);
 
   // History States
   const [dmCampaigns, setDmCampaigns] = useState<CampaignInfo[]>([]);
@@ -79,6 +80,9 @@ export default function ProfilePage() {
 
     // Load local characters
     setLocalCharacters(getCharacters());
+
+    // Check passcode status
+    setHasPassword(!!localStorage.getItem("tt_profile_password"));
   }, []);
 
   const handleInfoSave = (e: React.FormEvent) => {
@@ -94,8 +98,8 @@ export default function ProfilePage() {
     setPwSaved(false);
 
     // Validate
-    const savedPassword = localStorage.getItem("tt_profile_password") || "admin123";
-    if (currentPassword !== savedPassword) {
+    const savedPassword = localStorage.getItem("tt_profile_password");
+    if (savedPassword && currentPassword !== savedPassword) {
       setPwError("Current password is incorrect.");
       return;
     }
@@ -109,6 +113,7 @@ export default function ProfilePage() {
     }
 
     localStorage.setItem("tt_profile_password", newPassword);
+    setHasPassword(true);
     setPwSaved(true);
     setCurrentPassword("");
     setNewPassword("");
@@ -239,17 +244,23 @@ export default function ProfilePage() {
             </div>
 
             <form onSubmit={handlePasswordSave} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Password</label>
-                <input
-                  type="password"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
-                />
-              </div>
+              {hasPassword ? (
+                <div className="space-y-1.5">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-950/60 border border-slate-850 rounded-xl px-4 py-3 text-slate-200 text-sm placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                  />
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 text-slate-450 text-xs leading-relaxed">
+                  No passcode set on this device yet. Enter a new password below to secure your local profile.
+                </div>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
