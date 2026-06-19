@@ -9,6 +9,7 @@ import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/char
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import ThemeToggle from "@/components/ThemeToggle";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 
 interface RecentCampaign {
@@ -63,38 +64,67 @@ export default function Home() {
     }
   };
 
+  // Delete confirm modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalConfig, setDeleteModalConfig] = useState<{
+    title: string;
+    description: string;
+    itemName: string;
+    onConfirm: () => void;
+  }>({
+    title: "",
+    description: "",
+    itemName: "",
+    onConfirm: () => {},
+  });
+
   const handleDeleteCharacter = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     const char = characters.find(c => c.id === id);
     const charName = char ? char.name : "this character";
-    const confirmation = prompt(`Are you sure you want to delete ${charName}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      deleteCharacter(id);
-      setCharacters(getCharacters());
-    }
+    setDeleteModalConfig({
+      title: "Delete Character",
+      description: "Are you sure you want to permanently delete your hero",
+      itemName: charName,
+      onConfirm: () => {
+        deleteCharacter(id);
+        setCharacters(getCharacters());
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   const handleDeleteDmCampaign = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     e.preventDefault();
-    const confirmation = prompt(`Are you sure you want to delete the DM campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      const updated = recentDmCampaigns.filter(c => c.id !== id);
-      setRecentDmCampaigns(updated);
-      localStorage.setItem("tt_dm_history", JSON.stringify(updated));
-    }
+    setDeleteModalConfig({
+      title: "Delete DM Campaign",
+      description: "Are you sure you want to delete the campaign registry for",
+      itemName: name,
+      onConfirm: () => {
+        const updated = recentDmCampaigns.filter(c => c.id !== id);
+        setRecentDmCampaigns(updated);
+        localStorage.setItem("tt_dm_history", JSON.stringify(updated));
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   const handleDeletePlayerCampaign = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     e.preventDefault();
-    const confirmation = prompt(`Are you sure you want to delete the Player campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      const updated = joinedCampaigns.filter(c => c.id !== id);
-      setJoinedCampaigns(updated);
-      localStorage.setItem("tt_player_history", JSON.stringify(updated));
-      localStorage.removeItem(`tt_campaign_char_${id}`);
-    }
+    setDeleteModalConfig({
+      title: "Delete Player Campaign",
+      description: "Are you sure you want to leave and delete references to the campaign",
+      itemName: name,
+      onConfirm: () => {
+        const updated = joinedCampaigns.filter(c => c.id !== id);
+        setJoinedCampaigns(updated);
+        localStorage.setItem("tt_player_history", JSON.stringify(updated));
+        localStorage.removeItem(`tt_campaign_char_${id}`);
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   return (
@@ -374,6 +404,15 @@ export default function Home() {
       <div className="mt-16 text-center text-xs text-theme-text-tertiary font-medium tracking-wide z-10 uppercase">
         Optimized for Mobile viewports &bull; Powered by 3D Physics Dice
       </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={deleteModalConfig.onConfirm}
+        title={deleteModalConfig.title}
+        description={deleteModalConfig.description}
+        itemName={deleteModalConfig.itemName}
+      />
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { Plus, Trash2, Sparkles, Shield, Zap, Eye, Heart } from "lucide-react";
 import { Character, CLASS_DISPLAY_NAMES, RACE_DISPLAY_NAMES } from "@/types/character";
 import { deleteCharacter, setLastCharacterId } from "@/lib/characterEngine";
 import { deletePlayerProfile } from "@/lib/syncEngine";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 interface Props {
   characters: Character[];
@@ -36,10 +37,7 @@ function CharacterCard({
 }) {
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const confirmation = prompt(`Are you sure you want to delete ${character.name}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      onDelete();
-    }
+    onDelete();
   };
 
   return (
@@ -111,12 +109,23 @@ function CharacterCard({
 }
 
 export default function CharacterSelect({ characters, onSelect, onCharactersChange, campaignId, isNested = false }: Props) {
-  const handleDelete = (id: string) => {
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
+
+  const handleDeleteRequest = (char: Character) => {
+    setCharacterToDelete(char);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!characterToDelete) return;
+    const id = characterToDelete.id;
     deleteCharacter(id);
     if (campaignId) {
       deletePlayerProfile(campaignId, id).catch(err => console.error("Failed to delete player profile sync:", err));
     }
     onCharactersChange(characters.filter((c) => c.id !== id));
+    setCharacterToDelete(null);
   };
 
   const handleSelect = (character: Character) => {
@@ -132,7 +141,7 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
             key={char.id}
             character={char}
             onSelect={() => handleSelect(char)}
-            onDelete={() => handleDelete(char.id)}
+            onDelete={() => handleDeleteRequest(char)}
           />
         ))}
       </div>
@@ -145,6 +154,15 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
         <Plus className="w-4 h-4" />
         Create New Character
       </Link>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Character"
+        description="Are you sure you want to permanently delete your hero"
+        itemName={characterToDelete?.name || ""}
+      />
     </div>
   );
 

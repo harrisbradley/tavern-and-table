@@ -22,6 +22,7 @@ import {
   updateProfile
 } from "firebase/auth";
 import ThemeToggle from "@/components/ThemeToggle";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 interface ProfileInfo {
   displayName: string;
@@ -153,45 +154,74 @@ export default function ProfilePage() {
     }
   };
 
+  // Delete confirm modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalConfig, setDeleteModalConfig] = useState<{
+    title: string;
+    description: string;
+    itemName: string;
+    onConfirm: () => void;
+  }>({
+    title: "",
+    description: "",
+    itemName: "",
+    onConfirm: () => {},
+  });
+
   const handleDeleteClick = (id: string) => {
     const char = localCharacters.find(c => c.id === id);
     const charName = char ? char.name : "this character";
-    const confirmation = prompt(`Are you sure you want to delete ${charName}? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      deleteCharacter(id);
-      playerCampaigns.forEach((camp) => {
-        const activeCharId = localStorage.getItem(`tt_campaign_char_${camp.id}`);
-        if (activeCharId === id) {
-          localStorage.removeItem(`tt_campaign_char_${camp.id}`);
-          deletePlayerProfile(camp.id, id).catch(err => console.error("Failed to delete synced player profile:", err));
-        }
-      });
-      const updatedList = localCharacters.filter(c => c.id !== id);
-      setLocalCharacters(updatedList);
-    }
+    setDeleteModalConfig({
+      title: "Delete Character",
+      description: "Are you sure you want to permanently delete your hero",
+      itemName: charName,
+      onConfirm: () => {
+        deleteCharacter(id);
+        playerCampaigns.forEach((camp) => {
+          const activeCharId = localStorage.getItem(`tt_campaign_char_${camp.id}`);
+          if (activeCharId === id) {
+            localStorage.removeItem(`tt_campaign_char_${camp.id}`);
+            deletePlayerProfile(camp.id, id).catch(err => console.error("Failed to delete synced player profile:", err));
+          }
+        });
+        const updatedList = localCharacters.filter(c => c.id !== id);
+        setLocalCharacters(updatedList);
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   const handleDeleteDmCampaign = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     e.preventDefault();
-    const confirmation = prompt(`Are you sure you want to delete the DM campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      const updated = dmCampaigns.filter(c => c.id !== id);
-      setDmCampaigns(updated);
-      localStorage.setItem("tt_dm_history", JSON.stringify(updated));
-    }
+    setDeleteModalConfig({
+      title: "Delete DM Campaign",
+      description: "Are you sure you want to delete the campaign registry for",
+      itemName: name,
+      onConfirm: () => {
+        const updated = dmCampaigns.filter(c => c.id !== id);
+        setDmCampaigns(updated);
+        localStorage.setItem("tt_dm_history", JSON.stringify(updated));
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   const handleDeletePlayerCampaign = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     e.preventDefault();
-    const confirmation = prompt(`Are you sure you want to delete the Player campaign "${name}"? This cannot be undone.\n\nType 'DELETE' to confirm:`);
-    if (confirmation === "DELETE") {
-      const updated = playerCampaigns.filter(c => c.id !== id);
-      setPlayerCampaigns(updated);
-      localStorage.setItem("tt_player_history", JSON.stringify(updated));
-      localStorage.removeItem(`tt_campaign_char_${id}`);
-    }
+    setDeleteModalConfig({
+      title: "Delete Player Campaign",
+      description: "Are you sure you want to leave and delete references to the campaign",
+      itemName: name,
+      onConfirm: () => {
+        const updated = playerCampaigns.filter(c => c.id !== id);
+        setPlayerCampaigns(updated);
+        localStorage.setItem("tt_player_history", JSON.stringify(updated));
+        localStorage.removeItem(`tt_campaign_char_${id}`);
+      }
+    });
+    setDeleteModalOpen(true);
   };
 
   useEffect(() => {
@@ -1109,6 +1139,15 @@ export default function ProfilePage() {
         </div>
         
       </div>
+
+      <DeleteConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={deleteModalConfig.onConfirm}
+        title={deleteModalConfig.title}
+        description={deleteModalConfig.description}
+        itemName={deleteModalConfig.itemName}
+      />
     </main>
   );
 }
