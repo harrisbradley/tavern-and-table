@@ -46,6 +46,7 @@ export default function JoinCampaignPage({ params }: { params: Promise<{ campaig
   const handleSelect = (character: Character) => {
     // Save as last active character
     setLastCharacterId(character.id);
+    localStorage.setItem(`tt_campaign_char_${campaignId}`, character.id);
     // Redirect to the player dashboard for this campaign
     router.push(`/player/${campaignId}`);
   };

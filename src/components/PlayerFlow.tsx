@@ -26,7 +26,7 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
 
     setCharacters(chars);
 
-    const lastId = getLastCharacterId();
+    const lastId = localStorage.getItem(`tt_campaign_char_${campaignId}`) || getLastCharacterId();
     const last = lastId ? getCharacterById(lastId) : null;
     if (last) {
       setActiveCharacter(last);
@@ -34,9 +34,10 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
     } else {
       setView("select");
     }
-  }, [router]);
+  }, [router, campaignId]);
 
   const handleSelect = (character: Character) => {
+    localStorage.setItem(`tt_campaign_char_${campaignId}`, character.id);
     setActiveCharacter(character);
     setView("playing");
   };

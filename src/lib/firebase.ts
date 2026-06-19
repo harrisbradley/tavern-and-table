@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -17,12 +18,14 @@ const isFirebaseConfigured =
 
 let app;
 let db: any = null;
+let auth: any = null;
 
 if (isFirebaseConfigured) {
   if (typeof window !== "undefined") {
     try {
       app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
       db = getFirestore(app);
+      auth = getAuth(app);
       console.log("Firebase initialized successfully on client in sync mode.");
     } catch (err) {
       console.error("Firebase client initialization failed:", err);
@@ -35,5 +38,5 @@ if (isFirebaseConfigured) {
   console.log(`Firebase config not found or incomplete (${envName}). Operating in local BroadcastChannel fallback sync mode.`);
 }
 
-export { db, isFirebaseConfigured };
+export { db, auth, isFirebaseConfigured };
 export default db;

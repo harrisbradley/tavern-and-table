@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Shield, Swords, Sparkles, Clock, ArrowRight, X, Trash2, Heart, Plus, Zap } from "lucide-react";
+import { Shield, Swords, Sparkles, Clock, ArrowRight, X, Trash2, Heart, Plus, Zap, User } from "lucide-react";
 import { getCharacters, deleteCharacter } from "@/lib/characterEngine";
 import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/character";
 
@@ -56,6 +56,17 @@ export default function Home() {
     <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
       
+      {/* Top Header */}
+      <div className="absolute top-6 left-6 right-6 flex justify-end z-20 max-w-4xl mx-auto w-full">
+        <Link
+          href="/profile"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900 text-slate-300 hover:text-white transition-all text-xs font-bold uppercase tracking-wider"
+        >
+          <User className="w-4 h-4 text-amber-500 animate-pulse" />
+          Profile
+        </Link>
+      </div>
+
       {/* Hero section */}
       <div className="text-center z-10 space-y-4 mb-12 animate-fade-in">
         <div className="flex items-center justify-center gap-3 mb-2">
