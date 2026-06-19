@@ -16,7 +16,7 @@ export default function LevelUpPanel({ character, onConfirm, onCancel }: Props) 
   const profChanged = info.newProficiencyBonus !== info.oldProficiencyBonus;
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-b from-[#0f0b1e] via-[#090b12] to-[#040508] overflow-y-auto">
+    <div className="absolute inset-0 z-50 flex flex-col bg-gradient-to-b from-theme-radial-start via-theme-radial-mid to-theme-radial-end overflow-y-auto">
       {/* Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80%] h-48 rounded-full bg-amber-500/10 blur-[80px] pointer-events-none" />
 

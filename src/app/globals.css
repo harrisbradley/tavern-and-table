@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* dice-box creates a canvas with no sizing CSS — force it to fill its fixed container */
 .dice-box-canvas {
   position: absolute;
@@ -9,6 +11,63 @@
 }
 
 :root {
+  /* Default: Light mode values */
+  --slate-50: #0f172a;
+  --slate-100: #1e293b;
+  --slate-200: #334155;
+  --slate-300: #475569;
+  --slate-350: #64748b;
+  --slate-400: #64748b;
+  --slate-450: #94a3b8;
+  --slate-500: #94a3b8;
+  --slate-550: #cbd5e1;
+  --slate-555: #cbd5e1;
+  --slate-600: #cbd5e1;
+  --slate-650: #cbd5e1;
+  --slate-700: #cbd5e1;
+  --slate-800: #cbd5e1;
+  --slate-850: #e2e8f0;
+  --slate-900: #f1f5f9;
+  --slate-950: #f8fafc;
+
+  --theme-radial-start: #f5f3ff;
+  --theme-radial-mid: #f8fafc;
+  --theme-radial-end: #e2e8f0;
+  --theme-bg: #f1f5f9;
+  
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --card-border: #cbd5e1;
+  --accent-gold: #d97706;
+  --accent-gold-hover: #b45309;
+}
+
+.dark {
+  /* Dark mode values */
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-350: #94a3b8;
+  --slate-400: #94a3b8;
+  --slate-450: #64748b;
+  --slate-500: #64748b;
+  --slate-550: #475569;
+  --slate-555: #475569;
+  --slate-600: #475569;
+  --slate-650: #334155;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-850: #151f32;
+  --slate-900: #0f172a;
+  --slate-950: #020617;
+
+  --theme-radial-start: #1e1135;
+  --theme-radial-mid: #090b12;
+  --theme-radial-end: #040508;
+  --theme-bg: #040508;
+  
   --background: #0b0f19;
   --foreground: #f1f5f9;
   --card-bg: #131b2e;
@@ -29,6 +88,29 @@
   
   --animate-shake: shake 0.5s ease-in-out;
   --animate-pulse-glow: pulse-glow 2s infinite alternate;
+
+  --color-slate-50: var(--slate-50);
+  --color-slate-100: var(--slate-100);
+  --color-slate-200: var(--slate-200);
+  --color-slate-300: var(--slate-300);
+  --color-slate-350: var(--slate-350);
+  --color-slate-400: var(--slate-400);
+  --color-slate-450: var(--slate-450);
+  --color-slate-500: var(--slate-500);
+  --color-slate-550: var(--slate-550);
+  --color-slate-555: var(--slate-555);
+  --color-slate-600: var(--slate-600);
+  --color-slate-650: var(--slate-650);
+  --color-slate-700: var(--slate-700);
+  --color-slate-800: var(--slate-800);
+  --color-slate-850: var(--slate-850);
+  --color-slate-900: var(--slate-900);
+  --color-slate-950: var(--slate-950);
+
+  --color-theme-radial-start: var(--theme-radial-start);
+  --color-theme-radial-mid: var(--theme-radial-mid);
+  --color-theme-radial-end: var(--theme-radial-end);
+  --color-theme-bg: var(--theme-bg);
 }
 
 @keyframes shake {
@@ -43,10 +125,11 @@
 }
 
 body {
-  background-color: #080b11;
+  background-color: var(--theme-bg);
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Beautiful custom scrollbar for retro/modern style */
@@ -54,14 +137,14 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080b11;
+  background: var(--theme-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--slate-800);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: var(--slate-700);
 }
 
 /* Simulated Mobile Viewport Frame for Desktop view */
@@ -71,7 +154,7 @@ body {
   height: 100%;
   max-height: 892px;
   background-color: var(--background);
-  border: 1px solid #1e293b;
+  border: 1px solid var(--slate-800);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   border-radius: 40px;
   position: relative;
@@ -85,7 +168,7 @@ body {
   .phone-bezel {
     border: 12px solid #000;
     border-radius: 48px;
-    box-shadow: 0 0 0 2px #334155, 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 0 0 2px var(--slate-800), 0 25px 60px -15px rgba(0, 0, 0, 0.8);
   }
 }
 

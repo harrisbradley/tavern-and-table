@@ -2,6 +2,7 @@
 
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 import { 
   ArrowLeft, 
   Shield, 
@@ -508,6 +509,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
 
         {/* Connection Status & Campaign Info */}
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             onClick={handleCopyInvite}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-bold transition-all select-none ${

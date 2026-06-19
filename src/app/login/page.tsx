@@ -134,14 +134,14 @@ export default function LoginPage() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex items-center justify-center p-6 text-slate-500 text-sm font-bold uppercase tracking-wider animate-pulse">
+      <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex items-center justify-center p-6 text-slate-500 text-sm font-bold uppercase tracking-wider animate-pulse">
         Checking credentials...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-y-auto p-6 flex flex-col items-center justify-center">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-y-auto p-6 flex flex-col items-center justify-center">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
 
       {/* Back Button */}

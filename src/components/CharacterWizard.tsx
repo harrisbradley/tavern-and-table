@@ -238,7 +238,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
   // Success Step (Prompt to join campaign)
   if (step === "success" && createdCharacter) {
     return (
-      <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col items-center justify-center p-6 text-center">
         <div className="z-10 space-y-8 animate-fade-in max-w-md">
           <div className="w-20 h-20 bg-emerald-500/10 border border-emerald-500/20 rounded-[32px] flex items-center justify-center mx-auto shadow-2xl">
             <CheckCircle2 className="w-10 h-10 text-emerald-400" />
@@ -281,7 +281,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
   // Mode selection — shown before the stepped wizard begins
   if (!mode) {
     return (
-      <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">   
+      <div className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col">   
         <div className="flex items-center px-4 pt-6 pb-4 max-w-2xl mx-auto w-full">
           <button
             onClick={() => router.push("/")}
@@ -349,7 +349,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
   }
 
   return (
-    <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">     
+    <div className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col">     
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-6 pb-4 max-w-2xl mx-auto w-full">
         <button
@@ -665,7 +665,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
       </div>
 
       {/* Fixed bottom action bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#040508] via-[#040508]/95 to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-theme-bg via-theme-bg/95 to-transparent">
         <div className="max-w-2xl mx-auto">
           {step === "review" ? (
             <button

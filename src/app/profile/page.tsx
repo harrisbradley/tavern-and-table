@@ -19,6 +19,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile
 } from "firebase/auth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface ProfileInfo {
   displayName: string;
@@ -264,7 +265,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-y-auto p-6 flex flex-col items-center">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-y-auto p-6 flex flex-col items-center">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
 
       {/* Header */}
@@ -280,7 +281,7 @@ export default function ProfilePage() {
           <Sparkles className="w-4 h-4 text-amber-500" />
           <span className="text-amber-500 text-xs font-black uppercase tracking-widest">Profile Page</span>
         </div>
-        <div className="w-16" />
+        <ThemeToggle />
       </div>
 
       {/* Profile Container */}

@@ -8,6 +8,7 @@ import { Character } from "@/types/character";
 import { getCharacters, getLastCharacterId, getCharacterById, setLastCharacterId } from "@/lib/characterEngine";
 import CharacterSelect from "./CharacterSelect";
 import PlayerDashboard from "./PlayerDashboard";
+import ThemeToggle from "./ThemeToggle";
 
 type View = "loading" | "select" | "playing";
 
@@ -51,7 +52,7 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
 
   if (view === "loading") {
     return (
-      <div className="min-h-screen w-full bg-[#040508] flex items-center justify-center">
+      <div className="min-h-screen w-full bg-theme-bg flex items-center justify-center">
         <div className="text-slate-600 text-sm animate-pulse">Loading...</div>
       </div>
     );
@@ -70,7 +71,7 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
 
   if (view === "playing" && activeCharacter) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-radial from-[#131722] via-[#090b11] to-[#040508] relative overflow-hidden sm:p-6">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-hidden sm:p-6">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-40" />
 
         {/* Dashboard wrapper - acts as a phone frame on small/medium screens, and expands to a full dashboard panel on tablet/desktop */}
@@ -91,18 +92,21 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
           <div className="hidden sm:block md:hidden absolute top-2 left-1/2 -translate-x-1/2 w-28 h-4.5 bg-slate-950 rounded-full z-30" />
 
           {/* Mobile header (Exit, Title, Switch) - visible on mobile < md */}
-          <div className="flex md:hidden justify-between items-center px-4 py-3 bg-[#0d1322] border-b border-slate-900 select-none shrink-0">
+          <div className="flex md:hidden justify-between items-center px-4 py-3 bg-slate-950/60 backdrop-blur-md border-b border-slate-900 select-none shrink-0">
             <Link href="/" className="text-slate-400 flex items-center gap-1 text-xs font-bold">
               <ArrowLeft className="w-3.5 h-3.5" />
               Exit
             </Link>
             <span className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">Combat Dashboard</span>
-            <button
-              onClick={handleSwitchCharacter}
-              className="text-slate-500 hover:text-amber-400 text-xs font-bold transition-colors"
-            >
-              ⇄ Switch
-            </button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={handleSwitchCharacter}
+                className="text-slate-550 hover:text-amber-400 text-xs font-bold transition-colors ml-1"
+              >
+                ⇄ Switch
+              </button>
+            </div>
           </div>
 
           {/* Desktop/Tablet Header - visible on >= md */}
@@ -119,12 +123,15 @@ export default function PlayerFlow({ campaignId }: { campaignId: string }) {
                 Campaign Dashboard
               </h1>
             </div>
-            <button
-              onClick={handleSwitchCharacter}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-amber-400 transition-all text-xs font-semibold hover:border-amber-800/50"
-            >
-              ⇄ Switch Hero
-            </button>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <button
+                onClick={handleSwitchCharacter}
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-amber-400 transition-all text-xs font-semibold hover:border-amber-800/50"
+              >
+                ⇄ Switch Hero
+              </button>
+            </div>
           </div>
 
           {/* Main Dashboard Panel */}

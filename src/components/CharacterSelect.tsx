@@ -161,7 +161,7 @@ export default function CharacterSelect({ characters, onSelect, onCharactersChan
   }
 
   return (
-    <div className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col">
+    <div className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col">
       {/* Header */}
       <div className="px-4 pt-8 pb-4 max-w-2xl mx-auto w-full">
         <div className="flex items-center gap-2 mb-1">

@@ -8,6 +8,7 @@ import { getCharacters, deleteCharacter } from "@/lib/characterEngine";
 import { Character, RACE_DISPLAY_NAMES, CLASS_DISPLAY_NAMES } from "@/types/character";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
+import ThemeToggle from "@/components/ThemeToggle";
 
 
 interface RecentCampaign {
@@ -69,11 +70,12 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-[#1e1135] via-[#090b12] to-[#040508] relative overflow-hidden">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end relative overflow-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
       
       {/* Top Header */}
-      <div className="absolute top-6 left-6 right-6 flex justify-end z-20 max-w-4xl mx-auto w-full">
+      <div className="absolute top-6 left-6 right-6 flex justify-end items-center gap-3 z-20 max-w-4xl mx-auto w-full">
+        <ThemeToggle />
         {authLoading ? (
           <div className="px-4 py-2.5 rounded-2xl bg-slate-900/40 border border-slate-800/60 text-slate-550 text-xs font-bold uppercase tracking-wider animate-pulse">
             Checking status...

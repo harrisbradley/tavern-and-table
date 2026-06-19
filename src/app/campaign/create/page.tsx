@@ -55,7 +55,7 @@ export default function CreateCampaignPage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-radial from-[#1e1135] via-[#090b12] to-[#040508] flex flex-col items-center p-6 sm:p-12">
+    <main className="min-h-screen w-full bg-radial from-theme-radial-start via-theme-radial-mid to-theme-radial-end flex flex-col items-center p-6 sm:p-12">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
 
       <div className="z-10 w-full max-w-2xl space-y-8 animate-fade-in">
