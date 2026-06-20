@@ -149,7 +149,19 @@ export default function PlayerDashboard({ character, campaignId }: Props) {
 
     const unsubscribePlayers = subscribeToPlayers(campaignId, (playersList) => {
       const me = playersList.find((p) => p.id === character.id);
-      if (me) setCurrentHp(me.currentHp);
+      if (me) {
+        setCurrentHp(me.currentHp);
+        setMaxHp(me.maxHp);
+        
+        // Sync level if it is present in the className (e.g. "Level 3 Wizard")
+        const match = me.className.match(/Level\s+(\d+)/i);
+        if (match) {
+          const lvl = parseInt(match[1]);
+          if (!isNaN(lvl)) {
+            setCurrentLevel(lvl);
+          }
+        }
+      }
 
       const others = playersList.filter((p) => p.id !== character.id);
       setPartyMembers(others);
