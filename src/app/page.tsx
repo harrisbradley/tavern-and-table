@@ -132,7 +132,7 @@ export default function Home() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-20" />
       
       {/* Top Header */}
-      <div className="absolute top-6 left-6 right-6 flex justify-end items-center gap-3 z-20 max-w-4xl mx-auto w-full">
+      <div className="absolute top-6 left-6 right-6 flex justify-end items-center gap-3 z-20 max-w-4xl mx-auto">
         <ThemeToggle />
         {authLoading ? (
           <div className="px-4 py-2.5 rounded-2xl bg-theme-btn-sec-bg border border-theme-btn-sec-border text-theme-text-tertiary text-xs font-bold uppercase tracking-wider animate-pulse">
