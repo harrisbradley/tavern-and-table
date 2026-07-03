@@ -247,7 +247,7 @@ export default function CharacterWizard({ campaignId }: CharacterWizardProps) {
           <div className="space-y-2">
             <h2 className="text-3xl font-black text-theme-text-primary tracking-tight">Hero Created!</h2>
             <p className="text-theme-text-secondary font-medium leading-relaxed px-4">
-              Your legend as <span className="text-indigo-650 dark:text-indigo-300 font-bold">{createdCharacter.name}</span> begins now.
+              Your legend as <span className="text-indigo-600 dark:text-indigo-300 font-bold">{createdCharacter.name}</span> begins now.
             </p>
           </div>
 

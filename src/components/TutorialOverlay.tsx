@@ -266,7 +266,7 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
             <div className="flex items-center gap-4 bg-theme-btn-sec-bg border border-theme-btn-sec-border p-4 rounded-2xl">
               <div className="text-center">
                 <span className="text-xs text-theme-text-tertiary block font-bold uppercase tracking-wider">Total</span>
-                <span className="text-4xl font-extrabold text-indigo-650 dark:text-indigo-400">{step.rollTotal}</span>
+                <span className="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400">{step.rollTotal}</span>
               </div>
               <div className="text-xs text-theme-text-secondary border-l border-theme-btn-sec-border/60 pl-4 py-1 leading-relaxed">
                 Check: <span className="text-theme-text-primary font-bold">Stealth (Dexterity)</span> <br/>
@@ -276,11 +276,11 @@ export default function TutorialOverlay({ step, onClose, onRollDamage, compact }
 
             <div className="bg-indigo-550/5 dark:bg-indigo-500/5 border border-indigo-500/10 p-4 rounded-2xl space-y-2">
               <div className="flex gap-2">
-                <AlertCircle className="w-5 h-5 text-indigo-650 dark:text-indigo-400 shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
                 <h4 className="font-bold text-theme-text-primary text-sm">Tell your Dungeon Master</h4>
               </div>
               <p className="text-sm text-theme-text-secondary leading-relaxed font-medium pl-7">
-                Say: <strong className="text-indigo-650 dark:text-indigo-400 text-base">"I got a {step.rollTotal} for Stealth!"</strong>
+                Say: <strong className="text-indigo-600 dark:text-indigo-400 text-base">"I got a {step.rollTotal} for Stealth!"</strong>
               </p>
               <p className="text-xs text-theme-text-tertiary leading-relaxed pl-7">
                 The DM will compare this to the monster's Passive Perception. If your roll is higher, you are hidden!

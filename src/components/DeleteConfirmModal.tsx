@@ -63,7 +63,7 @@ export default function DeleteConfirmModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-350 hover:bg-slate-500/10 transition-all"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-500/10 transition-all"
           >
             <X className="w-4 h-4" />
           </button>

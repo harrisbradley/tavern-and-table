@@ -794,7 +794,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
               <div className="flex gap-2">
                 <button
                   onClick={handleAddPartyToInitiative}
-                  className="px-3 py-1.5 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-xs font-bold text-indigo-650 dark:text-indigo-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
+                  className="px-3 py-1.5 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase flex items-center gap-1.5 transition-all"
                 >
                   <Users className="w-3.5 h-3.5" />
                   Add Connected Party
@@ -856,7 +856,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                                 Monster
                               </span>
                             ) : (
-                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-650 dark:text-indigo-400 text-[9px] font-bold uppercase tracking-wider">
+                              <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-[9px] font-bold uppercase tracking-wider">
                                 Player
                               </span>
                             )}
@@ -1026,7 +1026,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                   <button
                     type="button"
                     onClick={handleRollFormInitiative}
-                    className="px-2 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-indigo-650 dark:text-indigo-400 text-xs transition-colors flex items-center justify-center"
+                    className="px-2 rounded-lg bg-theme-btn-sec-bg hover:border-theme-btn-sec-border/80 border border-theme-btn-sec-border text-indigo-600 dark:text-indigo-400 text-xs transition-colors flex items-center justify-center"
                     title="Quick roll d20"
                   >
                     Roll
@@ -1054,7 +1054,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                     onClick={() => setNewCombatantIsMonster(false)}
                     className={`px-3 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wide transition-all ${
                       !newCombatantIsMonster 
-                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-650 dark:text-indigo-400" 
+                        ? "bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400" 
                         : "text-theme-text-tertiary hover:text-theme-text-secondary"
                     }`}
                   >
@@ -1273,7 +1273,7 @@ export default function DmDashboard({ params }: { params: Promise<{ campaignId: 
                             onChange={(e) => setJournalPublished(e.target.checked)} 
                             className="sr-only peer" 
                           />
-                          <div className="w-8 h-4 bg-slate-350 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-650 dark:peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
+                          <div className="w-8 h-4 bg-slate-300 dark:bg-slate-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-indigo-600 dark:peer-checked:bg-indigo-600 peer-checked:after:bg-white"></div>
                         </label>
                       </div>
                     </div>
