@@ -425,7 +425,7 @@ export default function ProfilePage() {
       <div className="z-10 w-full max-w-4xl flex items-center justify-between pt-4 pb-8">
         <button
           onClick={() => router.push("/")}
-          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-350 transition-colors text-sm font-bold uppercase tracking-wider"
+          className="flex items-center gap-1.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors text-sm font-bold uppercase tracking-wider"
         >
           <ChevronLeft className="w-4 h-4" />
           Back
@@ -631,7 +631,7 @@ export default function ProfilePage() {
                           </div>
                           <button
                             onClick={cancelEditing}
-                            className="p-1 rounded-lg text-slate-500 hover:text-slate-350 hover:bg-slate-500/10 transition-all"
+                            className="p-1 rounded-lg text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-500/10 transition-all"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1035,7 +1035,7 @@ export default function ProfilePage() {
                         setAuthMode(authMode === "login" ? "register" : "login");
                         setAuthError("");
                       }}
-                      className="text-[10px] text-slate-550 hover:text-slate-350 font-bold transition-colors text-center py-1"
+                      className="text-[10px] text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 font-bold transition-colors text-center py-1"
                     >
                       {authMode === "login" 
                         ? "Don't have an account? Sign Up" 

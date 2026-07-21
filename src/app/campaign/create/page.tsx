@@ -116,7 +116,7 @@ export default function CreateCampaignPage() {
                 value={id}
                 onChange={(e) => setId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
                 placeholder="campaign-url-slug"
-                className="w-full bg-theme-input-bg border border-theme-input-border rounded-2xl pl-[175px] pr-5 py-4 text-indigo-650 dark:text-indigo-400 font-bold placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
+                className="w-full bg-theme-input-bg border border-theme-input-border rounded-2xl pl-[175px] pr-5 py-4 text-indigo-600 dark:text-indigo-400 font-bold placeholder:text-theme-text-tertiary focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/20 transition-all"
               />
             </div>
             <p className="text-[10px] text-theme-text-tertiary font-medium ml-1">
